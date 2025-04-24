@@ -70,7 +70,7 @@
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.10.2-beta.3",
     "@types/bun": "^1.2.10",
-    "@types/node": "^20.11.20",
+    "@types/node": "^22.15.0",
     "bumpp": "^10.1.0",
     "bun-plugin-dtsx": "^0.21.9",
     "bunfig": "^0.8.2",
