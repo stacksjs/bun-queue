@@ -8,39 +8,175 @@
 
 # bun-queue
 
-This is an opinionated TypeScript Starter kit to help kick-start development of your next Bun package.
+A Redis-backed job queue built for Bun, inspired by Laravel's Queue system and BullMQ.
 
 ## Features
 
-This Starter Kit comes pre-configured with the following:
+- Fast and efficient Redis-backed queue system
+- Support for delayed jobs, retries, and prioritization
+- Rate limiting capabilities
+- Job event tracking
+- Reliable job processing with concurrency control
+- Typesafe API
 
-- 🛠️ [Powerful Build Process](https://github.com/oven-sh/bun) - via Bun
-- 💪🏽 [Fully Typed APIs](https://www.typescriptlang.org/) - via TypeScript
-- 📚 [Documentation-ready](https://vitepress.dev/) - via VitePress
-- ⌘ [CLI & Binary](https://www.npmjs.com/package/bunx) - via Bun & CAC
-- 🧪 [Built With Testing In Mind](https://bun.sh/docs/cli/test) - pre-configured unit-testing powered by [Bun](https://bun.sh/docs/cli/test)
-- 🤖 [Renovate](https://renovatebot.com/) - optimized & automated PR dependency updates
-- 🎨 [ESLint](https://eslint.org/) - for code linting _(and formatting)_
-- 📦️ [pkg.pr.new](https://pkg.pr.new) - Continuous (Preview) Releases for your libraries
-- 🐙 [GitHub Actions](https://github.com/features/actions) - runs your CI _(fixes code style issues, tags releases & creates its changelogs, runs the test suite, etc.)_
-
-## Get Started
-
-It's rather simple to get your package development started:
+## Installation
 
 ```bash
-# you may use this GitHub template or the following command:
-bunx degit stacksjs/bun-starter my-pkg
-cd my-pkg
-
-bun i # install all deps
-bun run build # builds the library for production-ready use
-
-# after you have successfully committed, you may create a "release"
-bun run release # automates git commits, versioning, and changelog generations
+bun add bun-queue
 ```
 
-_Check out the package.json scripts for more commands._
+## Basic Usage
+
+```typescript
+import { Queue } from 'bun-queue'
+
+// Create a queue
+const emailQueue = new Queue('emails')
+
+// Add a job to the queue
+const job = await emailQueue.add({
+  to: 'user@example.com',
+  subject: 'Welcome',
+  body: 'Welcome to our platform!'
+})
+
+console.log(`Job ${job.id} added to the queue`)
+
+// Process jobs
+emailQueue.process(5, async (job) => {
+  const { to, subject, body } = job.data
+
+  // Update progress
+  await job.updateProgress(10)
+
+  // Simulate sending email
+  console.log(`Sending email to ${to} with subject: ${subject}`)
+  await new Promise(resolve => setTimeout(resolve, 1000))
+
+  await job.updateProgress(100)
+
+  return { sent: true, timestamp: Date.now() }
+})
+```
+
+## Job Options
+
+```typescript
+// Add a job with options
+await queue.add(
+  { task: 'process-pdf', url: 'https://example.com/document.pdf' },
+  {
+    delay: 5000, // delay for 5 seconds
+    attempts: 3, // retry up to 3 times
+    backoff: {
+      type: 'exponential', // 'fixed' or 'exponential'
+      delay: 1000, // milliseconds
+    },
+    priority: 10, // higher number = higher priority
+    removeOnComplete: true, // remove job when completed
+    lifo: false, // process in FIFO order (default)
+    jobId: 'custom-id', // provide custom job ID
+  }
+)
+```
+
+## Delayed Jobs
+
+```typescript
+// Add a job that will be processed after 30 seconds
+await queue.add(
+  { task: 'send-reminder' },
+  { delay: 30000 }
+)
+```
+
+## Job Management
+
+```typescript
+// Get a job by ID
+const job = await queue.getJob('job-id')
+
+// Get jobs by status
+const waitingJobs = await queue.getJobs('waiting')
+const activeJobs = await queue.getJobs('active')
+const completedJobs = await queue.getJobs('completed')
+const failedJobs = await queue.getJobs('failed')
+
+// Get job counts
+const counts = await queue.getJobCounts()
+console.log(counts) // { waiting: 5, active: 2, completed: 10, failed: 1, delayed: 3, paused: 0 }
+
+// Pause a queue
+await queue.pause()
+
+// Resume a queue
+await queue.resume()
+
+// Retry a failed job
+const failedJob = await queue.getJob('failed-job-id')
+await failedJob.retry()
+
+// Remove a job
+await job.remove()
+
+// Clear all jobs
+await queue.empty()
+```
+
+## Rate Limiting
+
+```typescript
+import { Queue, RateLimiter } from 'bun-queue'
+
+const queue = new Queue('api-calls')
+
+// Create a rate limiter (100 jobs per minute)
+const limiter = new RateLimiter(queue, {
+  max: 100,
+  duration: 60000
+})
+
+// Check if rate limited before adding job
+const { limited, remaining, resetIn } = await limiter.check()
+
+if (!limited) {
+  await queue.add({ url: 'https://api.example.com/endpoint' })
+  console.log(`Job added. ${remaining} requests remaining.`)
+}
+else {
+  console.log(`Rate limited. Try again in ${resetIn}ms.`)
+}
+```
+
+## Configuration
+
+```typescript
+import { Queue } from 'bun-queue'
+
+// Configure queue with options
+const queue = new Queue('tasks', {
+  redis: {
+    url: 'redis://username:password@localhost:6379'
+    // Or provide your own client
+    // client: myRedisClient
+  },
+  prefix: 'myapp', // prefix for Redis keys (default: 'queue')
+  defaultJobOptions: {
+    attempts: 5,
+    backoff: {
+      type: 'exponential',
+      delay: 5000
+    }
+  }
+})
+```
+
+## Environment Variables
+
+The library reads these environment variables (in order of precedence):
+
+- `REDIS_URL`: Redis connection string
+- Default is `redis://localhost:6379` if not set
 
 ## Testing
 
@@ -50,7 +186,7 @@ bun test
 
 ## Changelog
 
-Please see our [releases](https://github.com/stackjs/bun-bull/releases) page for more information on what has changed recently.
+Please see our [releases](https://github.com/stackjs/bun-queue/releases) page for more information on what has changed recently.
 
 ## Contributing
 
@@ -60,7 +196,7 @@ Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 
 For help, discussion about best practices, or any other conversation that would benefit from being searchable:
 
-[Discussions on GitHub](https://github.com/stacksjs/bun-starter/discussions)
+[Discussions on GitHub](<https://github.com/stacksjs/bun-> queue/discussions)
 
 For casual chit-chat with others using this package:
 
@@ -68,7 +204,7 @@ For casual chit-chat with others using this package:
 
 ## Postcardware
 
-“Software that is free, but hopes for a postcard.” We love receiving postcards from around the world showing where Stacks is being used! We showcase them on our website too.
+"Software that is free, but hopes for a postcard." We love receiving postcards from around the world showing where Stacks is being used! We showcase them on our website too.
 
 Our address: Stacks.js, 12665 Village Ln #2306, Playa Vista, CA 90094, United States 🌎
 
@@ -86,10 +222,10 @@ The MIT License (MIT). Please see [LICENSE](LICENSE.md) for more information.
 Made with 💙
 
 <!-- Badges -->
-[npm-version-src]: https://img.shields.io/npm/v/bun-bull?style=flat-square
-[npm-version-href]: https://npmjs.com/package/bun-bull
-[github-actions-src]: https://img.shields.io/github/actions/workflow/status/stacksjs/bun-starter/ci.yml?style=flat-square&branch=main
-[github-actions-href]: https://github.com/stacksjs/bun-starter/actions?query=workflow%3Aci
+[npm-version-src]: https://img.shields.io/npm/v/bun-queue?style=flat-square
+[npm-version-href]: https://npmjs.com/package/bun-queue
+[github-actions-src]: https://img.shields.io/github/actions/workflow/status/stacksjs/bun-queue/ci.yml?style=flat-square&branch=main
+[github-actions-href]: https://github.com/stacksjs/bun-queue/actions?query=workflow%3Aci
 
-<!-- [codecov-src]: https://img.shields.io/codecov/c/gh/stacksjs/bun-starter/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/stacksjs/bun-starter -->
+<!-- [codecov-src]: https://img.shields.io/codecov/c/gh/stacksjs/bun-queue/main?style=flat-square
+[codecov-href]: https://codecov.io/gh/stacksjs/bun-queue -->

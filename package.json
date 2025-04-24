@@ -1,8 +1,8 @@
 {
-  "name": "bun-bull",
+  "name": "bun-queue",
   "type": "module",
   "version": "0.0.0",
-  "description": "A simple TypeScript starter kit using Bun.",
+  "description": "A Redis-backed job queue built for Bun.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
   "homepage": "https://github.com/stacksjs/bun-starter#readme",
@@ -55,7 +55,8 @@
     "dev:docs": "bun --bun vitepress dev docs",
     "build:docs": "bun --bun vitepress build docs",
     "preview:docs": "bun --bun vitepress preview docs",
-    "typecheck": "bun --bun tsc --noEmit"
+    "typecheck": "bun --bun tsc --noEmit",
+    "example:basic": "bun examples/basic.ts"
   },
   "dependencies": {
     "@types/semver": "^7.7.0",
@@ -69,6 +70,7 @@
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.10.2-beta.3",
     "@types/bun": "^1.2.10",
+    "@types/node": "^20.11.20",
     "bumpp": "^10.1.0",
     "bun-plugin-dtsx": "^0.21.9",
     "bunfig": "^0.8.2",

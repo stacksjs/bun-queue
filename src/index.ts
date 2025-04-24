@@ -1,3 +1,8 @@
 export * from './config'
+export { Job } from './job'
+export { Queue } from './queue'
+export { RateLimiter } from './rate-limiter'
+export type { RateLimitResult } from './rate-limiter'
 export * from './types'
 export * from './utils'
+export { Worker } from './worker'
