@@ -1,6 +1,8 @@
 antfu
+backoffs
 biomejs
 booleanish
+bullmq
 bumpp
 bunfig
 bunx

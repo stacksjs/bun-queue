@@ -1,5 +1,6 @@
 import type { SandboxedOptions } from '../interfaces'
 import * as path from 'node:path'
+import process from 'node:process'
 import { Child } from './child'
 
 const CHILD_KILL_TIMEOUT = 30_000
@@ -31,11 +32,11 @@ export class ChildPool {
     let child = this.getFree(processFile).pop()
 
     if (child) {
-      this.retained[child.pid] = child
+      this.retained[child.pid as number] = child
       return child
     }
 
-    child = new Child(this.opts.mainFile, processFile, {
+    child = new Child(this.opts.mainFile!, processFile, {
       useWorkerThreads: this.opts.useWorkerThreads,
       workerForkOptions: this.opts.workerForkOptions,
       workerThreadsOptions: this.opts.workerThreadsOptions,
@@ -52,7 +53,7 @@ export class ChildPool {
         throw new Error('Child exited before it could be retained')
       }
 
-      this.retained[child.pid] = child
+      this.retained[child.pid as number] = child
 
       return child
     }
@@ -64,12 +65,12 @@ export class ChildPool {
   }
 
   release(child: Child): void {
-    delete this.retained[child.pid]
+    delete this.retained[child.pid as number]
     this.getFree(child.processFile).push(child)
   }
 
   remove(child: Child): void {
-    delete this.retained[child.pid]
+    delete this.retained[child.pid as number]
 
     const free = this.getFree(child.processFile)
 

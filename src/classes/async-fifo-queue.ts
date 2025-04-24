@@ -23,7 +23,7 @@ class LinkedList<T> {
       this.head = newNode
     }
     else {
-      this.tail.next = newNode
+      this.tail!.next = newNode
     }
 
     this.tail = newNode
@@ -37,7 +37,7 @@ class LinkedList<T> {
     }
     else {
       const head = this.head
-      this.head = this.head.next
+      this.head = this.head!.next
       this.length -= 1
 
       return head
@@ -91,7 +91,7 @@ export class AsyncFifoQueue<T> {
       .catch((err) => {
         // Ignore errors
         if (this.ignoreErrors) {
-          this.queue.push(undefined)
+          this.queue.push(undefined as unknown as T)
         }
         this.pending.delete(promise)
         this.rejectPromise(err)

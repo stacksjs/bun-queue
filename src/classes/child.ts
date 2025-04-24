@@ -50,18 +50,18 @@ export class Child extends EventEmitter {
     super()
   }
 
-  get pid() {
+  get pid(): number | undefined {
     if (this.childProcess) {
       return this.childProcess.pid
     }
-    else if (this.worker) {
+
+    if (this.worker) {
       // Worker threads pids can become negative when they are terminated
       // so we need to use the absolute value to index the retained object
       return Math.abs(this.worker.threadId)
     }
-    else {
-      throw new Error('No child process or worker thread')
-    }
+
+    throw new Error('No child process or worker thread')
   }
 
   get exitCode() {

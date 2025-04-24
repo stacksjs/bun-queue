@@ -74,5 +74,11 @@
   },
   "lint-staged": {
     "*.{js,ts}": "bunx --bun eslint . --fix"
+  },
+  "dependencies": {
+    "@types/semver": "^7.7.0",
+    "ioredis": "^5.6.1",
+    "semver": "^7.7.1",
+    "uuid": "^11.1.0"
   }
 }

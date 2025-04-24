@@ -1,5 +1,6 @@
 import type { Receiver, SandboxedJob } from '../interfaces'
 import type { JobJsonSandbox, JobProgress } from '../types'
+import process from 'node:process'
 import { ParentCommand } from '../enums'
 import { errorToJSON } from '../utils'
 

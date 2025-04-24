@@ -7,6 +7,8 @@ import type {
   Span,
   Tracer,
 } from './interfaces'
+import { Buffer } from 'node:buffer'
+import process from 'node:process'
 import { Cluster } from 'ioredis'
 import { CONNECTION_CLOSED_ERROR_MSG } from 'ioredis/built/utils'
 import * as semver from 'semver'
@@ -182,8 +184,7 @@ export function getParentKey(opts: {
   }
 }
 
-export const clientCommandMessageReg
-  = /ERR unknown command ['`]\s*client\s*['`]/
+export const clientCommandMessageReg = /ERR unknown command ['`]\s*client\s*['`]/
 
 export const DELAY_TIME_5 = 5000
 
@@ -284,7 +285,7 @@ export function toString(value: any): string {
   }
   if (
     typeof value == 'symbol'
-    || Object.prototype.toString.call(value) == '[object Symbol]'
+    || Object.prototype.toString.call(value) === '[object Symbol]'
   ) {
     return value.toString()
   }
@@ -373,7 +374,7 @@ export async function trace<T>(
         messageContext = span.setSpanOnContext(currentContext)
       }
 
-      if (callback.length == 2) {
+      if (callback.length === 2) {
         dstPropagationMetadata = contextManager.getMetadata(messageContext)
       }
 
