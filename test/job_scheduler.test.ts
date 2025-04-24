@@ -1,22 +1,22 @@
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
-const moment = require('moment')
+import type {
+  Job,
+} from '../src/classes'
+import type { JobsOptions } from '../src/types'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { rrulestr } from 'rrule'
 
 import * as sinon from 'sinon'
-
 import { v4 } from 'uuid'
 import {
   getNextMillis,
-  Job,
   Queue,
   QueueEvents,
   Repeat,
   Worker,
 } from '../src/classes'
-import { JobsOptions } from '../src/types'
 import { removeAllQueueData } from '../src/utils'
+const moment = require('moment')
 
 const ONE_SECOND = 1000
 const ONE_MINUTE = 60 * ONE_SECOND
@@ -33,9 +33,9 @@ describe('Job Scheduler', function () {
   let queue: Queue
   let queueEvents: QueueEvents
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -329,7 +329,7 @@ describe('Job Scheduler', function () {
         const repeatableJobs = await queue.getJobSchedulers()
         expect(repeatableJobs.length).toBe(1)
 
-        expect(repeatableJobs[0]).to.deep.equal({
+        expect(repeatableJobs[0]).toStrictEqual({
           key: 'test',
           name: 'test',
           next: 1486439700000,
