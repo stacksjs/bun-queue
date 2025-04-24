@@ -185,9 +185,9 @@ describe('Rate Limiter', () => {
       await delay(500)
 
       const counts = await queue.getJobCounts('paused', 'completed', 'wait')
-      expect(counts).to.have.property('paused', numJobs - 1)
-      expect(counts).to.have.property('completed', 1)
-      expect(counts).to.have.property('wait', 0)
+      expect(counts).toHaveProperty('paused', numJobs - 1)
+      expect(counts).toHaveProperty('completed', 1)
+      expect(counts).toHaveProperty('wait', 0)
 
       await worker1.close()
       await worker2.close()

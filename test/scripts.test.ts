@@ -91,7 +91,7 @@ describe('scripts', () => {
 
       const page = await scripts.paginate(testSet, { start: 3, end: 7 })
 
-      expect(page.items).to.have.lengthOf(5)
+      expect(page.items).toHaveLength(5)
       expect(page.cursor).toBe('0')
       expect(page.total).toBe(members.length)
     })
@@ -117,7 +117,7 @@ describe('scripts', () => {
         const start = i * pageSize
         const end = start + pageSize - 1
         const page = await scripts.paginate(testSet, { start, end })
-        expect(page.items).to.have.lengthOf(pageSize)
+        expect(page.items).toHaveLength(pageSize)
         expect(page.total).toBe(totalItems)
         pagedItems.push(...page.items)
       }
@@ -187,7 +187,7 @@ describe('scripts', () => {
 
       const page = await scripts.paginate(testHash, { start: 3, end: 7 })
 
-      expect(page.items).to.have.lengthOf(5)
+      expect(page.items).toHaveLength(5)
 
       expect(page.items).toBe(
         ['d', 'e', 'f', 'g', 'h'].map(key => ({ id: key, v: key })),
@@ -228,7 +228,7 @@ describe('scripts', () => {
         const end = start + pageSize - 1
 
         const page = await scripts.paginate(testHash, { start, end })
-        expect(page.items).to.have.lengthOf(pageSize)
+        expect(page.items).toHaveLength(pageSize)
         expect(page.total).toBe(totalItems)
         pagedItems.push(...page.items)
       }

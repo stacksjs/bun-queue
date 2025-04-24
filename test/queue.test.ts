@@ -129,7 +129,7 @@ describe('queues', () => {
 
       for (const key of keys) {
         const type = key.split(':')[2]
-        expect(['marker', 'events', 'meta', 'pc', 'id']).to.include(type)
+        expect(['marker', 'events', 'meta', 'pc', 'id']).toInclude(type)
       }
     }).timeout(10000)
 
@@ -163,7 +163,7 @@ describe('queues', () => {
             expect(keys.length).toBe(4)
             for (const key of keys) {
               const type = key.split(':')[2]
-              expect(['events', 'meta', 'id', 'marker']).to.include(type)
+              expect(['events', 'meta', 'id', 'marker']).toInclude(type)
             }
 
             const countAfterEmpty = await queue.count()
@@ -197,7 +197,7 @@ describe('queues', () => {
             expect(keys.length).toBe(4)
             for (const key of keys) {
               const type = key.split(':')[2]
-              expect(['id', 'meta', 'marker', 'events']).to.include(type)
+              expect(['id', 'meta', 'marker', 'events']).toInclude(type)
             }
 
             const countAfterEmpty = await queue.count()
@@ -286,7 +286,7 @@ describe('queues', () => {
             expect(keys.length).toBe(4)
             for (const key of keys) {
               const type = key.split(':')[2]
-              expect(['id', 'meta', 'events', 'marker']).to.include(type)
+              expect(['id', 'meta', 'events', 'marker']).toInclude(type)
             }
 
             const countAfterEmpty = await queue.count()
@@ -337,7 +337,7 @@ describe('queues', () => {
             expect(keys.length).toBe(4)
             for (const key of keys) {
               const type = key.split(':')[2]
-              expect(['id', 'meta', 'events', 'marker']).to.include(type)
+              expect(['id', 'meta', 'events', 'marker']).toInclude(type)
             }
 
             const countAfterEmpty = await queue.count()

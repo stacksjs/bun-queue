@@ -52,17 +52,17 @@ describe('Pause', () => {
     await queue.add('test', {}, { delay: 300 })
     const counts = await queue.getJobCounts('waiting', 'delayed')
 
-    expect(counts).to.have.property('waiting', 0)
-    expect(counts).to.have.property('delayed', 1)
+    expect(counts).toHaveProperty('waiting', 0)
+    expect(counts).toHaveProperty('delayed', 1)
 
     await delay(500)
     if (processed) {
       throw new Error('should not process delayed jobs in paused queue.')
     }
     const counts2 = await queue.getJobCounts('waiting', 'paused', 'delayed')
-    expect(counts2).to.have.property('waiting', 0)
-    expect(counts2).to.have.property('paused', 1)
-    expect(counts2).to.have.property('delayed', 0)
+    expect(counts2).toHaveProperty('waiting', 0)
+    expect(counts2).toHaveProperty('paused', 1)
+    expect(counts2).toHaveProperty('delayed', 0)
 
     await worker.close()
   })

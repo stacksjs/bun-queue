@@ -258,7 +258,7 @@ describe('Telemetry', () => {
         jobSchedulerId,
       )
       expect(span.attributes[TelemetryAttributes.JobId]).to.be.a('string')
-      expect(span.attributes[TelemetryAttributes.JobId]).to.include(
+      expect(span.attributes[TelemetryAttributes.JobId]).toInclude(
         `repeat:${jobSchedulerId}:`,
       )
     })
@@ -584,7 +584,7 @@ describe('Telemetry', () => {
         },
       ]
       const addedJos = await queue.addBulk(jobs)
-      expect(addedJos).to.have.length(1)
+      expect(addedJos).toHaveLength(1)
 
       await processing
 

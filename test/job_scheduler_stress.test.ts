@@ -84,7 +84,7 @@ describe('Job Scheduler Stress', function () {
     await worker.close()
 
     const repeatableJobs = await queue.getJobSchedulers()
-    expect(repeatableJobs).to.have.length(1)
+    expect(repeatableJobs).toHaveLength(1)
 
     const counts = await queue.getJobCounts()
 
@@ -184,7 +184,7 @@ describe('Job Scheduler Stress', function () {
     await worker.close()
 
     const repeatableJobs = await queue.getJobSchedulers()
-    expect(repeatableJobs).to.have.length(1)
+    expect(repeatableJobs).toHaveLength(1)
 
     const counts = await queue.getJobCounts()
 

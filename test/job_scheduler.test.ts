@@ -161,7 +161,7 @@ describe('Job Scheduler', function () {
 
     const delayed = await queue.getDelayed()
 
-    expect(delayed).to.have.length(0)
+    expect(delayed).toHaveLength(0)
     expect(processed).toBe(10)
 
     await worker.close()
@@ -182,7 +182,7 @@ describe('Job Scheduler', function () {
       expect(count).toBe(3)
 
       const delayed = await queue.getDelayed()
-      expect(delayed).to.have.length(3)
+      expect(delayed).toHaveLength(3)
 
       const jobSchedulersCount = await queue.getJobSchedulersCount()
       expect(jobSchedulersCount).toBe(3)
@@ -549,7 +549,7 @@ describe('Job Scheduler', function () {
       expect(repeatableJobs.length).toBe(1)
 
       const delayed = await queue.getDelayed()
-      expect(delayed).to.have.length(1)
+      expect(delayed).toHaveLength(1)
     })
   })
 
@@ -1772,7 +1772,7 @@ describe('Job Scheduler', function () {
       const count = await queue.count()
 
       expect(count).toBe(1)
-      expect(configs).to.have.length(1)
+      expect(configs).toHaveLength(1)
       expect(jobs.length).toBe(2)
       expect(jobs[0]!.id).toBe(jobs[1]!.id)
     })
@@ -1812,7 +1812,7 @@ describe('Job Scheduler', function () {
       const count = await queue.count()
 
       expect(count).toBe(1)
-      expect(configs).to.have.length(1)
+      expect(configs).toHaveLength(1)
       await worker.close()
     })
   })
@@ -1879,7 +1879,7 @@ describe('Job Scheduler', function () {
     expect(delayedCount1).toBe(1)
     const job = await queue.getJob(createdJob!.id!)
     const repeatableJobs = await queue.getRepeatableJobs()
-    expect(repeatableJobs).to.have.length(1)
+    expect(repeatableJobs).toHaveLength(1)
     const existBeforeRemoval = await client.exists(
       `${prefix}:${queue.name}:repeat:${createdJob!.repeatJobKey!}`,
     )
@@ -1896,7 +1896,7 @@ describe('Job Scheduler', function () {
     expect(job!.repeatJobKey).to.not.be.undefined
     expect(removed).toBeTrue()
     const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
-    expect(repeatableJobsAfterRemove).to.have.length(0)
+    expect(repeatableJobsAfterRemove).toHaveLength(0)
   })
 
   describe('when repeatable job does not exist', () => {
@@ -1905,7 +1905,7 @@ describe('Job Scheduler', function () {
 
       await queue.upsertJobScheduler('remove', repeat)
       const repeatableJobs = await queue.getJobSchedulers()
-      expect(repeatableJobs).to.have.length(1)
+      expect(repeatableJobs).toHaveLength(1)
       const removed = await queue.removeJobScheduler(repeatableJobs[0].key)
       expect(removed).toBeTrue()
       const removed2 = await queue.removeJobScheduler(repeatableJobs[0].key)
@@ -1967,7 +1967,7 @@ describe('Job Scheduler', function () {
 
       const count = await queue.count()
       expect(count).toBe(1)
-      expect(jobSchedulers).to.have.length(1)
+      expect(jobSchedulers).toHaveLength(1)
 
       expect(jobSchedulers[0]).to.deep.equal({
         iterationCount: 2,
@@ -2255,20 +2255,20 @@ describe('Job Scheduler', function () {
       this.clock.tick(nextTick)
 
       let jobs = await queue.getJobSchedulers()
-      expect(jobs).to.have.length(1)
+      expect(jobs).toHaveLength(1)
 
       let waitingJobs = await queue.getWaiting()
-      expect(waitingJobs).to.have.length(1)
+      expect(waitingJobs).toHaveLength(1)
 
       await queue.upsertJobScheduler(key, {
         every: 35_160,
       })
 
       jobs = await queue.getJobSchedulers()
-      expect(jobs).to.have.length(1)
+      expect(jobs).toHaveLength(1)
 
       waitingJobs = await queue.getWaiting()
-      expect(waitingJobs).to.have.length(1)
+      expect(waitingJobs).toHaveLength(1)
     })
   })
 
@@ -2292,10 +2292,10 @@ describe('Job Scheduler', function () {
       this.clock.tick(nextTick)
 
       let jobs = await queue.getJobSchedulers()
-      expect(jobs).to.have.length(1)
+      expect(jobs).toHaveLength(1)
 
       let delayedJobs = await queue.getDelayed()
-      expect(delayedJobs).to.have.length(1)
+      expect(delayedJobs).toHaveLength(1)
 
       await queue.upsertJobScheduler(
         key,
@@ -2306,10 +2306,10 @@ describe('Job Scheduler', function () {
       )
 
       jobs = await queue.getJobSchedulers()
-      expect(jobs).to.have.length(1)
+      expect(jobs).toHaveLength(1)
 
       delayedJobs = await queue.getDelayed()
-      expect(delayedJobs).to.have.length(1)
+      expect(delayedJobs).toHaveLength(1)
 
       expect(delayedJobs[0].name).toBe('test2')
       expect(delayedJobs[0].data).to.deep.equal({

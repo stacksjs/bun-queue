@@ -1,11 +1,6 @@
-/* eslint-env node */
-'use strict'
-
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { after } from 'lodash'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
-
 import * as sinon from 'sinon'
 import { v4 } from 'uuid'
 import { FlowProducer, Queue, QueueEvents, Worker } from '../src/classes'
@@ -16,9 +11,9 @@ describe('Jobs getters', () => {
   const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull'
   let queue: Queue
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -43,14 +38,14 @@ describe('Jobs getters', () => {
       await delay(10)
 
       const queueEvents = await queue.getQueueEvents()
-      expect(queueEvents).to.have.length(1)
+      expect(queueEvents).toHaveLength(1)
 
       const queueEvent2 = new QueueEvents(queueName, { connection, prefix })
       await queueEvent2.waitUntilReady()
       await delay(10)
 
       const nextQueueEvents = await queue.getQueueEvents()
-      expect(nextQueueEvents).to.have.length(2)
+      expect(nextQueueEvents).toHaveLength(2)
 
       await queueEvent.close()
       await queueEvent2.close()
@@ -71,7 +66,7 @@ describe('Jobs getters', () => {
       })
 
       const workers = await queue.getWorkers()
-      expect(workers).to.have.length(1)
+      expect(workers).toHaveLength(1)
 
       const worker2 = new Worker(queueName, async () => {}, {
         autorun: false,
@@ -85,7 +80,7 @@ describe('Jobs getters', () => {
       })
 
       const nextWorkers = await queue.getWorkers()
-      expect(nextWorkers).to.have.length(2)
+      expect(nextWorkers).toHaveLength(2)
 
       const nextWorkersCount = await queue.getWorkersCount()
       expect(nextWorkersCount).toBe(2)
@@ -104,7 +99,7 @@ describe('Jobs getters', () => {
       await worker.waitUntilReady()
 
       const workers = await queue.getWorkers()
-      expect(workers).to.have.length(1)
+      expect(workers).toHaveLength(1)
 
       const workersCount = await queue.getWorkersCount()
       expect(workersCount).toBe(1)
@@ -118,7 +113,7 @@ describe('Jobs getters', () => {
       await worker2.waitUntilReady()
 
       const nextWorkers = await queue.getWorkers()
-      expect(nextWorkers).to.have.length(2)
+      expect(nextWorkers).toHaveLength(2)
 
       const nextWorkersCount = await queue.getWorkersCount()
       expect(nextWorkersCount).toBe(2)
@@ -129,8 +124,8 @@ describe('Jobs getters', () => {
       })
 
       // Check that the worker names are included in the response on the rawname property
-      expect(rawnames).to.include('worker1')
-      expect(rawnames).to.include('worker2')
+      expect(rawnames).toInclude('worker1')
+      expect(rawnames).toInclude('worker2')
 
       await worker.close()
       await worker2.close()
@@ -161,13 +156,13 @@ describe('Jobs getters', () => {
       })
 
       const workers = await queue.getWorkers()
-      expect(workers).to.have.length(1)
+      expect(workers).toHaveLength(1)
 
       const workersCount = await queue.getWorkersCount()
       expect(workersCount).toBe(1)
 
       const workers2 = await queue2.getWorkers()
-      expect(workers2).to.have.length(1)
+      expect(workers2).toHaveLength(1)
 
       const workersCount2 = await queue2.getWorkersCount()
       expect(workersCount2).toBe(1)
@@ -200,7 +195,7 @@ describe('Jobs getters', () => {
         })
 
         const workers = await queue.getWorkers()
-        expect(workers).to.have.length(1)
+        expect(workers).toHaveLength(1)
 
         const worker2 = new Worker(queueName, async () => {}, {
           connection: ioredisConnection,
@@ -215,7 +210,7 @@ describe('Jobs getters', () => {
         })
 
         const nextWorkers = await queue.getWorkers()
-        expect(nextWorkers).to.have.length(2)
+        expect(nextWorkers).toHaveLength(2)
 
         await worker.close()
         await worker2.close()
@@ -238,18 +233,18 @@ describe('Jobs getters', () => {
         const client = await worker.waitUntilReady()
 
         const workers = await queue.getWorkers()
-        expect(workers).to.have.length(1)
+        expect(workers).toHaveLength(1)
 
         await client.disconnect()
         await delay(10)
 
         const nextWorkers = await queue.getWorkers()
-        expect(nextWorkers).to.have.length(0)
+        expect(nextWorkers).toHaveLength(0)
 
         await client.connect()
         await delay(20)
         const nextWorkers2 = await queue.getWorkers()
-        expect(nextWorkers2).to.have.length(1)
+        expect(nextWorkers2).toHaveLength(1)
 
         await worker.close()
       })
@@ -271,7 +266,7 @@ describe('Jobs getters', () => {
     await queue.add('test', { baz: 'qux' })
 
     const jobs = await queue.getWaiting()
-    expect(jobs).to.be.a('array')
+    expect(jobs).toBeArray()
     expect(jobs.length).toBe(2)
     expect(jobs[0].data.foo).toBe('bar')
     expect(jobs[1].data.baz).toBe('qux')
@@ -309,7 +304,7 @@ describe('Jobs getters', () => {
       queue.add('test', { baz: 'qux' }),
     ])
     const jobs = await queue.getWaiting()
-    expect(jobs).to.be.a('array')
+    expect(jobs).toBeArray()
     expect(jobs.length).toBe(2)
     expect(jobs[0].data.foo).toBe('bar')
     expect(jobs[1].data.baz).toBe('qux')
@@ -320,7 +315,7 @@ describe('Jobs getters', () => {
     const processing = new Promise<void>((resolve) => {
       processor = async () => {
         const jobs = await queue.getActive()
-        expect(jobs).to.be.a('array')
+        expect(jobs).toBeArray()
         expect(jobs.length).toBe(1)
         expect(jobs[0].data.foo).toBe('bar')
         resolve()
@@ -360,7 +355,7 @@ describe('Jobs getters', () => {
 
         if (counter === 0) {
           const jobs = await queue.getCompleted()
-          expect(jobs).to.be.a('array')
+          expect(jobs).toBeArray()
 
           // We need a "empty completed" kind of function.
           // expect(jobs.length).toBe(2);
@@ -393,8 +388,8 @@ describe('Jobs getters', () => {
 
         if (counter === 0) {
           const jobs = await queue.getFailed()
-          expect(jobs).to.be.a('array')
-          expect(jobs).to.have.length(2)
+          expect(jobs).toBeArray()
+          expect(jobs).toHaveLength(2)
           await worker.close()
           resolve()
         }
@@ -470,10 +465,10 @@ describe('Jobs getters', () => {
           const jobsWithoutProvidingRange = await queue.getFailed()
           const allJobs = await queue.getFailed(0, -1)
 
-          expect(allJobs).to.be.a('array')
-          expect(allJobs).to.have.length(4)
-          expect(jobsWithoutProvidingRange).to.be.a('array')
-          expect(jobsWithoutProvidingRange).to.have.length(allJobs.length)
+          expect(allJobs).toBeArray()
+          expect(allJobs).toHaveLength(4)
+          expect(jobsWithoutProvidingRange).toBeArray()
+          expect(jobsWithoutProvidingRange).toHaveLength(allJobs.length)
           await worker.close()
           resolve()
         }),
@@ -526,14 +521,15 @@ describe('Jobs getters', () => {
       after(3, async () => {
         try {
           const jobs = await queue.getJobs('completed')
-          expect(jobs).to.be.an('array').that.have.length(3)
-          expect(jobs[0]).to.have.property('finishedOn')
-          expect(jobs[1]).to.have.property('finishedOn')
-          expect(jobs[2]).to.have.property('finishedOn')
+          expect(jobs).toBeArray()
+          expect(jobs).toHaveLength(3)
+          expect(jobs[0]).toHaveProperty('finishedOn')
+          expect(jobs[1]).toHaveProperty('finishedOn')
+          expect(jobs[2]).toHaveProperty('finishedOn')
 
-          expect(jobs[0]).to.have.property('processedOn')
-          expect(jobs[1]).to.have.property('processedOn')
-          expect(jobs[2]).to.have.property('processedOn')
+          expect(jobs[0]).toHaveProperty('processedOn')
+          expect(jobs[1]).toHaveProperty('processedOn')
+          expect(jobs[2]).toHaveProperty('processedOn')
 
           await worker.close()
           done()
@@ -565,14 +561,15 @@ describe('Jobs getters', () => {
         try {
           queue
           const jobs = await queue.getJobs('failed')
-          expect(jobs).to.be.an('array').that.has.length(3)
-          expect(jobs[0]).to.have.property('finishedOn')
-          expect(jobs[1]).to.have.property('finishedOn')
-          expect(jobs[2]).to.have.property('finishedOn')
+          expect(jobs).toBeArray()
+          expect(jobs).toHaveLength(3)
+          expect(jobs[0]).toHaveProperty('finishedOn')
+          expect(jobs[1]).toHaveProperty('finishedOn')
+          expect(jobs[2]).toHaveProperty('finishedOn')
 
-          expect(jobs[0]).to.have.property('processedOn')
-          expect(jobs[1]).to.have.property('processedOn')
-          expect(jobs[2]).to.have.property('processedOn')
+          expect(jobs[0]).toHaveProperty('processedOn')
+          expect(jobs[1]).toHaveProperty('processedOn')
+          expect(jobs[2]).toHaveProperty('processedOn')
           await worker.close()
           done()
         }
@@ -598,13 +595,14 @@ describe('Jobs getters', () => {
       after(3, async () => {
         try {
           const jobs = await queue.getJobs('completed', 1, 2, true)
-          expect(jobs).to.be.an('array').that.has.length(2)
+          expect(jobs).toBeArray()
+          expect(jobs).toHaveLength(2)
           expect(jobs[0].data.foo).toBe(2)
           expect(jobs[1].data.foo).toBe(3)
-          expect(jobs[0]).to.have.property('finishedOn')
-          expect(jobs[1]).to.have.property('finishedOn')
-          expect(jobs[0]).to.have.property('processedOn')
-          expect(jobs[1]).to.have.property('processedOn')
+          expect(jobs[0]).toHaveProperty('finishedOn')
+          expect(jobs[1]).toHaveProperty('finishedOn')
+          expect(jobs[0]).toHaveProperty('processedOn')
+          expect(jobs[1]).toHaveProperty('processedOn')
           await worker.close()
           done()
         }
@@ -630,7 +628,8 @@ describe('Jobs getters', () => {
       after(3, async () => {
         try {
           const jobs = await queue.getJobs('completed', -3, -1, true)
-          expect(jobs).to.be.an('array').that.has.length(3)
+          expect(jobs).toBeArray()
+          expect(jobs).toHaveLength(3)
           expect(jobs[0].data.foo).toBe(1)
           expect(jobs[1].data.foo).toBe(2)
           expect(jobs[2].data.foo).toBe(3)
@@ -659,7 +658,8 @@ describe('Jobs getters', () => {
       after(3, async () => {
         try {
           const jobs = await queue.getJobs('completed', -300, 99999, true)
-          expect(jobs).to.be.an('array').that.has.length(3)
+          expect(jobs).toBeArray()
+          expect(jobs).toHaveLength(3)
           expect(jobs[0].data.foo).toBe(1)
           expect(jobs[1].data.foo).toBe(2)
           expect(jobs[2].data.foo).toBe(3)
@@ -696,8 +696,8 @@ describe('Jobs getters', () => {
       after(2, async () => {
         try {
           const jobs = await queue.getJobs(['completed', 'waiting'])
-          expect(jobs).to.be.an('array')
-          expect(jobs).to.have.length(3)
+          expect(jobs).toBeArray()
+          expect(jobs).toHaveLength(3)
           await worker.close()
           done()
         }
@@ -719,8 +719,8 @@ describe('Jobs getters', () => {
 
         const jobs = await queue.getJobs(['waiting'])
 
-        expect(jobs).to.be.an('array')
-        expect(jobs).to.have.length(1)
+        expect(jobs).toBeArray()
+        expect(jobs).toHaveLength(1)
         expect(jobs[0].name).toBe('test2')
       })
     })
@@ -731,8 +731,8 @@ describe('Jobs getters', () => {
 
         const jobs = await queue.getJobs(['waiting'])
 
-        expect(jobs).to.be.an('array')
-        expect(jobs).to.have.length(0)
+        expect(jobs).toBeArray()
+        expect(jobs).toHaveLength(0)
       })
     })
   })
@@ -741,8 +741,8 @@ describe('Jobs getters', () => {
     await queue.add('test', { foo: 1 })
     const jobs = await queue.getJobs(['wait', 'waiting', 'waiting'])
 
-    expect(jobs).to.be.an('array')
-    expect(jobs).to.have.length(1)
+    expect(jobs).toBeArray()
+    expect(jobs).toHaveLength(1)
   })
 
   it('should return jobs for all types', (done) => {
@@ -764,8 +764,8 @@ describe('Jobs getters', () => {
       after(2, async () => {
         try {
           const jobs = await queue.getJobs()
-          expect(jobs).to.be.an('array')
-          expect(jobs).to.have.length(3)
+          expect(jobs).toBeArray()
+          expect(jobs).toHaveLength(3)
           await worker.close()
           done()
         }
@@ -916,19 +916,21 @@ describe('Jobs getters', () => {
         -1,
       )
 
-      expect(result.items).to.be.an('array').that.has.length(4)
-      expect(result.jobs).to.be.an('array').that.has.length(4)
+      expect(result.items).toBeArray()
+      expect(result.items).toHaveLength(4)
+      expect(result.jobs).toBeArray()
+      expect(result.jobs).toHaveLength(4)
       expect(result.total).toBe(4)
 
       for (const job of result.jobs) {
-        expect(job).to.have.property('opts')
-        expect(job).to.have.property('data')
-        expect(job).to.have.property('delay')
-        expect(job).to.have.property('priority')
-        expect(job).to.have.property('parent')
-        expect(job).to.have.property('parentKey')
-        expect(job).to.have.property('name')
-        expect(job).to.have.property('timestamp')
+        expect(job).toHaveProperty('opts')
+        expect(job).toHaveProperty('data')
+        expect(job).toHaveProperty('delay')
+        expect(job).toHaveProperty('priority')
+        expect(job).toHaveProperty('parent')
+        expect(job).toHaveProperty('parentKey')
+        expect(job).toHaveProperty('name')
+        expect(job).toHaveProperty('timestamp')
       }
 
       const result2 = await queue.getDependencies(
@@ -938,7 +940,9 @@ describe('Jobs getters', () => {
         2,
       )
 
-      expect(result2.items).to.be.an('array').that.has.length(3)
+      expect(result2.items).toBeArray()
+      expect(result2.items).toHaveLength(3)
+
       expect(result2.total).toBe(4)
 
       await flowProducer.close()
@@ -983,7 +987,8 @@ describe('Jobs getters', () => {
         -1,
       )
 
-      expect(result.items).to.be.an('array').that.has.length(0)
+      expect(result.items).toBeArray()
+      expect(result.items).toHaveLength(0)
       expect(result.total).toBe(0)
 
       const result2 = await queue.getDependencies(
@@ -993,19 +998,21 @@ describe('Jobs getters', () => {
         -1,
       )
 
-      expect(result2.items).to.be.an('array').that.has.length(4)
-      expect(result2.jobs).to.be.an('array').that.has.length(4)
+      expect(result2.items).toBeArray()
+      expect(result2.items).toHaveLength(4)
+      expect(result2.jobs).toBeArray()
+      expect(result2.jobs).toHaveLength(4)
       expect(result2.total).toBe(4)
 
       for (const job of result2.jobs) {
-        expect(job).to.have.property('opts')
-        expect(job).to.have.property('data')
-        expect(job).to.have.property('delay')
-        expect(job).to.have.property('priority')
-        expect(job).to.have.property('parent')
-        expect(job).to.have.property('parentKey')
-        expect(job).to.have.property('name')
-        expect(job).to.have.property('timestamp')
+        expect(job).toHaveProperty('opts')
+        expect(job).toHaveProperty('data')
+        expect(job).toHaveProperty('delay')
+        expect(job).toHaveProperty('priority')
+        expect(job).toHaveProperty('parent')
+        expect(job).toHaveProperty('parentKey')
+        expect(job).toHaveProperty('name')
+        expect(job).toHaveProperty('timestamp')
       }
 
       await worker.close()
@@ -1031,15 +1038,15 @@ describe('Jobs getters', () => {
       sinon.stub(queue, 'getJobCounts').resolves(counts)
       const metrics = await queue.exportPrometheusMetrics()
 
-      expect(metrics).to.include(
+      expect(metrics).toInclude(
         '# HELP bullmq_job_count Number of jobs in the queue by state',
       )
-      expect(metrics).to.include('# TYPE bullmq_job_count gauge')
+      expect(metrics).toInclude('# TYPE bullmq_job_count gauge')
 
       // Verify all states are present
       for (const [state, count] of Object.entries(counts)) {
         const expectedLine = `bullmq_job_count{queue="${queueName}", state="${state}"} ${count}`
-        expect(metrics).to.include(expectedLine)
+        expect(metrics).toInclude(expectedLine)
       }
     })
 
@@ -1059,15 +1066,15 @@ describe('Jobs getters', () => {
       sinon.stub(queue, 'getJobCounts').resolves(counts)
       const metrics = await queue.exportPrometheusMetrics({ env, server })
 
-      expect(metrics).to.include(
+      expect(metrics).toInclude(
         '# HELP bullmq_job_count Number of jobs in the queue by state',
       )
-      expect(metrics).to.include('# TYPE bullmq_job_count gauge')
+      expect(metrics).toInclude('# TYPE bullmq_job_count gauge')
 
       // Verify all states are present
       for (const [state, count] of Object.entries(counts)) {
         const expectedLine = `bullmq_job_count{queue="${queueName}", state="${state}", env="${env}", server="${server}"} ${count}`
-        expect(metrics).to.include(expectedLine)
+        expect(metrics).toInclude(expectedLine)
       }
     })
 
@@ -1078,7 +1085,7 @@ describe('Jobs getters', () => {
       const metrics = await queue.exportPrometheusMetrics()
       expect(
         metrics.split('\n').filter(l => l.startsWith('bullmq_job_count')),
-      ).to.have.lengthOf(0)
+      ).toHaveLength(0)
     })
   })
 })

@@ -67,10 +67,10 @@ describe('sandboxed process using child processes', () => {
             expect(job.returnvalue).toBe(42)
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(42)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -187,10 +187,10 @@ describe('sandboxed process using worker threads', () => {
             expect(job.returnvalue).toBe(42)
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(42)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -256,10 +256,10 @@ function sandboxProcessTests(
             expect(job.returnvalue).toBe(42)
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(42)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -292,10 +292,10 @@ function sandboxProcessTests(
             expect(job.returnvalue).toBe(42)
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(42)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processUrl.href]).to.have.lengthOf(
+            expect(worker.childPool.free[processUrl.href]).toHaveLength(
               1,
             )
             resolve()
@@ -329,10 +329,10 @@ function sandboxProcessTests(
             expect(job.returnvalue).toBe(42)
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(42)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -367,8 +367,8 @@ function sandboxProcessTests(
               expect(value).toBe(42)
               expect(
                 Object.keys(worker.childPool.retained),
-              ).to.have.lengthOf(0)
-              expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+              ).toHaveLength(0)
+              expect(worker.childPool.free[processFile]).toHaveLength(1)
               resolve()
             }
             catch (err) {
@@ -403,8 +403,8 @@ function sandboxProcessTests(
               expect(value).toBe(42)
               expect(
                 Object.keys(worker.childPool.retained),
-              ).to.have.lengthOf(0)
-              expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+              ).toHaveLength(0)
+              expect(worker.childPool.free[processFile]).toHaveLength(1)
               resolve()
             }
             catch (err) {
@@ -437,10 +437,10 @@ function sandboxProcessTests(
           worker.on('completed', async (job: Job, value: any) => {
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(1)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           })
         })
@@ -477,10 +477,10 @@ function sandboxProcessTests(
           worker.on('completed', async (job: Job, value: any) => {
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(1)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           })
         })
@@ -569,10 +569,10 @@ function sandboxProcessTests(
           try {
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(42)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -695,10 +695,10 @@ function sandboxProcessTests(
             expect(value).toBe(100)
             expect(job.progress).toBe(100)
             expect(progresses).toBe([10, 27, 78, 100])
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.getAllFree()).to.have.lengthOf(1)
+            expect(worker.childPool.getAllFree()).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -733,10 +733,10 @@ function sandboxProcessTests(
           try {
             expect(job.data).toBe({ foo: 'baz' })
             expect(value).toBe('result')
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.getAllFree()).to.have.lengthOf(1)
+            expect(worker.childPool.getAllFree()).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -921,10 +921,10 @@ function sandboxProcessTests(
         queueEvents.on('delayed', async ({ delay }) => {
           try {
             expect(Number(delay)).to.be.lessThanOrEqual(Date.now() + 2500)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               1,
             )
-            expect(worker.childPool.getAllFree()).to.have.lengthOf(0)
+            expect(worker.childPool.getAllFree()).toHaveLength(0)
             resolve()
           }
           catch (err) {
@@ -972,8 +972,8 @@ function sandboxProcessTests(
               expect(value).toBe('variable')
               expect(
                 Object.keys(worker.childPool.retained),
-              ).to.have.lengthOf(0)
-              expect(worker.childPool.getAllFree()).to.have.lengthOf(1)
+              ).toHaveLength(0)
+              expect(worker.childPool.getAllFree()).toHaveLength(1)
               resolve()
             }
             catch (err) {
@@ -1006,10 +1006,10 @@ function sandboxProcessTests(
           try {
             expect(job.data).toBe({ foo: 'bar' })
             expect(value).toBe(queueName)
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -1044,10 +1044,10 @@ function sandboxProcessTests(
               id: 'job-id',
               queueKey: `${prefix}:${parentQueueName}`,
             })
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.free[processFile]).to.have.lengthOf(1)
+            expect(worker.childPool.free[processFile]).toHaveLength(1)
             resolve()
           }
           catch (err) {
@@ -1089,10 +1089,10 @@ function sandboxProcessTests(
             expect(job.failedReason).eql('Manually failed processor')
             expect(err.message).eql('Manually failed processor')
             expect(err.stack).include('fixture_processor_fail.js')
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.getAllFree()).to.have.lengthOf(1)
+            expect(worker.childPool.getAllFree()).toHaveLength(1)
 
             resolve()
           }
@@ -1132,10 +1132,10 @@ function sandboxProcessTests(
             )
             expect(err.reference).to.equal('[Circular]')
             expect(err.custom).to.deep.equal({ ref: '[Circular]' })
-            expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(
+            expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
             )
-            expect(worker.childPool.getAllFree()).to.have.lengthOf(1)
+            expect(worker.childPool.getAllFree()).toHaveLength(1)
 
             resolve()
           }
@@ -1254,7 +1254,7 @@ function sandboxProcessTests(
       await worker.close()
 
       const failedJobs = await queue.getFailed()
-      expect(failedJobs).to.have.lengthOf(1)
+      expect(failedJobs).toHaveLength(1)
       expect(failedJobs[0].failedReason).toBe(
         'Unexpected exit code: 1 signal: null',
       )
@@ -1279,7 +1279,7 @@ function sandboxProcessTests(
       await worker.close()
 
       const failedJobs = await queue.getFailed()
-      expect(failedJobs).to.have.lengthOf(1)
+      expect(failedJobs).toHaveLength(1)
       expect(failedJobs[0].failedReason).toBe(
         'Unexpected exit code: 10 signal: null',
       )
@@ -1335,8 +1335,8 @@ function sandboxProcessTests(
                 expect(value).toBe(42)
                 expect(
                   Object.keys(worker.childPool.retained),
-                ).to.have.lengthOf(0)
-                expect(worker.childPool.free[processFile]).to.have.lengthOf(
+                ).toHaveLength(0)
+                expect(worker.childPool.free[processFile]).toHaveLength(
                   1,
                 )
                 if (counter == 0) {
@@ -1401,7 +1401,7 @@ function sandboxProcessTests(
               expect([
                 'Unexpected exit code: null signal: SIGKILL',
                 'Unexpected exit code: 0 signal: null',
-              ]).to.include(error.message)
+              ]).toInclude(error.message)
               resolve()
             }
             catch (err) {
@@ -1478,8 +1478,8 @@ function sandboxProcessTests(
 
       await delay(200)
 
-      expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(0)
-      expect(worker.childPool.getAllFree()).to.have.lengthOf(0)
+      expect(Object.keys(worker.childPool.retained)).toHaveLength(0)
+      expect(worker.childPool.getAllFree()).toHaveLength(0)
 
       await worker.close()
     })
@@ -1511,8 +1511,8 @@ function sandboxProcessTests(
       const jobAdd = queue.add('foo', {})
       await onJobActive
 
-      expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(1)
-      expect(worker.childPool.getAllFree()).to.have.lengthOf(0)
+      expect(Object.keys(worker.childPool.retained)).toHaveLength(1)
+      expect(worker.childPool.getAllFree()).toHaveLength(0)
       const child = Object.values(worker.childPool.retained)[0] as Child
 
       expect(child).to.equal(initializedChild)
@@ -1525,8 +1525,8 @@ function sandboxProcessTests(
 
       // ensure the child did get cleaned up
       expect(!!child.killed).to.eql(true)
-      expect(Object.keys(worker.childPool.retained)).to.have.lengthOf(0)
-      expect(worker.childPool.getAllFree()).to.have.lengthOf(0)
+      expect(Object.keys(worker.childPool.retained)).toHaveLength(0)
+      expect(worker.childPool.getAllFree()).toHaveLength(0)
 
       const job = await jobAdd
       // check that the job did finish successfully

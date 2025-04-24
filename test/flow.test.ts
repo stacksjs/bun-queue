@@ -387,7 +387,7 @@ describe('flows', () => {
             processed: {},
           })
           expect(nextProcessedCursor).toBe(0)
-          expect(Object.keys(processed)).to.have.length(3)
+          expect(Object.keys(processed)).toHaveLength(3)
 
           const childrenValues = await job.getChildrenValues()
 
@@ -427,14 +427,14 @@ describe('flows', () => {
       ],
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children, job } = tree
     const parentState = await job.getState()
 
     expect(parentState).toBe('waiting-children')
-    expect(children).to.have.length(3)
+    expect(children).toHaveLength(3)
 
     expect(children[0].job.id).toBeTruthy()
     expect(children[0].job.data.foo).toBe('bar')
@@ -494,7 +494,7 @@ describe('flows', () => {
             processed: {},
           })
           expect(nextProcessedCursor).toBe(0)
-          expect(Object.keys(processed)).to.have.length(2)
+          expect(Object.keys(processed)).toHaveLength(2)
 
           const childrenValues = await job.getChildrenValues()
 
@@ -539,8 +539,8 @@ describe('flows', () => {
       },
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children, job } = tree
 
@@ -550,7 +550,7 @@ describe('flows', () => {
     const parentState = await job.getState()
 
     expect(parentState).toBe('waiting-children')
-    expect(children).to.have.length(2)
+    expect(children).toHaveLength(2)
 
     await processingChildren
     await childrenWorker.close()
@@ -838,14 +838,14 @@ describe('flows', () => {
         ],
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(3)
+      expect(children).toHaveLength(3)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
@@ -947,14 +947,14 @@ describe('flows', () => {
         ],
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(3)
+      expect(children).toHaveLength(3)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
@@ -1493,14 +1493,14 @@ describe('flows', () => {
         ],
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(1)
+      expect(children).toHaveLength(1)
 
       await processingParent
 
@@ -1544,7 +1544,7 @@ describe('flows', () => {
           processed: {},
         })
         expect(nextProcessedCursor).toBe(0)
-        expect(Object.keys(processed)).to.have.length(3)
+        expect(Object.keys(processed)).toHaveLength(3)
 
         const childrenValues = await job.getChildrenValues()
 
@@ -1599,14 +1599,14 @@ describe('flows', () => {
         },
       )
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(3)
+      expect(children).toHaveLength(3)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
@@ -1686,7 +1686,7 @@ describe('flows', () => {
           processed: {},
         })
         expect(nextProcessedCursor).toBe(0)
-        expect(Object.keys(processed)).to.have.length(3)
+        expect(Object.keys(processed)).toHaveLength(3)
 
         const childrenValues = await job.getChildrenValues()
         expect(Object.keys(childrenValues).length).toBe(3)
@@ -1784,14 +1784,14 @@ describe('flows', () => {
         },
       )
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(3)
+      expect(children).toHaveLength(3)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('baz')
@@ -1896,14 +1896,14 @@ describe('flows', () => {
         ],
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(1)
+      expect(children).toHaveLength(1)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
@@ -2233,7 +2233,7 @@ describe('flows', () => {
                 processed: {},
               })
             expect(nextProcessedCursor).toBe(0)
-            expect(Object.keys(processed)).to.have.length(1)
+            expect(Object.keys(processed)).toHaveLength(1)
 
             const childrenValues = await job.getChildrenValues()
 
@@ -2269,14 +2269,14 @@ describe('flows', () => {
         children: [{ name, data: { idx: 0, foo: 'bar' }, queueName }],
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(1)
+      expect(children).toHaveLength(1)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
@@ -2349,7 +2349,7 @@ describe('flows', () => {
                 processed: {},
               })
             expect(nextProcessedCursor).toBe(0)
-            expect(Object.keys(processed)).to.have.length(3)
+            expect(Object.keys(processed)).toHaveLength(3)
 
             const childrenValues = await job.getChildrenValues()
 
@@ -2432,14 +2432,14 @@ describe('flows', () => {
         ],
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(3)
+      expect(children).toHaveLength(3)
 
       grandChildrenWorker.run()
 
@@ -2562,8 +2562,8 @@ describe('flows', () => {
           })
         })
 
-        expect(tree).to.have.property('job')
-        expect(tree).to.have.property('children')
+        expect(tree).toHaveProperty('job')
+        expect(tree).toHaveProperty('children')
 
         const { children, job } = tree
         const parentState = await job.getState()
@@ -2997,8 +2997,8 @@ describe('flows', () => {
           })
         })
 
-        expect(tree).to.have.property('job')
-        expect(tree).to.have.property('children')
+        expect(tree).toHaveProperty('job')
+        expect(tree).toHaveProperty('children')
 
         const { children, job } = tree
         const parentState = await job.getState()
@@ -3150,8 +3150,8 @@ describe('flows', () => {
           })
         })
 
-        expect(tree).to.have.property('job')
-        expect(tree).to.have.property('children')
+        expect(tree).toHaveProperty('job')
+        expect(tree).toHaveProperty('children')
 
         const { children, job } = tree
         const parentState = await job.getState()
@@ -3300,8 +3300,8 @@ describe('flows', () => {
           })
         })
 
-        expect(tree).to.have.property('job')
-        expect(tree).to.have.property('children')
+        expect(tree).toHaveProperty('job')
+        expect(tree).toHaveProperty('children')
 
         const { children, job } = tree
         const parentState = await job.getState()
@@ -3868,14 +3868,14 @@ describe('flows', () => {
       children: otherValues,
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children, job } = tree
     const parentState = await job.getState()
 
     expect(parentState).toBe('waiting-children')
-    expect(children).to.have.length(values.length)
+    expect(children).toHaveLength(values.length)
 
     await processingChildren
     await childrenWorker.close()
@@ -3923,19 +3923,19 @@ describe('flows', () => {
       prefix,
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children, job } = tree
     const isWaitingChildren = await job.isWaitingChildren()
 
     expect(isWaitingChildren).toBeTrue()
-    expect(children).to.have.length(1)
+    expect(children).toHaveLength(1)
 
     expect(children[0].job.id).toBeTruthy()
     expect(children[0].job.data.foo).toBe('bar')
     expect(children[0].job.queueName).toBe(queueName)
-    expect(children[0].children).to.have.length(1)
+    expect(children[0].children).toHaveLength(1)
 
     expect(children[0].children[0].job.id).toBeTruthy()
     expect(children[0].children[0].job.queueName).toBe(queueName)
@@ -3996,8 +3996,8 @@ describe('flows', () => {
       prefix,
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children, job } = tree
     const isWaitingChildren = await job.isWaitingChildren()
@@ -4051,19 +4051,19 @@ describe('flows', () => {
         queueName: topQueueName,
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const isWaitingChildren = await job.isWaitingChildren()
 
       expect(isWaitingChildren).toBeTrue()
-      expect(children).to.have.length(1)
+      expect(children).toHaveLength(1)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
       expect(children[0].job.queueName).toBe(queueName)
-      expect(children[0].children).to.have.length(1)
+      expect(children[0].children).toHaveLength(1)
 
       expect(children[0].children[0].job.id).toBeTruthy()
       expect(children[0].children[0].job.queueName).toBe(queueName)
@@ -4114,7 +4114,7 @@ describe('flows', () => {
                 processed: {},
               })
             expect(nextProcessedCursor).toBe(0)
-            expect(Object.keys(processed!)).to.have.length(3)
+            expect(Object.keys(processed!)).toHaveLength(3)
 
             const childrenValues = await job.getChildrenValues()
 
@@ -4173,14 +4173,14 @@ describe('flows', () => {
         ],
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(3)
+      expect(children).toHaveLength(3)
 
       await processingChildren
       await childrenWorker.close()
@@ -4221,7 +4221,7 @@ describe('flows', () => {
       children: [],
     })
 
-    expect(tree).to.have.property('job')
+    expect(tree).toHaveProperty('job')
     expect(tree).to.not.have.property('children')
 
     await processingParent
@@ -4304,14 +4304,14 @@ describe('flows', () => {
       ],
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children, job } = tree
     const parentState = await job.getState()
 
     expect(parentState).toBe('waiting-children')
-    expect(children).to.have.length(3)
+    expect(children).toHaveLength(3)
 
     const { unprocessed } = await job.getDependencies()
 
@@ -4389,7 +4389,7 @@ describe('flows', () => {
       (parentProcessor = async (job: Job) => {
         try {
           const { processed } = await job.getDependencies()
-          expect(Object.keys(processed)).to.have.length(1)
+          expect(Object.keys(processed)).toHaveLength(1)
 
           const childrenValues = await job.getChildrenValues()
 
@@ -4437,18 +4437,18 @@ describe('flows', () => {
       ],
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children, job } = tree
     const isWaitingChildren = await job.isWaitingChildren()
 
     expect(isWaitingChildren).toBeTrue()
-    expect(children).to.have.length(1)
+    expect(children).toHaveLength(1)
 
     expect(children![0].job.id).toBeTruthy()
     expect(children![0].job.data.foo).toBe('bar')
-    expect(children![0].children).to.have.length(1)
+    expect(children![0].children).toHaveLength(1)
 
     expect(children![0].children![0].job.id).toBeTruthy()
     expect(children![0].children![0].job.data.foo).toBe('baz')
@@ -4551,7 +4551,7 @@ describe('flows', () => {
         (parentProcessor = async (job: Job) => {
           try {
             const { processed } = await job.getDependencies()
-            expect(Object.keys(processed)).to.have.length(1)
+            expect(Object.keys(processed)).toHaveLength(1)
 
             const childrenValues = await job.getChildrenValues()
 
@@ -4591,14 +4591,14 @@ describe('flows', () => {
         },
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const isWaitingChildren = await job.isWaitingChildren()
 
       expect(isWaitingChildren).toBeTrue()
-      expect(children).to.have.length(1)
+      expect(children).toHaveLength(1)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
@@ -4652,7 +4652,7 @@ describe('flows', () => {
         (parentProcessor = async (job: Job) => {
           try {
             const { processed } = await job.getDependencies()
-            expect(Object.keys(processed)).to.have.length(1)
+            expect(Object.keys(processed)).toHaveLength(1)
 
             const childrenValues = await job.getChildrenValues()
 
@@ -4691,14 +4691,14 @@ describe('flows', () => {
         ],
       })
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
       const isWaitingChildren = await job.isWaitingChildren()
 
       expect(isWaitingChildren).toBeTrue()
-      expect(children).to.have.length(1)
+      expect(children).toHaveLength(1)
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
@@ -4746,12 +4746,12 @@ describe('flows', () => {
       children: [{ name, data: { idx: 0, foo: 'bar' }, queueName }],
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children } = tree
 
-    expect(children).to.have.length(1)
+    expect(children).toHaveLength(1)
 
     expect(children![0].job.id).toBeTruthy()
     expect(children![0].job.data.foo).toBe('bar')
@@ -4808,12 +4808,12 @@ describe('flows', () => {
       children: [{ name, data: { idx: 0, foo: 'bar' }, queueName }],
     })
 
-    expect(tree).to.have.property('job')
-    expect(tree).to.have.property('children')
+    expect(tree).toHaveProperty('job')
+    expect(tree).toHaveProperty('children')
 
     const { children } = tree
 
-    expect(children).to.have.length(1)
+    expect(children).toHaveLength(1)
 
     expect(children![0].job.id).toBeTruthy()
     expect(children![0].job.data.foo).toBe('bar')
@@ -4877,7 +4877,7 @@ describe('flows', () => {
                 processed: {},
               })
             expect(nextProcessedCursor).toBe(0)
-            expect(Object.keys(processed)).to.have.length(2)
+            expect(Object.keys(processed)).toHaveLength(2)
 
             const childrenValues = await job.getChildrenValues()
 
@@ -4924,8 +4924,8 @@ describe('flows', () => {
         },
       ])
 
-      expect(tree).to.have.property('job')
-      expect(tree).to.have.property('children')
+      expect(tree).toHaveProperty('job')
+      expect(tree).toHaveProperty('children')
 
       const { children, job } = tree
 
@@ -4935,7 +4935,7 @@ describe('flows', () => {
       const parentState = await job.getState()
 
       expect(parentState).toBe('waiting-children')
-      expect(children).to.have.length(2)
+      expect(children).toHaveLength(2)
 
       await processingChildren
       await childrenWorker.close()
@@ -5027,28 +5027,28 @@ describe('flows', () => {
         },
       ])
 
-      expect(trees).to.have.length(2)
+      expect(trees).toHaveLength(2)
 
-      expect(trees[0]).to.have.property('job')
-      expect(trees[0]).to.have.property('children')
+      expect(trees[0]).toHaveProperty('job')
+      expect(trees[0]).toHaveProperty('children')
 
-      expect(trees[1]).to.have.property('job')
-      expect(trees[1]).to.have.property('children')
+      expect(trees[1]).toHaveProperty('job')
+      expect(trees[1]).toHaveProperty('children')
 
       const firstJob = trees[0]
       const isFirstJobWaitingChildren = await firstJob.job.isWaitingChildren()
       expect(isFirstJobWaitingChildren).toBeTrue()
-      expect(firstJob.children).to.have.length(1)
+      expect(firstJob.children).toHaveLength(1)
 
       expect(firstJob.children[0].job.id).toBeTruthy()
       expect(firstJob.children[0].job.data.foo).toBe('bar')
-      expect(firstJob.children).to.have.length(1)
+      expect(firstJob.children).toHaveLength(1)
 
       const secondJob = trees[1]
       const isSecondJobWaitingChildren
         = await secondJob.job.isWaitingChildren()
       expect(isSecondJobWaitingChildren).toBeTrue()
-      expect(secondJob.children).to.have.length(1)
+      expect(secondJob.children).toHaveLength(1)
 
       expect(secondJob.children[0].job.id).toBeTruthy()
       expect(secondJob.children[0].job.data.foo).toBe('baz')

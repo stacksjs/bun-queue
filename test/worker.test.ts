@@ -4264,7 +4264,7 @@ describe('workers', function () {
         })
         const { unprocessed: unprocessed1 } = await parent.getDependencies()
 
-        expect(unprocessed1).to.have.length(3)
+        expect(unprocessed1).toHaveLength(3)
 
         const child1 = (await childrenWorker.getNextJob(childToken)) as Job
         const child2 = (await childrenWorker.getNextJob(childToken)) as Job
@@ -4293,7 +4293,7 @@ describe('workers', function () {
         expect(processed2).to.deep.equal({
           [`${prefix}:${queueName}:${child1.id}`]: 'return value1',
         })
-        expect(unprocessed2).to.have.length(2)
+        expect(unprocessed2).toHaveLength(2)
         expect(movedToWaitingChildren).toBeTrue()
 
         const isActive2 = await child2.isActive()
@@ -4312,7 +4312,7 @@ describe('workers', function () {
           [`${prefix}:${queueName}:${child2.id}`]: 'return value2',
         })
         expect(processedCount).toBe(2)
-        expect(unprocessed3).to.have.length(1)
+        expect(unprocessed3).toHaveLength(1)
         expect(unprocessedCount).toBe(1)
         expect(isWaitingChildren1).toBeTrue()
 
@@ -4337,7 +4337,7 @@ describe('workers', function () {
           [`${prefix}:${queueName}:${child2.id}`]: 'return value2',
           [`${prefix}:${queueName}:${child3.id}`]: 'return value3',
         })
-        expect(unprocessed4).to.have.length(0)
+        expect(unprocessed4).toHaveLength(0)
         expect(movedToWaitingChildren2).to.be.false
 
         await childrenWorker.close()
@@ -4384,7 +4384,7 @@ describe('workers', function () {
           })
           const { unprocessed: unprocessed1 } = await parent.getDependencies()
 
-          expect(unprocessed1).to.have.length(1)
+          expect(unprocessed1).toHaveLength(1)
 
           const child1 = (await childrenWorker.getNextJob(childToken)) as Job
           const isActive1 = await child1.isActive()

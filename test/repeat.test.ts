@@ -177,7 +177,7 @@ describe('repeat', function () {
 
     const delayed = await queue.getDelayed()
 
-    expect(delayed).to.have.length(0)
+    expect(delayed).toHaveLength(0)
     expect(processed).toBe(10)
 
     await worker.close()
@@ -1218,7 +1218,7 @@ describe('repeat', function () {
       const count = await queue.count()
 
       expect(count).toBe(1)
-      expect(configs).to.have.length(1)
+      expect(configs).toHaveLength(1)
       expect(jobs.length).toBe(2)
       expect(jobs[0].id).toBe(jobs[1].id)
     })
@@ -1260,7 +1260,7 @@ describe('repeat', function () {
       const count = await queue.count()
 
       expect(count).toBe(1)
-      expect(configs).to.have.length(1)
+      expect(configs).toHaveLength(1)
       await worker.close()
     })
   })
@@ -1323,7 +1323,7 @@ describe('repeat', function () {
     expect(delayedCount1).toBe(1)
     const job = await queue.getJob(createdJob.id!)
     const repeatableJobs = await queue.getRepeatableJobs()
-    expect(repeatableJobs).to.have.length(1)
+    expect(repeatableJobs).toHaveLength(1)
     const existBeforeRemoval = await client.exists(
       `${prefix}:${queue.name}:repeat:${createdJob.repeatJobKey!}`,
     )
@@ -1338,7 +1338,7 @@ describe('repeat', function () {
     expect(job!.repeatJobKey).to.not.be.undefined
     expect(removed).toBeTrue()
     const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
-    expect(repeatableJobsAfterRemove).to.have.length(0)
+    expect(repeatableJobsAfterRemove).toHaveLength(0)
   })
 
   describe('when legacy repeatable format is present', () => {
@@ -1373,14 +1373,14 @@ describe('repeat', function () {
       const repeat = { pattern: '* 1 * 1 *' }
 
       const repeatableJobs = await queue.getRepeatableJobs()
-      expect(repeatableJobs).to.have.length(1)
+      expect(repeatableJobs).toHaveLength(1)
       const removed = await queue.removeRepeatable('remove', repeat)
 
       const delayedCount = await queue.getJobCountByTypes('delayed')
       expect(delayedCount).toBe(0)
       expect(removed).toBeTrue()
       const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
-      expect(repeatableJobsAfterRemove).to.have.length(0)
+      expect(repeatableJobsAfterRemove).toHaveLength(0)
     })
 
     it('should be able to remove legacy repeatable jobs by key', async () => {
@@ -1412,14 +1412,14 @@ describe('repeat', function () {
       )
 
       const repeatableJobs = await queue.getRepeatableJobs()
-      expect(repeatableJobs).to.have.length(1)
+      expect(repeatableJobs).toHaveLength(1)
       const removed = await queue.removeRepeatableByKey('remove::::* 1 * 1 *')
 
       const delayedCount = await queue.getJobCountByTypes('delayed')
       expect(delayedCount).toBe(0)
       expect(removed).toBeTrue()
       const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
-      expect(repeatableJobsAfterRemove).to.have.length(0)
+      expect(repeatableJobsAfterRemove).toHaveLength(0)
     })
 
     describe('when re-adding repeatable job now with new format', () => {
@@ -1455,7 +1455,7 @@ describe('repeat', function () {
         const repeat = { pattern: '* 1 * 1 *' }
 
         const repeatableJobs = await queue.getRepeatableJobs()
-        expect(repeatableJobs).to.have.length(1)
+        expect(repeatableJobs).toHaveLength(1)
         expect(repeatableJobs[0].key).toBe('remove::::* 1 * 1 *')
         const removed = await queue.removeRepeatable('remove', repeat)
 
@@ -1463,7 +1463,7 @@ describe('repeat', function () {
         expect(delayedCount).toBe(0)
         expect(removed).toBeTrue()
         const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
-        expect(repeatableJobsAfterRemove).to.have.length(0)
+        expect(repeatableJobsAfterRemove).toHaveLength(0)
       })
 
       it('should keep legacy repeatable job and delayed referece', async function () {
@@ -1478,7 +1478,7 @@ describe('repeat', function () {
 
         await queue.add('remove', {}, { repeat: { pattern: '* 1 * 1 *' } })
         const repeatableJobs = await queue.getRepeatableJobs()
-        expect(repeatableJobs).to.have.length(1)
+        expect(repeatableJobs).toHaveLength(1)
         expect(repeatableJobs[0].key).toBe('remove::::* 1 * 1 *')
 
         const delayedCount = await queue.getJobCountByTypes('delayed')
@@ -1493,7 +1493,7 @@ describe('repeat', function () {
 
       await queue.add('remove', { foo: 'bar' }, { repeat })
       const repeatableJobs = await queue.getRepeatableJobs()
-      expect(repeatableJobs).to.have.length(1)
+      expect(repeatableJobs).toHaveLength(1)
       const removed = await queue.removeRepeatableByKey(repeatableJobs[0].key)
       expect(removed).toBeTrue()
       const removed2 = await queue.removeRepeatableByKey(repeatableJobs[0].key)
@@ -1636,10 +1636,10 @@ describe('repeat', function () {
       this.clock.tick(nextTick)
 
       let jobs = await queue.getRepeatableJobs()
-      expect(jobs).to.have.length(1)
+      expect(jobs).toHaveLength(1)
 
       let delayedJobs = await queue.getDelayed()
-      expect(delayedJobs).to.have.length(1)
+      expect(delayedJobs).toHaveLength(1)
 
       await queue.add(
         'test2',
@@ -1653,10 +1653,10 @@ describe('repeat', function () {
       )
 
       jobs = await queue.getRepeatableJobs()
-      expect(jobs).to.have.length(1)
+      expect(jobs).toHaveLength(1)
 
       delayedJobs = await queue.getDelayed()
-      expect(delayedJobs).to.have.length(1)
+      expect(delayedJobs).toHaveLength(1)
     })
 
     it('should keep only one delayed job if adding a new repeatable job with the same key', async function () {
@@ -1681,10 +1681,10 @@ describe('repeat', function () {
       this.clock.tick(nextTick)
 
       let jobs = await queue.getRepeatableJobs()
-      expect(jobs).to.have.length(1)
+      expect(jobs).toHaveLength(1)
 
       let delayedJobs = await queue.getDelayed()
-      expect(delayedJobs).to.have.length(1)
+      expect(delayedJobs).toHaveLength(1)
 
       await queue.add(
         'test2',
@@ -1698,10 +1698,10 @@ describe('repeat', function () {
       )
 
       jobs = await queue.getRepeatableJobs()
-      expect(jobs).to.have.length(1)
+      expect(jobs).toHaveLength(1)
 
       delayedJobs = await queue.getDelayed()
-      expect(delayedJobs).to.have.length(1)
+      expect(delayedJobs).toHaveLength(1)
     })
   })
 

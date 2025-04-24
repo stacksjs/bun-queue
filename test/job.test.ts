@@ -58,8 +58,8 @@ describe('Job', () => {
 
     it('saves the job in redis', async () => {
       const storedJob = await Job.fromId(queue, job.id)
-      expect(storedJob).to.have.property('id')
-      expect(storedJob).to.have.property('data')
+      expect(storedJob).toHaveProperty('id')
+      expect(storedJob).toHaveProperty('data')
 
       expect(storedJob.data.foo).toBe('bar')
       expect(storedJob.opts).to.be.an('object')
@@ -88,7 +88,7 @@ describe('Job', () => {
       const opts = { sizeLimit: 20 }
       const createdJob = await Job.create(queue, 'test', data, opts)
       expect(createdJob).to.not.be.null
-      expect(createdJob).to.have.property('opts')
+      expect(createdJob).toHaveProperty('opts')
       expect(createdJob.opts.sizeLimit).toBe(20)
     })
 
@@ -208,9 +208,9 @@ describe('Job', () => {
       const json = JSON.stringify(job)
       const parsed = JSON.parse(json)
       expect(parsed).to.have.deep.property('data', data)
-      expect(parsed).to.have.property('name', 'test')
-      expect(parsed).to.have.property('returnvalue', 1)
-      expect(parsed).to.have.property('progress', 20)
+      expect(parsed).toHaveProperty('name', 'test')
+      expect(parsed).toHaveProperty('returnvalue', 1)
+      expect(parsed).toHaveProperty('progress', 20)
     })
 
     it('omits the queue property to avoid a circular json error on node 8', async () => {
@@ -218,7 +218,7 @@ describe('Job', () => {
       const job = await Job.create(queue, 'test', data)
       const json = JSON.stringify(job)
       const parsed = JSON.parse(json)
-      expect(parsed).not.to.have.property('queue')
+      expect(parsed).not.toHaveProperty('queue')
     })
 
     it('should correctly handle zero passed as data', async () => {
@@ -677,7 +677,7 @@ describe('Job', () => {
       const job = (await parentWorker.getNextJob(token)) as Job
       const { unprocessed } = await parent.getDependencies()
 
-      expect(unprocessed).to.have.length(2)
+      expect(unprocessed).toHaveLength(2)
 
       const isActive = await job.isActive()
       expect(isActive).toBe(true)
@@ -718,7 +718,7 @@ describe('Job', () => {
       expect(isFailed2).toBe(true)
       expect(job.stacktrace).not.be.equal(null)
       expect(job.stacktrace.length).toBe(1)
-      expect(job.stacktrace[0]).to.include('test_job.ts')
+      expect(job.stacktrace[0]).toInclude('test_job.ts')
       await worker.close()
     })
 
@@ -736,7 +736,7 @@ describe('Job', () => {
         expect(isFailed2).toBe(true)
         expect(job.stacktrace).not.be.equal(null)
         expect(job.stacktrace.length).toBe(1)
-        expect(job.stacktrace[0]).to.include('test_job.ts')
+        expect(job.stacktrace[0]).toInclude('test_job.ts')
         await worker.close()
       })
     })

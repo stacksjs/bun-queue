@@ -408,7 +408,7 @@ describe('Obliterate', () => {
     )
 
     const repeatableJobs = await queue.getRepeatableJobs()
-    expect(repeatableJobs).to.have.length(1)
+    expect(repeatableJobs).toHaveLength(1)
 
     await queue.obliterate()
     const client = await queue.client
@@ -436,7 +436,7 @@ describe('Obliterate', () => {
     await queue.obliterate({ force: true })
 
     const { logs } = await queue.getJobLogs(job.id!)
-    expect(logs).to.have.length(0)
+    expect(logs).toHaveLength(0)
 
     await queueEvents.close()
     await worker.close()

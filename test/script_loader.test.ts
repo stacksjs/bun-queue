@@ -183,7 +183,7 @@ describe('scriptLoader', () => {
         'fixture_glob_include_2.lua',
       ]
       expected.forEach((include) => {
-        expect(includes).to.include(include)
+        expect(includes).toInclude(include)
       })
     })
 
@@ -257,7 +257,7 @@ describe('scriptLoader', () => {
       }
 
       expect(didThrow).to.eql(true)
-      expect(error.includes).to.include(child)
+      expect(error.includes).toInclude(child)
     })
 
     it('prevents multiple includes of a file in a single script', async () => {
