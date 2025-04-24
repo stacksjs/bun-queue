@@ -141,12 +141,12 @@ describe('workers', function () {
     let processor
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     const processing = new Promise<void>((resolve, reject) => {
       queueEvents.on('progress', ({ jobId, data }) => {
-        expect(jobId).to.be.ok
+        expect(jobId).toBeTruthy()
         expect(data).toBe(42)
         resolve()
       })
@@ -183,7 +183,7 @@ describe('workers', function () {
     })
 
     const job = await trimmedEventsQueue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     const processing = new Promise<void>((resolve, reject) => {
@@ -212,7 +212,7 @@ describe('workers', function () {
     ).xlen(trimmedEventsQueue.keys.events)
 
     expect(eventsLength).to.be.lt(numUpdateProgress + 10)
-    expect(eventsLength).to.be.gte(maxEvents)
+    expect(eventsLength).toBeGreaterThanOrEqual(maxEvents)
 
     await worker.close()
     await trimmedEventsQueue.close()
@@ -222,12 +222,12 @@ describe('workers', function () {
     let processor
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     const processing = new Promise<void>((resolve, reject) => {
       queueEvents.on('progress', ({ jobId, data }) => {
-        expect(jobId).to.be.ok
+        expect(jobId).toBeTruthy()
         expect(data).toBe({ percentage: 42 })
         resolve()
       })
@@ -255,12 +255,12 @@ describe('workers', function () {
     let processor
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     const processing = new Promise<void>((resolve, reject) => {
       queueEvents.on('progress', ({ jobId, data }) => {
-        expect(jobId).to.be.ok
+        expect(jobId).toBeTruthy()
         expect(data).toBe('progress as string')
         resolve()
       })
@@ -288,12 +288,12 @@ describe('workers', function () {
     let processor
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     const processing = new Promise<void>((resolve, reject) => {
       queueEvents.on('progress', ({ jobId, data }) => {
-        expect(jobId).to.be.ok
+        expect(jobId).toBeTruthy()
         expect(data).toBe(true)
         resolve()
       })
@@ -353,13 +353,13 @@ describe('workers', function () {
     await worker.waitUntilReady()
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     await new Promise<void>((resolve, reject) => {
       worker.on('completed', async (job: Job, data: any) => {
         try {
-          expect(job).to.be.ok
+          expect(job).toBeTruthy()
           expect(data).toBe(37)
 
           const gotJob = await queue.getJob(job.id)
@@ -390,12 +390,12 @@ describe('workers', function () {
     const waiting = new Promise<void>((resolve, reject) => {
       queueEvents.on('completed', async (data) => {
         try {
-          expect(data).to.be.ok
+          expect(data).toBeTruthy()
           expect(data.returnvalue).toBe(testString)
           await delay(100)
           const gotJob = await queue.getJob(data.jobId)
 
-          expect(gotJob).to.be.ok
+          expect(gotJob).toBeTruthy()
           expect(gotJob.returnvalue).toBe(testString)
           resolve()
         }
@@ -422,13 +422,13 @@ describe('workers', function () {
     await worker.waitUntilReady()
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     await new Promise<void>((resolve, reject) => {
       worker.on('completed', async (job: Job, data: any) => {
         try {
-          expect(job).to.be.ok
+          expect(job).toBeTruthy()
           expect(data).toBe(37)
           const gotJob = await queue.getJob(job.id)
           expect(gotJob.returnvalue).toBe(37)
@@ -461,12 +461,12 @@ describe('workers', function () {
     await worker.waitUntilReady()
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     await new Promise<void>((resolve) => {
       worker.on('completed', (job: Job, data: any) => {
-        expect(job).to.be.ok
+        expect(job).toBeTruthy()
         expect(data).toBe('my data')
         resolve()
       })
@@ -487,12 +487,12 @@ describe('workers', function () {
     await worker.waitUntilReady()
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     await new Promise<void>((resolve) => {
       worker.on('completed', (job) => {
-        expect(job).to.be.ok
+        expect(job).toBeTruthy()
         resolve()
       })
     })
@@ -516,14 +516,14 @@ describe('workers', function () {
     await worker.waitUntilReady()
 
     const job1 = await queue.add('test', { foo: 'bar', index: 1 })
-    expect(job1.id).to.be.ok
+    expect(job1.id).toBeTruthy()
     expect(job1.data.foo).toBe('bar')
 
     let completedIndex
     await new Promise<void>((resolve, reject) => {
       worker.on('completed', (job: Job, result: any) => {
         try {
-          expect(job).to.be.ok
+          expect(job).toBeTruthy()
           expect(result).toBe('my data')
 
           if (!completedIndex) {
@@ -575,8 +575,8 @@ describe('workers', function () {
 
     await queue.addBulk(jobsData)
 
-    expect(bclientSpy.callCount).to.be.gte(0)
-    expect(bclientSpy.callCount).to.be.lte(1)
+    expect(bclientSpy.callCount).toBeGreaterThanOrEqual(0)
+    expect(bclientSpy.callCount).toBeLessThanOrEqual(1)
 
     await new Promise<void>((resolve) => {
       worker.on('completed', () => {
@@ -703,13 +703,13 @@ describe('workers', function () {
     await worker.waitUntilReady()
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     const failing = new Promise<void>((resolve, reject) => {
       worker.once('failed', async (job, err) => {
         try {
-          expect(job).to.be.ok
+          expect(job).toBeTruthy()
           expect(job!.finishedOn).to.be.a('number')
           expect(job!.data.foo).toBe('bar')
           expect(err).toBe(jobError)
@@ -769,13 +769,13 @@ describe('workers', function () {
     await worker.waitUntilReady()
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     await new Promise<void>((resolve, reject) => {
       worker.once('failed', (job, err) => {
         try {
-          expect(job.id).to.be.ok
+          expect(job.id).toBeTruthy()
           expect(job.data.foo).toBe('bar')
           expect(err).toBe(jobError)
           resolve()
@@ -797,7 +797,7 @@ describe('workers', function () {
         async (job) => {
           try {
             await delay(100)
-            expect(job).to.be.ok
+            expect(job).toBeTruthy()
             expect(job!.processedBy).toBe(worker.opts.name)
           }
           catch (err) {
@@ -839,7 +839,7 @@ describe('workers', function () {
     const failing = new Promise<void>((resolve, reject) => {
       worker.once('failed', async (job, err) => {
         try {
-          expect(job).to.be.ok
+          expect(job).toBeTruthy()
           expect(job.data.foo).toBe('bar')
           expect(err).toBe(notEvenErr)
           failedOnce = true
@@ -864,7 +864,7 @@ describe('workers', function () {
     })
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     await failing
@@ -893,7 +893,7 @@ describe('workers', function () {
     const completing = new Promise<void>((resolve, reject) => {
       worker.once('completed', async (job, result) => {
         try {
-          expect(job).to.be.ok
+          expect(job).toBeTruthy()
           expect(job.data.foo).toBe('bar')
           expect(result).toBe(count++)
           completedOnce = true
@@ -906,7 +906,7 @@ describe('workers', function () {
     })
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     await completing
@@ -931,7 +931,7 @@ describe('workers', function () {
         await client.bzpopmin(`key`, 0.001)
       }
 
-      expect(true).to.be.true
+      expect(true).toBeTrue()
       await worker.close()
     })
   })
@@ -953,7 +953,7 @@ describe('workers', function () {
 
       const job = await queue.add('test', { foo: 'bar' })
 
-      expect(job.id).to.be.ok
+      expect(job.id).toBeTruthy()
       expect(job.data.foo).toBe('bar')
 
       await delay(100)
@@ -962,7 +962,7 @@ describe('workers', function () {
 
       await new Promise<void>((resolve) => {
         worker.once('failed', async (job, err) => {
-          expect(job).to.be.ok
+          expect(job).toBeTruthy()
           expect(job.data.foo).toBe('bar')
           expect(err).toBe(jobError)
           resolve()
@@ -988,7 +988,7 @@ describe('workers', function () {
 
       const job = await queue.add('test', { foo: 'bar' })
 
-      expect(job.id).to.be.ok
+      expect(job.id).toBeTruthy()
       expect(job.data.foo).toBe('bar')
 
       await delay(100)
@@ -998,7 +998,7 @@ describe('workers', function () {
       await new Promise<void>((resolve, reject) => {
         worker.once('completed', async (job) => {
           try {
-            expect(job).to.be.ok
+            expect(job).toBeTruthy()
             expect(job.finishedOn).to.be.a('number')
             expect(job.data.foo).toBe('bar')
             resolve()
@@ -1298,7 +1298,7 @@ describe('workers', function () {
       const worker = new Worker(
         queueName,
         async (job, token) => {
-          expect(token).to.be.string
+          expect(token).toBeString()
           expect(job.data.foo).toBe('bar')
         },
         { connection, prefix },
@@ -1310,13 +1310,13 @@ describe('workers', function () {
         { foo: 'bar' },
         { removeOnComplete: true },
       )
-      expect(job.id).to.be.ok
+      expect(job.id).toBeTruthy()
       expect(job.data.foo).toBe('bar')
 
       const completed = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job) => {
           try {
-            expect(job.finishedOn).to.be.string
+            expect(job.finishedOn).toBeString()
             const gotJob = await queue.getJob(job.id)
             expect(gotJob).toBe(undefined)
             const counts = await queue.getJobCounts('completed')
@@ -1353,7 +1353,7 @@ describe('workers', function () {
       await worker.waitUntilReady()
 
       const job = await newQueue.add('test', { foo: 'bar' })
-      expect(job.id).to.be.ok
+      expect(job.id).toBeTruthy()
       expect(job.data.foo).toBe('bar')
 
       await new Promise<void>((resolve, reject) => {
@@ -1479,7 +1479,7 @@ describe('workers', function () {
       })
 
       const job = await newQueue.add('test', { foo: 'bar' })
-      expect(job.id).to.be.ok
+      expect(job.id).toBeTruthy()
       expect(job.data.foo).toBe('bar')
 
       await new Promise<void>((resolve) => {
@@ -1609,7 +1609,7 @@ describe('workers', function () {
       const processing = new Promise<void>((resolve, reject) => {
         processor = async (job: Job) => {
           try {
-            expect(job.id).to.be.ok
+            expect(job.id).toBeTruthy()
             expect(job.data.p).toBe(currentPriority)
           }
           catch (err) {
@@ -1673,7 +1673,7 @@ describe('workers', function () {
               }
 
               countersPerPriority[job.data.p] = +job.id!
-              expect(job.id).to.be.ok
+              expect(job.id).toBeTruthy()
               expect(job.data.p).toBe(currentPriority)
             }
             catch (err) {
@@ -1714,7 +1714,7 @@ describe('workers', function () {
                 await queue.add('test', { p: 2 }, { priority: 2 })
               }
 
-              expect(job.id).to.be.ok
+              expect(job.id).toBeTruthy()
               expect(job.data.p).toBe(2)
             }
             catch (err) {
@@ -1948,7 +1948,7 @@ describe('workers', function () {
       const completing = new Promise<void>((resolve, reject) => {
         worker.once('completed', async (job) => {
           try {
-            expect(job).to.be.ok
+            expect(job).toBeTruthy()
             expect(job.data.foo).toBe('bar')
           }
           catch (err) {
@@ -1959,7 +1959,7 @@ describe('workers', function () {
       })
 
       const job = await queue.add('test', { foo: 'bar' })
-      expect(job.id).to.be.ok
+      expect(job.id).toBeTruthy()
       expect(job.data.foo).toBe('bar')
 
       await completing
@@ -1991,11 +1991,11 @@ describe('workers', function () {
     await worker.waitUntilReady()
 
     const job = await queue.add('test', { foo: 'bar' })
-    expect(job.id).to.be.ok
+    expect(job.id).toBeTruthy()
     expect(job.data.foo).toBe('bar')
 
     worker.once('failed', async (job, err) => {
-      expect(job).to.be.ok
+      expect(job).toBeTruthy()
       expect(job.data.foo).toBe('bar')
       expect(err).toBe(notEvenErr)
       failedOnce = true
@@ -2046,7 +2046,7 @@ describe('workers', function () {
           try {
             // Check job is locked
             const lock = await client.get(lockKey(job.id!))
-            expect(lock).to.be.ok
+            expect(lock).toBeTruthy()
 
             await delay(2000)
 
@@ -2550,8 +2550,8 @@ describe('workers', function () {
           // Pause when all 4 works are processing
           await worker.pause()
           // Wait for all the active jobs to finalize.
-          expect(nbJobFinish).to.be.gte(3)
-          expect(nbJobFinish).to.be.lte(4)
+          expect(nbJobFinish).toBeGreaterThanOrEqual(3)
+          expect(nbJobFinish).toBeLessThanOrEqual(4)
         }
       })
 
@@ -4271,7 +4271,7 @@ describe('workers', function () {
         const child3 = (await childrenWorker.getNextJob(childToken)) as Job
         const isActive1 = await child1.isActive()
 
-        expect(isActive1).to.be.true
+        expect(isActive1).toBeTrue()
 
         await child1.moveToCompleted('return value1', childToken)
         const { processed: processed2, unprocessed: unprocessed2 }
@@ -4294,11 +4294,11 @@ describe('workers', function () {
           [`${prefix}:${queueName}:${child1.id}`]: 'return value1',
         })
         expect(unprocessed2).to.have.length(2)
-        expect(movedToWaitingChildren).to.be.true
+        expect(movedToWaitingChildren).toBeTrue()
 
         const isActive2 = await child2.isActive()
 
-        expect(isActive2).to.be.true
+        expect(isActive2).toBeTrue()
 
         await child2.moveToCompleted('return value2', childToken)
         const { processed: processed3, unprocessed: unprocessed3 }
@@ -4314,11 +4314,11 @@ describe('workers', function () {
         expect(processedCount).toBe(2)
         expect(unprocessed3).to.have.length(1)
         expect(unprocessedCount).toBe(1)
-        expect(isWaitingChildren1).to.be.true
+        expect(isWaitingChildren1).toBeTrue()
 
         const isActive3 = await child3.isActive()
 
-        expect(isActive3).to.be.true
+        expect(isActive3).toBeTrue()
 
         await child3.moveToCompleted('return value3', childToken)
         const { processed: processed4, unprocessed: unprocessed4 }
@@ -4389,7 +4389,7 @@ describe('workers', function () {
           const child1 = (await childrenWorker.getNextJob(childToken)) as Job
           const isActive1 = await child1.isActive()
 
-          expect(isActive1).to.be.true
+          expect(isActive1).toBeTrue()
 
           await parent.moveToWaitingChildren(parentToken, {
             child: {

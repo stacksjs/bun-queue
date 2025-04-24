@@ -56,8 +56,8 @@ describe('queues', () => {
   it('should return the queue version', async () => {
     const queue = new Queue(queueName, { connection })
     const version = await queue.getVersion()
-    expect(version.startsWith('bullmq')).to.be.true
-    expect(version.endsWith(`:${currentPackageVersion}`)).to.be.true
+    expect(version.startsWith('bullmq')).toBeTrue()
+    expect(version.endsWith(`:${currentPackageVersion}`)).toBeTrue()
     return queue.close()
   })
 

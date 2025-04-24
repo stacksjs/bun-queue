@@ -67,13 +67,13 @@ describe('scriptLoader', () => {
       loader.addPathMapping('grandchild', '<child>/grandchild')
 
       let p = loader.resolvePath('<grandchild>/actual.lua')
-      expect(p.startsWith(grandChildPath)).to.be.true
-      expect(p.startsWith(childPath)).to.be.true
-      expect(p.startsWith(basePath)).to.be.true
+      expect(p.startsWith(grandChildPath)).toBeTrue()
+      expect(p.startsWith(childPath)).toBeTrue()
+      expect(p.startsWith(basePath)).toBeTrue()
 
       p = loader.resolvePath('<child>/actual.lua')
-      expect(p.startsWith(childPath)).to.be.true
-      expect(p.startsWith(basePath)).to.be.true
+      expect(p.startsWith(childPath)).toBeTrue()
+      expect(p.startsWith(basePath)).toBeTrue()
     })
 
     it('substitutes mapped paths', () => {
@@ -200,7 +200,7 @@ describe('scriptLoader', () => {
 
       const include = info?.includes[0]
       expect(include?.name).to.eql('math')
-      expect(include?.path.startsWith(includePath)).to.be.true
+      expect(include?.path.startsWith(includePath)).toBeTrue()
     })
 
     it('supports path mapping and globs simultaneously', async () => {
@@ -282,7 +282,7 @@ describe('scriptLoader', () => {
       const dirname = `${__dirname}/fixtures/scripts/dir-test`
       const commands = await loader.loadScripts(dirname);
       ['one', 'two', 'three'].forEach((name) => {
-        expect(!!commands.find(x => x.name === name)).to.be.true
+        expect(!!commands.find(x => x.name === name)).toBeTrue()
       })
     })
 

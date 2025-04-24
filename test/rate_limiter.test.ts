@@ -98,7 +98,7 @@ describe('Rate Limiter', () => {
         after(numJobs, async () => {
           try {
             const timeDiff = new Date().getTime() - startTime
-            expect(timeDiff).to.be.gte((numJobs - 1) * 1000)
+            expect(timeDiff).toBeGreaterThanOrEqual((numJobs - 1) * 1000)
             resolve()
           }
           catch (err) {
@@ -249,7 +249,7 @@ describe('Rate Limiter', () => {
 
             try {
               const timeDiff = new Date().getTime() - startTime
-              expect(timeDiff).to.be.gte((numJobs - 1) * 1000)
+              expect(timeDiff).toBeGreaterThanOrEqual((numJobs - 1) * 1000)
               resolve()
             }
             catch (err) {
@@ -273,7 +273,7 @@ describe('Rate Limiter', () => {
 
             try {
               const timeDiff = new Date().getTime() - startTime
-              expect(timeDiff).to.be.gte((numJobs / 2 - 1) * 2000)
+              expect(timeDiff).toBeGreaterThanOrEqual((numJobs / 2 - 1) * 2000)
               resolve()
             }
             catch (err) {
@@ -332,7 +332,7 @@ describe('Rate Limiter', () => {
 
           try {
             const timeDiff = new Date().getTime() - startTime
-            expect(timeDiff).to.be.gte(numJobs / 2 - 1 * 1000)
+            expect(timeDiff).toBeGreaterThanOrEqual(numJobs / 2 - 1 * 1000)
             resolve()
           }
           catch (err) {
@@ -400,7 +400,7 @@ describe('Rate Limiter', () => {
 
             try {
               const timeDiff = new Date().getTime() - startTime
-              expect(timeDiff).to.be.gte(
+              expect(timeDiff).toBeGreaterThanOrEqual(
                 (numJobs * dynamicLimit + numJobs * duration) * margin,
               )
               resolve()
@@ -691,7 +691,7 @@ describe('Rate Limiter', () => {
           queueEvents.once('failed', async () => {
             try {
               const timeDiff = new Date().getTime() - startTime
-              expect(timeDiff).to.be.gte(dynamicLimit)
+              expect(timeDiff).toBeGreaterThanOrEqual(dynamicLimit)
               resolve()
             }
             catch (err) {
@@ -932,8 +932,8 @@ describe('Rate Limiter', () => {
             after(numJobs, async () => {
               try {
                 const timeDiff = new Date().getTime() - startTime
-                expect(timeDiff).to.be.gte((numJobs - 1) * duration)
-                expect(timeDiff).to.be.lte(numJobs * duration)
+                expect(timeDiff).toBeGreaterThanOrEqual((numJobs - 1) * duration)
+                expect(timeDiff).toBeLessThanOrEqual(numJobs * duration)
                 resolve()
               }
               catch (err) {

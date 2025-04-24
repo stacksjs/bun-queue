@@ -901,7 +901,7 @@ describe('Job', () => {
       await again.moveToFailed(new Error('failed twice'), '0', true)
       const isFailed2 = await again.isFailed()
       const stackTrace2 = again.stacktrace[0]
-      expect(isFailed2).to.be.true
+      expect(isFailed2).toBeTrue()
       expect(again.name).toBe(job.name)
       expect(again.stacktrace.length).toBe(stackTraceLimit)
       expect(stackTrace1).not.be.equal(stackTrace2)
@@ -931,7 +931,7 @@ describe('Job', () => {
         const again = (await worker.getNextJob(token)) as Job
         await again.moveToFailed(new Error('failed twice'), '0', true)
         const isFailed2 = await again.isFailed()
-        expect(isFailed2).to.be.true
+        expect(isFailed2).toBeTrue()
         expect(again.name).toBe(job.name)
         expect(again.stacktrace.length).toBe(stackTraceLimit)
         await worker.close()
@@ -946,7 +946,7 @@ describe('Job', () => {
       const id = job.id
       await job.moveToFailed(new Error('test error'), '0')
       const sameJob = await queue.getJob(id!)
-      expect(sameJob).to.be.ok
+      expect(sameJob).toBeTruthy()
       expect(sameJob.stacktrace).to.be.not.empty
       await worker.close()
     })
@@ -982,7 +982,7 @@ describe('Job', () => {
       const completing = new Promise<void>((resolve) => {
         worker.on('completed', async () => {
           const timeDiff = new Date().getTime() - startTime
-          expect(timeDiff).to.be.gte(2000)
+          expect(timeDiff).toBeGreaterThanOrEqual(2000)
           resolve()
         })
       })

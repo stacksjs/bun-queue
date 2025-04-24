@@ -101,7 +101,7 @@ describe('events', function () {
   it('should emit waiting when a job has been added', async () => {
     const waiting = new Promise<void>((resolve) => {
       queue.on('waiting', (job) => {
-        expect(job.id).to.be.string
+        expect(job.id).toBeString()
         resolve()
       })
     })
@@ -183,7 +183,7 @@ describe('events', function () {
 
     const drained = new Promise<void>((resolve) => {
       queueEvents.once('drained', (id) => {
-        expect(id).to.be.string
+        expect(id).toBeString()
         resolve()
       })
     })
@@ -196,8 +196,8 @@ describe('events', function () {
     await drained
 
     const jobs = await queue.getJobCountByTypes('completed')
-    expect(jobs).to.be.gte(1)
-    expect(jobs).to.be.lte(2)
+    expect(jobs).toBeGreaterThanOrEqual(1)
+    expect(jobs).toBeLessThanOrEqual(2)
 
     await worker.close()
   })
@@ -219,7 +219,7 @@ describe('events', function () {
 
       const drained = new Promise<void>((resolve) => {
         queueEvents.once('drained', (id) => {
-          expect(id).to.be.string
+          expect(id).toBeString()
           resolve()
         })
       })
@@ -841,7 +841,7 @@ describe('events', function () {
           const deduplication = new Promise<void>((resolve) => {
             queueEvents.on('deduplicated', () => {
               deduplicatedCounter++
-              if (deduplicatedCounter == 2) {
+              if (deduplicatedCounter === 2) {
                 resolve()
               }
             })
@@ -1077,7 +1077,7 @@ describe('events', function () {
 
       const eventsLength = await client.xlen(trimmedQueue.keys.events)
 
-      expect(eventsLength).to.be.lte(2)
+      expect(eventsLength).toBeLessThanOrEqual(2)
 
       await worker.close()
       await trimmedQueue.close()
@@ -1131,8 +1131,8 @@ describe('events', function () {
 
       const eventsLength = await client.xlen(trimmedQueue.keys.events)
 
-      expect(eventsLength).to.be.lte(45)
-      expect(eventsLength).to.be.gte(20)
+      expect(eventsLength).toBeLessThanOrEqual(45)
+      expect(eventsLength).toBeGreaterThanOrEqual(20)
 
       await worker.close()
       await trimmedQueue.close()
@@ -1189,8 +1189,8 @@ describe('events', function () {
 
         const eventsLength = await client.xlen(trimmedQueue.keys.events)
 
-        expect(eventsLength).to.be.lte(35)
-        expect(eventsLength).to.be.gte(20)
+        expect(eventsLength).toBeLessThanOrEqual(35)
+        expect(eventsLength).toBeGreaterThanOrEqual(20)
 
         await worker.close()
         await trimmedQueue.close()
@@ -1246,8 +1246,8 @@ describe('events', function () {
 
         const eventsLength = await client.xlen(trimmedQueue.keys.events)
 
-        expect(eventsLength).to.be.lte(35)
-        expect(eventsLength).to.be.gte(20)
+        expect(eventsLength).toBeLessThanOrEqual(35)
+        expect(eventsLength).toBeGreaterThanOrEqual(20)
 
         await worker.close()
         await trimmedQueue.close()
@@ -1282,8 +1282,8 @@ describe('events', function () {
 
         const eventsLength = await client.xlen(trimmedQueue.keys.events)
 
-        expect(eventsLength).to.be.lte(100)
-        expect(eventsLength).to.be.gte(20)
+        expect(eventsLength).toBeLessThanOrEqual(100)
+        expect(eventsLength).toBeGreaterThanOrEqual(20)
 
         await trimmedQueue.close()
         await removeAllQueueData(new IORedis(redisHost), queueName)

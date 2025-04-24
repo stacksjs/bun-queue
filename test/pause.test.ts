@@ -329,7 +329,7 @@ describe('Pause', () => {
   it('gets the right response from isPaused', async () => {
     await queue.pause()
     const isPausedQueuePaused = await queue.isPaused()
-    expect(isPausedQueuePaused).to.be.true
+    expect(isPausedQueuePaused).toBeTrue()
 
     await queue.resume()
     const isResumedQueuePaused = await queue.isPaused()

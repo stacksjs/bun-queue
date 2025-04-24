@@ -352,7 +352,7 @@ describe('repeat', function () {
       worker.on('completed', async (job) => {
         if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
         }
         prev = job
         counter++
@@ -406,7 +406,7 @@ describe('repeat', function () {
       worker.on('completed', async (job) => {
         if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
         }
         prev = job
         counter++
@@ -461,7 +461,7 @@ describe('repeat', function () {
       worker.on('completed', async (job) => {
         if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
         }
         prev = job
         counter++
@@ -524,7 +524,7 @@ describe('repeat', function () {
         worker.on('completed', async (job) => {
           if (prev) {
             expect(prev.timestamp).to.be.lt(job.timestamp)
-            expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+            expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
           }
           prev = job
           counter++
@@ -604,7 +604,7 @@ describe('repeat', function () {
         worker.on('completed', async (job) => {
           if (prev) {
             expect(prev.timestamp).to.be.lt(job.timestamp)
-            expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+            expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
           }
           prev = job
           counter++
@@ -660,7 +660,7 @@ describe('repeat', function () {
 
             if (job.opts.repeat!.count == 5) {
               const removed = await queue.removeRepeatable('rrule', repeat)
-              expect(removed).to.be.true
+              expect(removed).toBeTrue()
             }
           },
           { connection, prefix, settings },
@@ -691,7 +691,7 @@ describe('repeat', function () {
             try {
               if (prev) {
                 expect(prev.timestamp).to.be.lt(job.timestamp)
-                expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+                expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
               }
               prev = job
               counter++
@@ -715,7 +715,7 @@ describe('repeat', function () {
             try {
               if (prev2) {
                 expect(prev2.timestamp).to.be.lt(job.timestamp)
-                expect(job.timestamp - prev2.timestamp).to.be.gte(2000)
+                expect(job.timestamp - prev2.timestamp).toBeGreaterThanOrEqual(2000)
               }
               prev2 = job
               counter2++
@@ -835,11 +835,11 @@ describe('repeat', function () {
       worker.on('completed', async (job) => {
         if (prev && counter === 1) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(100)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(100)
         }
         else if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(2000)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(2000)
         }
         prev = job
         counter++
@@ -899,11 +899,11 @@ describe('repeat', function () {
       worker.on('completed', async (job) => {
         if (counter === 1) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(delay)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(delay)
         }
         else if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(ONE_DAY)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
         }
         prev = job
 
@@ -971,11 +971,11 @@ describe('repeat', function () {
       worker.on('completed', async (job) => {
         if (counter === 1) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(delay)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(delay)
         }
         else if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(ONE_DAY)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
         }
         prev = job
 
@@ -1038,7 +1038,7 @@ describe('repeat', function () {
         try {
           if (prev) {
             expect(prev.timestamp).to.be.lt(job.timestamp)
-            expect(job.processedOn! - prev.timestamp).to.be.gte(ONE_DAY)
+            expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
           }
           prev = job
 
@@ -1101,7 +1101,7 @@ describe('repeat', function () {
           try {
             if (prev) {
               expect(prev.timestamp).to.be.lt(job.timestamp)
-              expect(job.processedOn! - prev.timestamp).to.be.gte(ONE_DAY)
+              expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
             }
             prev = job
 
@@ -1171,7 +1171,7 @@ describe('repeat', function () {
               'months',
               true,
             )
-            expect(diff).to.be.gte(1)
+            expect(diff).toBeGreaterThanOrEqual(1)
           }
           prev = job
 
@@ -1282,7 +1282,7 @@ describe('repeat', function () {
         counter++
         if (counter == numJobs) {
           const removed = await queue.removeRepeatable('remove', repeat)
-          expect(removed).to.be.true
+          expect(removed).toBeTrue()
           this.clock.tick(nextTick)
           const delayed = await queue.getDelayed()
           expect(delayed).to.be.empty
@@ -1304,7 +1304,7 @@ describe('repeat', function () {
       this.clock.tick(nextTick)
       if (prev) {
         expect(prev.timestamp).to.be.lt(job.timestamp)
-        expect(job.timestamp - prev.timestamp).to.be.gte(ONE_SECOND)
+        expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(ONE_SECOND)
       }
       prev = job
     })
@@ -1336,7 +1336,7 @@ describe('repeat', function () {
     )
     expect(existAfterRemoval).toBe(0)
     expect(job!.repeatJobKey).to.not.be.undefined
-    expect(removed).to.be.true
+    expect(removed).toBeTrue()
     const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
     expect(repeatableJobsAfterRemove).to.have.length(0)
   })
@@ -1378,7 +1378,7 @@ describe('repeat', function () {
 
       const delayedCount = await queue.getJobCountByTypes('delayed')
       expect(delayedCount).toBe(0)
-      expect(removed).to.be.true
+      expect(removed).toBeTrue()
       const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
       expect(repeatableJobsAfterRemove).to.have.length(0)
     })
@@ -1417,7 +1417,7 @@ describe('repeat', function () {
 
       const delayedCount = await queue.getJobCountByTypes('delayed')
       expect(delayedCount).toBe(0)
-      expect(removed).to.be.true
+      expect(removed).toBeTrue()
       const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
       expect(repeatableJobsAfterRemove).to.have.length(0)
     })
@@ -1461,7 +1461,7 @@ describe('repeat', function () {
 
         const delayedCount = await queue.getJobCountByTypes('delayed')
         expect(delayedCount).toBe(0)
-        expect(removed).to.be.true
+        expect(removed).toBeTrue()
         const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
         expect(repeatableJobsAfterRemove).to.have.length(0)
       })
@@ -1495,7 +1495,7 @@ describe('repeat', function () {
       const repeatableJobs = await queue.getRepeatableJobs()
       expect(repeatableJobs).to.have.length(1)
       const removed = await queue.removeRepeatableByKey(repeatableJobs[0].key)
-      expect(removed).to.be.true
+      expect(removed).toBeTrue()
       const removed2 = await queue.removeRepeatableByKey(repeatableJobs[0].key)
       expect(removed2).to.be.false
     })
@@ -1547,7 +1547,7 @@ describe('repeat', function () {
       this.clock.tick(nextTick)
       if (prev) {
         expect(prev.timestamp).to.be.lt(job.timestamp)
-        expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+        expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
       }
       prev = job
     })
@@ -1604,7 +1604,7 @@ describe('repeat', function () {
         this.clock.tick(nextTick)
         if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
         }
         prev = job
       })
@@ -1864,7 +1864,7 @@ describe('repeat', function () {
     const processing = new Promise<void>((resolve, reject) => {
       processor = async (job: Job) => {
         try {
-          expect(job.id).to.be.ok
+          expect(job.id).toBeTruthy()
           expect(job.data.p).toBe(currentPriority++)
         }
         catch (err) {

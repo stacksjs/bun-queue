@@ -723,7 +723,7 @@ describe('Job Scheduler', function () {
       worker.on('completed', async (job) => {
         if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
         }
         prev = job
         counter++
@@ -775,7 +775,7 @@ describe('Job Scheduler', function () {
       worker.on('completed', async (job) => {
         if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
         }
         prev = job
         counter++
@@ -828,7 +828,7 @@ describe('Job Scheduler', function () {
       worker.on('completed', async (job) => {
         if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
         }
         prev = job
         counter++
@@ -889,7 +889,7 @@ describe('Job Scheduler', function () {
         worker.on('completed', async (job) => {
           if (prev) {
             expect(prev.timestamp).to.be.lt(job.timestamp)
-            expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+            expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
           }
           prev = job
           counter++
@@ -967,7 +967,7 @@ describe('Job Scheduler', function () {
         worker.on('completed', async (job) => {
           if (prev) {
             expect(prev.timestamp).to.be.lt(job.timestamp)
-            expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+            expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
           }
           prev = job
           counter++
@@ -1023,7 +1023,7 @@ describe('Job Scheduler', function () {
 
             if (job.opts.repeat!.count == 5) {
               const removed = await queue.removeJobScheduler('rrule')
-              expect(removed).to.be.true
+              expect(removed).toBeTrue()
             }
           },
           { connection, prefix, settings },
@@ -1060,7 +1060,7 @@ describe('Job Scheduler', function () {
             try {
               if (prev) {
                 expect(prev.timestamp).to.be.lt(job.timestamp)
-                expect(job.timestamp - prev.timestamp).to.be.gte(2000)
+                expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000)
               }
               prev = job
               counter++
@@ -1084,7 +1084,7 @@ describe('Job Scheduler', function () {
             try {
               if (prev2) {
                 expect(prev2.timestamp).to.be.lt(job.timestamp)
-                expect(job.timestamp - prev2.timestamp).to.be.gte(2000)
+                expect(job.timestamp - prev2.timestamp).toBeGreaterThanOrEqual(2000)
               }
               prev2 = job
               counter2++
@@ -1141,8 +1141,8 @@ describe('Job Scheduler', function () {
         worker.on('completed', async (job) => {
           try {
             if (prev && counter === 1) {
-              expect(prev.timestamp).to.be.lte(job.timestamp)
-              expect(job.timestamp - prev.timestamp).to.be.lte(1)
+              expect(prev.timestamp).toBeLessThanOrEqual(job.timestamp)
+              expect(job.timestamp - prev.timestamp).toBeLessThanOrEqual(1)
             }
             else if (prev) {
               expect(prev.timestamp).to.be.lt(job.timestamp)
@@ -1208,8 +1208,8 @@ describe('Job Scheduler', function () {
         worker.on('completed', async (job) => {
           try {
             if (prev && counter === 1) {
-              expect(prev.timestamp).to.be.lte(job.timestamp)
-              expect(job.timestamp - prev.timestamp).to.be.lte(1)
+              expect(prev.timestamp).toBeLessThanOrEqual(job.timestamp)
+              expect(job.timestamp - prev.timestamp).toBeLessThanOrEqual(1)
             }
             else if (prev) {
               expect(prev.timestamp).to.be.lt(job.timestamp)
@@ -1265,8 +1265,8 @@ describe('Job Scheduler', function () {
         worker.on('completed', async (job) => {
           try {
             if (prev && counter === 1) {
-              expect(prev.timestamp).to.be.lte(job.timestamp)
-              expect(job.timestamp - prev.timestamp).to.be.lte(1)
+              expect(prev.timestamp).toBeLessThanOrEqual(job.timestamp)
+              expect(job.timestamp - prev.timestamp).toBeLessThanOrEqual(1)
             }
             else if (prev) {
               expect(prev.timestamp).to.be.lt(job.timestamp)
@@ -1402,11 +1402,11 @@ describe('Job Scheduler', function () {
       worker.on('completed', async (job) => {
         if (counter === 1) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(delay)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(delay)
         }
         else if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.timestamp - prev.timestamp).to.be.gte(ONE_DAY)
+          expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
         }
         prev = job
 
@@ -1472,11 +1472,11 @@ describe('Job Scheduler', function () {
       worker.on('completed', async (job) => {
         if (counter === 1) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(delay)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(delay)
         }
         else if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(ONE_DAY)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
         }
         prev = job
 
@@ -1536,11 +1536,11 @@ describe('Job Scheduler', function () {
       worker.on('completed', async (job) => {
         if (counter === 1) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(delay)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(delay)
         }
         else if (prev) {
           expect(prev.timestamp).to.be.lt(job.timestamp)
-          expect(job.processedOn! - prev.timestamp).to.be.gte(ONE_DAY)
+          expect(job.processedOn! - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
         }
         prev = job
 
@@ -1602,7 +1602,7 @@ describe('Job Scheduler', function () {
         try {
           if (prev) {
             expect(prev.timestamp).to.be.lt(job.timestamp)
-            expect(job.timestamp - prev.timestamp).to.be.gte(ONE_DAY)
+            expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
           }
           prev = job
 
@@ -1664,7 +1664,7 @@ describe('Job Scheduler', function () {
           try {
             if (prev) {
               expect(prev.timestamp).to.be.lt(job.timestamp)
-              expect(job.timestamp - prev.timestamp).to.be.gte(ONE_DAY)
+              expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(ONE_DAY)
             }
             prev = job
 
@@ -1686,7 +1686,7 @@ describe('Job Scheduler', function () {
         utc: true,
       })
 
-      expect(job).to.be.ok
+      expect(job).toBeTruthy()
 
       this.clock.tick(nextTick + delay)
 
@@ -1731,7 +1731,7 @@ describe('Job Scheduler', function () {
               'months',
               true,
             )
-            expect(diff).to.be.gte(1)
+            expect(diff).toBeGreaterThanOrEqual(1)
           }
           prev = job
 
@@ -1834,7 +1834,7 @@ describe('Job Scheduler', function () {
         try {
           if (counter == numJobs) {
             const removed = await queue.removeJobScheduler('remove')
-            // expect(removed).to.be.true;
+            // expect(removed).toBeTrue();
             this.clock.tick(nextTick)
             // const delayed = await queue.getDelayed();
             // expect(delayed).to.be.empty;
@@ -1860,7 +1860,7 @@ describe('Job Scheduler', function () {
       this.clock.tick(nextTick)
       if (prev) {
         expect(prev.timestamp).to.be.lt(job.timestamp)
-        expect(job.timestamp - prev.timestamp).to.be.gte(ONE_SECOND)
+        expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(ONE_SECOND)
       }
       prev = job
     })
@@ -1894,7 +1894,7 @@ describe('Job Scheduler', function () {
     )
     expect(existAfterRemoval).toBe(0)
     expect(job!.repeatJobKey).to.not.be.undefined
-    expect(removed).to.be.true
+    expect(removed).toBeTrue()
     const repeatableJobsAfterRemove = await queue.getRepeatableJobs()
     expect(repeatableJobsAfterRemove).to.have.length(0)
   })
@@ -1907,7 +1907,7 @@ describe('Job Scheduler', function () {
       const repeatableJobs = await queue.getJobSchedulers()
       expect(repeatableJobs).to.have.length(1)
       const removed = await queue.removeJobScheduler(repeatableJobs[0].key)
-      expect(removed).to.be.true
+      expect(removed).toBeTrue()
       const removed2 = await queue.removeJobScheduler(repeatableJobs[0].key)
       expect(removed2).to.be.false
     })
@@ -2149,7 +2149,7 @@ describe('Job Scheduler', function () {
       }
 
       const repeatableJob = await queue.upsertJobScheduler('test', repeatOpts)
-      expect(repeatableJob).to.be.ok
+      expect(repeatableJob).toBeTruthy()
 
       const waitingCount = await queue.getWaitingCount()
       expect(waitingCount).toBe(1)
@@ -2567,7 +2567,7 @@ describe('Job Scheduler', function () {
     const processing = new Promise<void>((resolve, reject) => {
       processor = async (job: Job) => {
         try {
-          expect(job.id).to.be.ok
+          expect(job.id).toBeTruthy()
           expect(job.data.p).toBe(currentPriority++)
         }
         catch (err) {
@@ -2684,7 +2684,7 @@ describe('Job Scheduler', function () {
       { data: { foo: 'bar' } },
     )
 
-    expect(job).to.be.ok
+    expect(job).toBeTruthy()
     expect(job?.delay).toBe(10000)
 
     // Simulate the passage of time up to the startDate
@@ -2705,7 +2705,7 @@ describe('Job Scheduler', function () {
               expectedDates[++jobIteration],
             )
 
-            expect(job.timestamp - prev.timestamp).to.be.gte(2000) // Ensure it's repeating every 2 seconds
+            expect(job.timestamp - prev.timestamp).toBeGreaterThanOrEqual(2000) // Ensure it's repeating every 2 seconds
           }
           prev = job
           counter++
@@ -2766,7 +2766,7 @@ describe('Job Scheduler', function () {
       data: { foo: 'bar' },
     })
 
-    expect(job).to.be.ok
+    expect(job).toBeTruthy()
     expect(job!.data.foo).toBe('bar')
     expect(job!.opts.repeat!.every).toBe(1000)
   })
