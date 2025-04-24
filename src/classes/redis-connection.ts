@@ -1,10 +1,8 @@
 import type { ConnectionOptions, RedisClient, RedisOptions } from '../interfaces'
 import { EventEmitter } from 'node:events'
 import IORedis from 'ioredis'
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
 import { CONNECTION_CLOSED_ERROR_MSG } from 'ioredis/built/utils'
-import * as scripts from '../scripts'
+import { version as packageVersion } from '../../package.json'
 import {
   decreaseMaxListeners,
   increaseMaxListeners,
@@ -13,7 +11,7 @@ import {
   isRedisInstance,
   isRedisVersionLowerThan,
 } from '../utils'
-import { version as packageVersion } from '../version'
+import * as scripts from './scripts'
 
 const overrideMessage = [
   'BullMQ: WARNING! Your redis options maxRetriesPerRequest must be null',
@@ -221,8 +219,7 @@ export class RedisConnection extends EventEmitter {
     packageVersion: string,
     providedScripts?: Record<string, RawCommand>,
   ): void {
-    const finalScripts
-      = providedScripts || (scripts as Record<string, RawCommand>)
+    const finalScripts = providedScripts || (scripts as Record<string, RawCommand>)
     for (const property in finalScripts as Record<string, RawCommand>) {
       // Only define the command if not already defined
       const commandName = `${finalScripts[property].name}:${packageVersion}`
@@ -249,7 +246,7 @@ export class RedisConnection extends EventEmitter {
 
     this._client.on('ready', this.handleClientReady)
 
-    if (!this.extraOptions.skipWaitingForReady) {
+    if (!this.extraOptions?.skipWaitingForReady) {
       await RedisConnection.waitUntilReady(this._client)
     }
 

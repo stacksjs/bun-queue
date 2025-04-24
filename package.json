@@ -57,6 +57,14 @@
     "preview:docs": "bun --bun vitepress preview docs",
     "typecheck": "bun --bun tsc --noEmit"
   },
+  "dependencies": {
+    "@types/semver": "^7.7.0",
+    "cron-parser": "^5.1.1",
+    "ioredis": "^5.6.1",
+    "msgpackr": "^1.11.2",
+    "semver": "^7.7.1",
+    "uuid": "^11.1.0"
+  },
   "devDependencies": {
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.10.2-beta.3",
@@ -66,7 +74,9 @@
     "bunfig": "^0.8.2",
     "changelogen": "^0.6.1",
     "lint-staged": "^15.5.1",
+    "rrule": "^2.8.1",
     "simple-git-hooks": "^2.12.1",
+    "sinon": "^20.0.0",
     "typescript": "^5.8.3"
   },
   "overrides": {
@@ -74,11 +84,5 @@
   },
   "lint-staged": {
     "*.{js,ts}": "bunx --bun eslint . --fix"
-  },
-  "dependencies": {
-    "@types/semver": "^7.7.0",
-    "ioredis": "^5.6.1",
-    "semver": "^7.7.1",
-    "uuid": "^11.1.0"
   }
 }

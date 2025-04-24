@@ -4,6 +4,7 @@ import type { SandboxedOptions } from '../interfaces'
 import { fork } from 'node:child_process'
 import { EventEmitter } from 'node:events'
 import { createServer } from 'node:net'
+import process from 'node:process'
 import { Worker } from 'node:worker_threads'
 import { ChildCommand, ParentCommand } from '../enums'
 
@@ -64,15 +65,15 @@ export class Child extends EventEmitter {
     throw new Error('No child process or worker thread')
   }
 
-  get exitCode() {
+  get exitCode(): number {
     return this._exitCode
   }
 
-  get signalCode() {
+  get signalCode(): number {
     return this._signalCode
   }
 
-  get killed() {
+  get killed(): boolean {
     if (this.childProcess) {
       return this.childProcess.killed
     }
@@ -122,13 +123,13 @@ export class Child extends EventEmitter {
     parent.on('message', (...args) => this.emit('message', ...args))
     parent.on('close', (...args) => this.emit('close', ...args))
 
-    parent.stdout.pipe(process.stdout)
-    parent.stderr.pipe(process.stderr)
+    parent.stdout?.pipe(process.stdout)
+    parent.stderr?.pipe(process.stderr)
 
     await this.initChild()
   }
 
-  async send(msg: any) {
+  async send(msg: any): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       if (this.childProcess) {
         this.childProcess.send(msg, (err: Error | null) => {
@@ -169,7 +170,7 @@ export class Child extends EventEmitter {
     const onExit = onExitOnce(this.childProcess || this.worker)
     this.killProcess(signal)
 
-    if (timeoutMs !== undefined && (timeoutMs === 0 || isFinite(timeoutMs))) {
+    if (timeoutMs !== undefined && (timeoutMs === 0 || Number.isFinite(timeoutMs))) {
       const timeoutHandle = setTimeout(() => {
         if (!this.hasProcessExited()) {
           this.killProcess('SIGKILL')

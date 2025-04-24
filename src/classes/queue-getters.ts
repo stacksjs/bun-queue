@@ -1,6 +1,3 @@
-/* eslint-env node */
-'use strict'
-
 import type { JobJsonRaw, Metrics } from '../interfaces'
 import type { JobState, JobType } from '../types'
 import type { Job } from './job'

@@ -2,7 +2,6 @@ import type { Job } from '../src/classes'
 import type { JobsOptions } from '../src/types'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import IORedis from 'ioredis'
-const moment = require('moment')
 import { rrulestr } from 'rrule'
 import * as sinon from 'sinon'
 import { v4 } from 'uuid'
@@ -20,6 +19,7 @@ import {
   getRepeatableJobKeyPrefix,
   getRepeatJobIdCheckum,
 } from './utils/repeat_utils'
+const moment = require('moment')
 
 const ONE_SECOND = 1000
 const ONE_MINUTE = 60 * ONE_SECOND

@@ -8,7 +8,7 @@ import type { JobsOptions, RepeatStrategy } from '../types'
 import type { Job } from './job'
 import type { RedisConnection } from './redis-connection'
 import { createHash } from 'node:crypto'
-import { parseExpression } from 'cron-parser'
+import cronParser from 'cron-parser'
 import { QueueBase } from './queue-base'
 
 export class Repeat extends QueueBase {
@@ -52,7 +52,7 @@ export class Repeat extends QueueBase {
     // Check if we reached the end date of the repeatable job
     let now = Date.now()
     const { endDate } = repeatOpts
-    if (endDate && now > new Date(endDate!).getTime()) {
+    if (endDate && now > new Date(endDate).getTime()) {
       return
     }
 
@@ -73,7 +73,7 @@ export class Repeat extends QueueBase {
       }
 
       const legacyRepeatKey = getRepeatConcatOptions(name, repeatOpts)
-      const newRepeatKey = opts.repeat.key ?? this.hash(legacyRepeatKey)
+      const newRepeatKey = opts.repeat?.key ?? this.hash(legacyRepeatKey)
 
       let repeatJobKey
       if (override) {
@@ -131,7 +131,7 @@ export class Repeat extends QueueBase {
 
     const now = Date.now()
     const delay
-      = nextMillis + (opts.repeat.offset ? opts.repeat.offset : 0) - now
+      = nextMillis + (opts.repeat?.offset ? opts.repeat.offset : 0) - now
 
     const mergedOpts = {
       ...opts,
@@ -153,7 +153,7 @@ export class Repeat extends QueueBase {
     nextMillis: number,
     repeatJobKey: string,
     data: T,
-  ) {
+  ): string {
     if (repeatJobKey.split(':').length > 2) {
       return this.getRepeatJobId({
         name,
@@ -327,11 +327,14 @@ export function getNextMillis(millis: number, opts: RepeatOptions): number | und
     )
   }
 
-  const currentDate
-    = opts.startDate && new Date(opts.startDate) > new Date(millis)
-      ? new Date(opts.startDate)
-      : new Date(millis)
-  const interval = parseExpression(pattern, {
+  if (!pattern) {
+    return undefined
+  }
+
+  const currentDate = opts.startDate && new Date(opts.startDate) > new Date(millis)
+    ? new Date(opts.startDate)
+    : new Date(millis)
+  const interval = cronParser.parse(pattern, {
     ...opts,
     currentDate,
   })
@@ -344,7 +347,8 @@ export function getNextMillis(millis: number, opts: RepeatOptions): number | und
       return interval.next().getTime()
     }
   }
-  catch (e) {
+  catch (_e) {
     // Ignore error
+    return undefined
   }
 }

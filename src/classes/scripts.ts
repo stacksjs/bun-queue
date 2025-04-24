@@ -2,10 +2,9 @@
  * Includes all the scripts needed by the queue and jobs.
  */
 
-/* eslint-env node */
-'use strict'
 import type { ChainableCommander } from 'ioredis'
 
+import type { Buffer } from 'node:buffer'
 import type {
   JobJson,
   JobJsonRaw,
@@ -30,6 +29,7 @@ import type {
   RedisJobOptions,
 } from '../types'
 import { Packr } from 'msgpackr'
+import { version as packageVersion } from '../../package.json'
 import { ErrorCode } from '../enums'
 import {
   array2obj,
@@ -37,7 +37,6 @@ import {
   isRedisVersionLowerThan,
   objectToFlatArray,
 } from '../utils'
-import { version as packageVersion } from '../version'
 
 const packer = new Packr({
   useRecords: false,
@@ -690,7 +689,7 @@ export class Scripts {
   protected getKeepJobs(
     shouldRemove: undefined | boolean | number | KeepJobs,
     workerKeepJobs: undefined | KeepJobs,
-  ) {
+  ): KeepJobs {
     if (typeof shouldRemove === 'undefined') {
       return workerKeepJobs || { count: shouldRemove ? 0 : -1 }
     }
@@ -705,7 +704,7 @@ export class Scripts {
   async moveToFinished(
     jobId: string,
     args: (string | number | boolean | Buffer)[],
-  ) {
+  ): Promise<JobData | undefined> {
     const client = await this.queue.client
 
     const result = await this.execCommand(client, 'moveToFinished', args)
@@ -1376,7 +1375,7 @@ export class Scripts {
     }
   }
 
-  async moveToActive(client: RedisClient, token: string, name?: string) {
+  async moveToActive(client: RedisClient, token: string, name?: string): Promise<JobData> {
     const opts = this.queue.opts as WorkerOptions
 
     const queueKeys = this.queue.keys
@@ -1491,7 +1490,7 @@ export class Scripts {
    * @param jobId - Job id
    * @returns
    */
-  async moveJobFromActiveToWait(jobId: string, token: string) {
+  async moveJobFromActiveToWait(jobId: string, token: string): Promise<number> {
     const client = await this.queue.client
 
     const keys: (string | number)[] = [
@@ -1606,7 +1605,7 @@ export class Scripts {
       }
 
       // Important to keep this coercive inequality (!=) instead of strict inequality (!==)
-    } while (cursor != '0' && page.length < pageSize)
+    } while (cursor !== '0' && page.length < pageSize)
 
     // If we get an array of arrays, it means we are paginating a hash
     if (page.length && Array.isArray(page[0])) {
@@ -1682,13 +1681,16 @@ export class Scripts {
   }
 }
 
-export function raw2NextJobData(raw: any[]) {
+export function raw2NextJobData(raw: any[]): JobData {
   if (raw) {
     const result = [null, raw[1], raw[2], raw[3]]
+
     if (raw[0]) {
       result[0] = array2obj(raw[0])
     }
-    return result
+
+    return result as JobData
   }
-  return []
+
+  return [] as JobData
 }
