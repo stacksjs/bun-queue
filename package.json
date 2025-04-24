@@ -75,7 +75,7 @@
     "changelogen": "^0.6.1",
     "lint-staged": "^15.5.1",
     "rrule": "^2.8.1",
-    "simple-git-hooks": "^2.12.1",
+    "simple-git-hooks": "^2.13.0",
     "sinon": "^20.0.0",
     "typescript": "^5.8.3"
   },
