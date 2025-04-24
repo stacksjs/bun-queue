@@ -1,12 +1,9 @@
-import type {
-  Job,
-} from '../src/classes'
+import type { Job } from '../src/classes'
 import type { JobsOptions } from '../src/types'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import IORedis from 'ioredis'
 import { rrulestr } from 'rrule'
 import * as sinon from 'sinon'
-
 import { v4 } from 'uuid'
 import {
   getNextMillis,
