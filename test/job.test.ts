@@ -1,15 +1,15 @@
 import type { JobsOptions } from '../src/types'
-import IORedis from 'ioredis'
-import { after } from 'lodash'
 import {
-  expect,
   afterAll,
   afterEach,
   beforeAll,
   beforeEach,
   describe,
+  expect,
   it,
 } from 'bun:test'
+import IORedis from 'ioredis'
+import { after } from 'lodash'
 import { v4 } from 'uuid'
 import { Job, Queue, QueueEvents, Worker } from '../src/classes'
 import { delay, getParentKey, removeAllQueueData } from '../src/utils'

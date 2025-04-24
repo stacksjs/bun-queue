@@ -82,7 +82,7 @@ describe('flows', () => {
           try {
             if (job.name === 'parent') {
               const { processed } = await job.getDependenciesCount()
-              expect(processed).to.equal(1)
+              expect(processed).toEqual(1)
               resolve()
             }
           }
@@ -139,15 +139,15 @@ describe('flows', () => {
           try {
             if (job.name === 'parent') {
               const { processed } = await job.getDependencies()
-              expect(Object.keys(processed!).length).to.equal(2)
+              expect(Object.keys(processed!).length).toEqual(2)
               const { queueQualifiedName, id, name } = children![0].job
-              expect(processed![`${queueQualifiedName}:${id}`]).to.equal(name)
+              expect(processed![`${queueQualifiedName}:${id}`]).toEqual(name)
               const {
                 queueQualifiedName: queueQualifiedName2,
                 id: id2,
                 name: name2,
               } = children![1].job
-              expect(processed![`${queueQualifiedName2}:${id2}`]).to.equal(
+              expect(processed![`${queueQualifiedName2}:${id2}`]).toEqual(
                 name2,
               )
               resolve()
@@ -229,15 +229,15 @@ describe('flows', () => {
           try {
             if (job.name === 'parent') {
               const { processed } = await job.getDependencies()
-              expect(Object.keys(processed!).length).to.equal(2)
+              expect(Object.keys(processed!).length).toEqual(2)
               const { queueQualifiedName, id, name } = children![0].job
-              expect(processed![`${queueQualifiedName}:${id}`]).to.equal(name)
+              expect(processed![`${queueQualifiedName}:${id}`]).toEqual(name)
               const {
                 queueQualifiedName: queueQualifiedName2,
                 id: id2,
                 name: name2,
               } = children![1].job
-              expect(processed![`${queueQualifiedName2}:${id2}`]).to.equal(
+              expect(processed![`${queueQualifiedName2}:${id2}`]).toEqual(
                 name2,
               )
               resolve()
@@ -252,7 +252,7 @@ describe('flows', () => {
       await completed
       const remainingJobCount = await queue.getCompletedCount()
 
-      expect(remainingJobCount).to.equal(1)
+      expect(remainingJobCount).toEqual(1)
       await worker.close()
       await flow.close()
     }).timeout(8000)
@@ -373,7 +373,7 @@ describe('flows', () => {
         (childrenProcessor = async (job: Job) => {
           processedChildren++
 
-          if (processedChildren == values.length) {
+          if (processedChildren === values.length) {
             resolve()
           }
           return values[job.data.idx]
@@ -608,10 +608,10 @@ describe('flows', () => {
               if (job.name === 'parent') {
                 const { unprocessed, processed, ignored, failed }
                   = await job.getDependenciesCount()
-                expect(ignored).to.equal(0)
-                expect(failed).to.equal(0)
-                expect(unprocessed).to.equal(0)
-                expect(processed).to.equal(0)
+                expect(ignored).toEqual(0)
+                expect(failed).toEqual(0)
+                expect(unprocessed).toEqual(0)
+                expect(processed).toEqual(0)
                 resolve()
               }
             }
@@ -677,8 +677,8 @@ describe('flows', () => {
               if (job.name === 'parent') {
                 const { unprocessed, processed }
                   = await job.getDependenciesCount()
-                expect(unprocessed).to.equal(0)
-                expect(processed).to.equal(1)
+                expect(unprocessed).toEqual(0)
+                expect(processed).toEqual(1)
                 resolve()
               }
             }
@@ -1082,7 +1082,7 @@ describe('flows', () => {
 
       await new Promise<void>((resolve) => {
         worker.on('completed', (job) => {
-          expect(job.returnvalue).to.equal(Step.Finish)
+          expect(job.returnvalue).toEqual(Step.Finish)
           resolve()
         })
       })
@@ -1532,7 +1532,7 @@ describe('flows', () => {
           (childrenProcessor = async (job: Job) => {
             processedChildren++
 
-            if (processedChildren == values.length) {
+            if (processedChildren === values.length) {
               resolve()
             }
             return values[job.data.idx]
@@ -1657,7 +1657,7 @@ describe('flows', () => {
               expect(job.data.idx).toBe(processedChildren)
               processedChildren++
 
-              if (processedChildren == values.length) {
+              if (processedChildren === values.length) {
                 resolve()
               }
               return values[job.data.idx]
@@ -1675,7 +1675,7 @@ describe('flows', () => {
             processedGrandChildren++
             await delay(50)
 
-            if (processedGrandChildren == 3) {
+            if (processedGrandChildren === 3) {
               resolve()
             }
           }),
@@ -1841,7 +1841,7 @@ describe('flows', () => {
             }
             processedChildren++
 
-            if (processedChildren == values.length) {
+            if (processedChildren === values.length) {
               resolve()
             }
             return values[job.data.idx]
@@ -2218,7 +2218,7 @@ describe('flows', () => {
             processedChildren++
             await delay(10)
 
-            if (processedChildren == values.length) {
+            if (processedChildren === values.length) {
               resolve()
             }
             return values[job.data.idx]
@@ -3812,7 +3812,7 @@ describe('flows', () => {
         (childrenProcessor = async (job: Job) => {
           processedChildren++
 
-          if (processedChildren == values.length) {
+          if (processedChildren === values.length) {
             resolve()
           }
           return values[job.data.idx]
@@ -4099,7 +4099,7 @@ describe('flows', () => {
           (childrenProcessor = async (job: Job) => {
             processedChildren++
 
-            if (processedChildren == values.length) {
+            if (processedChildren === values.length) {
               resolve()
             }
             return values[job.data.idx]
@@ -4251,7 +4251,7 @@ describe('flows', () => {
           processedChildren++
 
           await delay(50)
-          if (processedChildren == values.length) {
+          if (processedChildren === values.length) {
             resolve()
           }
           return values[job.data.idx]
@@ -4374,7 +4374,7 @@ describe('flows', () => {
           }
 
           processedChildren++
-          if (processedChildren == values.length) {
+          if (processedChildren === values.length) {
             resolve()
           }
           return values[job.data.idx]
@@ -4862,7 +4862,7 @@ describe('flows', () => {
           (childrenProcessor = async (job: Job) => {
             processedChildren++
 
-            if (processedChildren == values.length) {
+            if (processedChildren === values.length) {
               resolve()
             }
             return values[job.data.idx]

@@ -487,7 +487,7 @@ export class Worker<
         && !this.paused
         && !this.waiting
         && numTotal < this._concurrency
-        && (!this.limitUntil || numTotal == 0)
+        && (!this.limitUntil || numTotal === 0)
       ) {
         const token = `${this.id}:${tokenPostfix++}`
 
@@ -873,16 +873,16 @@ will never work with more accuracy than 1ms. */
           if (!this.connection.closing) {
             try {
               // Check if the job was manually rate-limited
-              if (err.message == RATE_LIMIT_ERROR) {
+              if (err.message === RATE_LIMIT_ERROR) {
                 this.limitUntil = await this.moveLimitedBackToWait(job, token)
                 return
               }
 
               if (
                 err instanceof DelayedError
-                || err.name == 'DelayedError'
+                || err.name === 'DelayedError'
                 || err instanceof WaitingChildrenError
-                || err.name == 'WaitingChildrenError'
+                || err.name === 'WaitingChildrenError'
               ) {
                 return
               }

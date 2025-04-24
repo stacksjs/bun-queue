@@ -1,13 +1,12 @@
 import type { Job } from '../src/classes'
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { after } from 'lodash'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
 import * as sinon from 'sinon'
 import { v4 } from 'uuid'
+import { version as currentPackageVersion } from '../package.json'
 import { FlowProducer, Queue, Worker } from '../src/classes'
 import { delay, removeAllQueueData } from '../src/utils'
-import { version as currentPackageVersion } from '../src/version'
 
 describe('queues', () => {
   const redisHost = process.env.REDIS_HOST || 'localhost'
@@ -16,9 +15,9 @@ describe('queues', () => {
 
   let queue: Queue
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 

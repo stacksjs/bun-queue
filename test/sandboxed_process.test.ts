@@ -1,12 +1,14 @@
-import { pathToFileURL } from 'node:url'
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
-import { after } from 'lodash'
-import { after as afterAll, before, beforeEach, it } from 'mocha'
-const { stdout, stderr } = require('test-console')
-import { v4 } from 'uuid'
-import {
+import type {
   Child,
+} from '../src/classes'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import { pathToFileURL } from 'node:url'
+import IORedis from 'ioredis'
+import { after } from 'lodash'
+
+import { v4 } from 'uuid'
+
+import {
   FlowProducer,
   Job,
   Queue,
@@ -15,6 +17,7 @@ import {
   Worker,
 } from '../src/classes'
 import { delay, removeAllQueueData } from '../src/utils'
+const { stdout, stderr } = require('test-console')
 
 describe('sandboxed process using child processes', () => {
   sandboxProcessTests()
@@ -25,9 +28,9 @@ describe('sandboxed process using child processes', () => {
     let queue: Queue
     let queueEvents: QueueEvents
     let queueName: string
+    let connection: IORedis
 
-    let connection
-    before(async () => {
+    beforeAll(async () => {
       connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
     })
 
@@ -1130,7 +1133,7 @@ function sandboxProcessTests(
             expect(err.stack).include(
               'fixture_processor_fail_with_circular_reference.js',
             )
-            expect(err.reference).to.equal('[Circular]')
+            expect(err.reference).toEqual('[Circular]')
             expect(err.custom).toStrictEqual({ ref: '[Circular]' })
             expect(Object.keys(worker.childPool.retained)).toHaveLength(
               0,
@@ -1339,7 +1342,7 @@ function sandboxProcessTests(
                 expect(worker.childPool.free[processFile]).toHaveLength(
                   1,
                 )
-                if (counter == 0) {
+                if (counter === 0) {
                   counter++
                   resolve()
                 }
@@ -1348,7 +1351,7 @@ function sandboxProcessTests(
                 }
               }
               catch (err) {
-                if (counter == 0) {
+                if (counter === 0) {
                   return reject(err)
                 }
                 reject2(err)
@@ -1515,9 +1518,9 @@ function sandboxProcessTests(
       expect(worker.childPool.getAllFree()).toHaveLength(0)
       const child = Object.values(worker.childPool.retained)[0] as Child
 
-      expect(child).to.equal(initializedChild)
-      expect(child.exitCode).to.equal(null)
-      expect(child.killed).to.equal(false)
+      expect(child).toEqual(initializedChild)
+      expect(child.exitCode).toEqual(null)
+      expect(child.killed).toEqual(false)
 
       // at this point the job should be active and running on the child
       // trigger a close while we know it's doing work
@@ -1531,7 +1534,7 @@ function sandboxProcessTests(
       const job = await jobAdd
       // check that the job did finish successfully
       const jobResult = await job.waitUntilFinished(queueEvents)
-      expect(jobResult).to.equal(42)
+      expect(jobResult).toEqual(42)
     })
   })
 }

@@ -1,6 +1,5 @@
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { v4 } from 'uuid'
 import { Queue } from '../src/classes'
 import { removeAllQueueData } from '../src/utils'
@@ -11,9 +10,9 @@ describe('scripts', () => {
 
   let queue: Queue
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 

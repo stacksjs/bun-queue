@@ -1,15 +1,10 @@
-import type {
-  ScriptLoaderError,
-  ScriptMetadata,
-} from '../src/commands'
+import type { ScriptLoaderError, ScriptMetadata } from '../src/commands'
 import type { RedisClient } from '../src/interfaces'
+import { afterEach, beforeEach, describe, expect, it } from 'bun:test'
 import * as path from 'node:path'
-import { expect } from 'chai'
 import * as sinon from 'sinon'
 import { RedisConnection } from '../src/classes'
-import {
-  ScriptLoader,
-} from '../src/commands'
+import { ScriptLoader } from '../src/commands'
 
 describe('scriptLoader', () => {
   let loader: ScriptLoader
@@ -110,7 +105,7 @@ describe('scriptLoader', () => {
       }
 
       expect(didThrow).toEqual(true)
-      expect(error.message).to.have.string('No path mapping found')
+      expect(error.message).toBe('No path mapping found')
     })
   })
 
@@ -124,17 +119,15 @@ describe('scriptLoader', () => {
     }
 
     it('handles basic includes', async () => {
-      const fixture
-        = `${__dirname}/fixtures/scripts/fixture_simple_include.lua`
+      const fixture = `${__dirname}/fixtures/scripts/fixture_simple_include.lua`
       const command = await loader.loadCommand(fixture)
-      expect(command).to.not.eql(undefined)
+      expect(command).not.toEqual(undefined)
     })
 
     it('normalizes path before loading', async () => {
-      const path
-        = `${__dirname}/fixtures/scripts/includes/../fixture_simple_include.lua`
+      const path = `${__dirname}/fixtures/scripts/includes/../fixture_simple_include.lua`
       const command = await loader.loadCommand(path)
-      expect(command).to.not.eql(undefined)
+      expect(command).not.toEqual(undefined)
     })
 
     it('removes the @include tag from the resulting script', async () => {
@@ -195,7 +188,7 @@ describe('scriptLoader', () => {
       await loader.loadCommand(fixture, cache)
       const info = cache.get(path.basename(path.resolve(fixture), '.lua'))
 
-      expect(info).to.not.eql(undefined)
+      expect(info).not.toEqual(undefined)
       expect(info?.includes.length).toEqual(1)
 
       const include = info?.includes[0]
@@ -205,14 +198,13 @@ describe('scriptLoader', () => {
 
     it('supports path mapping and globs simultaneously', async () => {
       loader.addPathMapping('map-glob', './fixtures/scripts/mapped')
-      const fixture
-        = `${__dirname}/fixtures/scripts/fixture_path_mapped_glob.lua`
+      const fixture = `${__dirname}/fixtures/scripts/fixture_path_mapped_glob.lua`
       const cache = new Map<string, ScriptMetadata>()
 
       await loader.loadCommand(fixture, cache)
       const info = cache.get(path.basename(path.resolve(fixture), '.lua'))
 
-      expect(info).to.not.eql(undefined)
+      expect(info).not.toEqual(undefined)
       expect(info.includes.length).toEqual(2)
 
       const includes = info.includes.map(x => x.name)
@@ -223,8 +215,7 @@ describe('scriptLoader', () => {
     })
 
     it('errors on a missing include', async () => {
-      const fixture
-        = `${__dirname}/fixtures/scripts/fixture_missing_include.lua`
+      const fixture = `${__dirname}/fixtures/scripts/fixture_missing_include.lua`
 
       let didThrow = false
       let error: ScriptLoaderError
@@ -237,14 +228,12 @@ describe('scriptLoader', () => {
       }
 
       expect(didThrow).toEqual(true)
-      expect(error.message).to.have.string('include not found')
+      expect(error.message).toBe('include not found')
     })
 
     it('detects circular dependencies', async () => {
-      const fixture
-        = `${__dirname}/fixtures/scripts/fixture_circular_dependency.lua`
-      const child
-        = `${__dirname}/fixtures/scripts/fixture_circular_dependency_child.lua`
+      const fixture = `${__dirname}/fixtures/scripts/fixture_circular_dependency.lua`
+      const child = `${__dirname}/fixtures/scripts/fixture_circular_dependency_child.lua`
 
       let didThrow = false
       let error: ScriptLoaderError
@@ -275,7 +264,7 @@ describe('scriptLoader', () => {
       }
 
       expect(didThrow).toEqual(true)
-      expect(error.message).to.have.string('includes/utils')
+      expect(error.message).toBe('includes/utils')
     })
 
     it('loads all files in a directory', async () => {
@@ -295,18 +284,15 @@ describe('scriptLoader', () => {
 
       await loader.loadScripts(dirname)
       await loader.loadScripts(dirname)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error ignore it
       expect(loader.loadScripts.calledOnce)
 
       await loader.loadScripts(dirname1)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error ignore it
       expect(loader.loadScripts.calledTwice)
 
       await loader.loadScripts(dirname1)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error ignore it
       expect(loader.loadScripts.calledTwice)
       loadScriptSpy.restore()
     })
@@ -348,7 +334,7 @@ describe('scriptLoader', () => {
 
     it('properly sets commands on the instance', async () => {
       await loader.load(client, path)
-      expect((client as any).broadcastEvent).to.not.be.undefined
+      expect((client as any).broadcastEvent).not.toBeDefined()
     })
 
     it('sets commands on a client only once', async () => {
@@ -356,8 +342,7 @@ describe('scriptLoader', () => {
       await loader.load(client, path)
       await loader.load(client, path)
       await loader.load(client, path)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error ignore it
       expect(loader.loadScripts.calledOnce)
       loadScriptSpy.restore()
     })
@@ -373,21 +358,18 @@ describe('scriptLoader', () => {
 
       await loader.loadScripts(dirname)
       await loader.loadScripts(dirname1)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
+      // @ts-expect-error ignore it
       const origCallCount = loader.loadScripts.callCount
 
       loader.clearCache()
 
       await loader.loadScripts(dirname)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      expect(loader.loadScripts.callCount - origCallCount).to.eq(1)
+      // @ts-expect-error ignore it
+      expect(loader.loadScripts.callCount - origCallCount).toEqual(1)
 
       await loader.loadScripts(dirname1)
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      expect(loader.loadScripts.callCount - origCallCount).to.eq(2)
+      // @ts-expect-error ignore it
+      expect(loader.loadScripts.callCount - origCallCount).toEqual(2)
       loadScriptSpy.restore()
     })
   })

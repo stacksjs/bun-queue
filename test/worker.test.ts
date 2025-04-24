@@ -1,9 +1,8 @@
 import type { KeepJobs, MinimalJob } from '../src/interfaces'
 import type { JobsOptions } from '../src/types'
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { after, times } from 'lodash'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
 import * as sinon from 'sinon'
 import { v4 } from 'uuid'
 import {
@@ -26,15 +25,14 @@ const NoopProc = () => Promise.resolve()
 describe('workers', function () {
   const redisHost = process.env.REDIS_HOST || 'localhost'
   const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull'
-
   const sandbox = sinon.createSandbox()
 
   let queue: Queue
   let queueEvents: QueueEvents
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -211,7 +209,7 @@ describe('workers', function () {
       await trimmedEventsQueue.client
     ).xlen(trimmedEventsQueue.keys.events)
 
-    expect(eventsLength).to.be.lt(numUpdateProgress + 10)
+    expect(eventsLength).toBeLessThan(numUpdateProgress + 10)
     expect(eventsLength).toBeGreaterThanOrEqual(maxEvents)
 
     await worker.close()
@@ -505,7 +503,7 @@ describe('workers', function () {
       queueName,
       async (job) => {
         expect(job.data.foo).toBe('bar')
-        if (job.data.index == 1) {
+        if (job.data.index === 1) {
           await queue.add('test', { foo: 'bar', index: 2 })
           await delay(1000)
         }
@@ -519,7 +517,7 @@ describe('workers', function () {
     expect(job1.id).toBeTruthy()
     expect(job1.data.foo).toBe('bar')
 
-    let completedIndex
+    let completedIndex: number | undefined
     await new Promise<void>((resolve, reject) => {
       worker.on('completed', (job: Job, result: any) => {
         try {
@@ -531,7 +529,7 @@ describe('workers', function () {
             completedIndex = 2
           }
 
-          if (job.data.index == 1) {
+          if (job.data.index === 1) {
             resolve()
           }
         }
@@ -581,7 +579,7 @@ describe('workers', function () {
     await new Promise<void>((resolve) => {
       worker.on('completed', () => {
         completedJobs++
-        if (completedJobs == numJobs) {
+        if (completedJobs === numJobs) {
           resolve()
         }
       })
@@ -627,7 +625,7 @@ describe('workers', function () {
     await new Promise<void>((resolve) => {
       worker.on('completed', () => {
         completedJobs++
-        if (completedJobs == numJobs) {
+        if (completedJobs === numJobs) {
           resolve()
         }
       })
@@ -710,7 +708,7 @@ describe('workers', function () {
       worker.once('failed', async (job, err) => {
         try {
           expect(job).toBeTruthy()
-          expect(job!.finishedOn).to.be.a('number')
+          expect(job!.finishedOn).toBeNumber()
           expect(job!.data.foo).toBe('bar')
           expect(err).toBe(jobError)
           resolve()
@@ -999,7 +997,7 @@ describe('workers', function () {
         worker.once('completed', async (job) => {
           try {
             expect(job).toBeTruthy()
-            expect(job.finishedOn).to.be.a('number')
+            expect(job.finishedOn).toBeNumber()
             expect(job.data.foo).toBe('bar')
             resolve()
           }
@@ -1172,7 +1170,7 @@ describe('workers', function () {
         worker.on(fail ? 'failed' : 'completed', async (job) => {
           clock.tick(1000)
 
-          if (job.data == 14) {
+          if (job.data === 14) {
             const counts = await queue.getJobCounts(
               fail ? 'failed' : 'completed',
             )
@@ -1254,7 +1252,7 @@ describe('workers', function () {
         worker.on(fail ? 'failed' : 'completed', async (job) => {
           clock.tick(1000)
 
-          if (job.data == 14) {
+          if (job.data === 14) {
             const counts = await queue.getJobCounts(
               fail ? 'failed' : 'completed',
             )
@@ -1425,7 +1423,7 @@ describe('workers', function () {
 
       return new Promise((resolve, reject) => {
         worker.on('completed', async (job) => {
-          if (job.data == 8) {
+          if (job.data === 8) {
             try {
               const counts = await newQueue.getJobCounts('completed')
               expect(counts.completed).toBe(keepJobs)
@@ -1530,7 +1528,7 @@ describe('workers', function () {
 
       return new Promise<void>((resolve, reject) => {
         worker.on('failed', async (job) => {
-          if (job.data == 8) {
+          if (job.data === 8) {
             try {
               const counts = await newQueue.getJobCounts('failed')
               expect(counts.failed).toBe(keepJobs)
@@ -1710,7 +1708,7 @@ describe('workers', function () {
         const processing = new Promise<void>((resolve, reject) => {
           processor = async (job: Job) => {
             try {
-              if (job.name == 'test1') {
+              if (job.name === 'test1') {
                 await queue.add('test', { p: 2 }, { priority: 2 })
               }
 
@@ -2347,7 +2345,7 @@ describe('workers', function () {
               pendingMessageToProcess--
               nbProcessing--
 
-              if (pendingMessageToProcess == 0) {
+              if (pendingMessageToProcess === 0) {
                 resolve()
               }
             }
@@ -2470,7 +2468,7 @@ describe('workers', function () {
                   Math.min(pendingMessageToProcess, 4),
                 )
               }
-              else if (pendingMessageToProcess == 11) {
+              else if (pendingMessageToProcess === 11) {
                 expect(nbProcessing).toBe(3)
               }
               else {
@@ -2841,7 +2839,7 @@ describe('workers', function () {
         const worker = new Worker(
           queueName,
           async (job) => {
-            expect(job.attemptsMade).to.equal(0)
+            expect(job.attemptsMade).toEqual(0)
             await queue.rateLimit(5000)
             throw new Error('error')
           },
@@ -2918,7 +2916,7 @@ describe('workers', function () {
               if (job.attemptsMade === 0) {
                 expect(job.id).toBe(`${id}`)
               }
-              if (job.id == '1' && job.attemptsMade < 1) {
+              if (job.id === '1' && job.attemptsMade < 1) {
                 throw new Error('Not yet!')
               }
             },
@@ -2969,7 +2967,7 @@ describe('workers', function () {
                 id++
                 expect(job.id).toBe(`${id}`)
               }
-              if (job.id == '1' && job.attemptsMade < 1) {
+              if (job.id === '1' && job.attemptsMade < 1) {
                 throw new Error('Not yet!')
               }
             },
@@ -3454,7 +3452,7 @@ describe('workers', function () {
 
           await new Promise<void>((resolve, reject) => {
             worker.on('completed', (job) => {
-              expect(job.returnvalue).to.equal(Step.Finish)
+              expect(job.returnvalue).toEqual(Step.Finish)
               resolve()
             })
 
@@ -3576,7 +3574,7 @@ describe('workers', function () {
 
             await new Promise<void>((resolve, reject) => {
               worker.on('completed', (job) => {
-                expect(job.returnvalue).to.equal(Step.Finish)
+                expect(job.returnvalue).toEqual(Step.Finish)
                 expect(job.attemptsMade).toBe(1)
                 expect(job.attemptsStarted).toBe(2)
                 resolve()
@@ -3990,9 +3988,9 @@ describe('workers', function () {
 
       const failing = new Promise<void>((resolve) => {
         worker.on('failed', async (job, err) => {
-          expect(job.data.foo).to.equal('bar')
-          expect(err).to.equal(failedError)
-          expect(job.failedReason).to.equal(failedError.message)
+          expect(job.data.foo).toEqual('bar')
+          expect(err).toEqual(failedError)
+          expect(job.failedReason).toEqual(failedError.message)
           await job.retry()
           resolve()
         })
@@ -4010,7 +4008,7 @@ describe('workers', function () {
       await completing
 
       const count = await queue.getCompletedCount()
-      expect(count).to.equal(1)
+      expect(count).toEqual(1)
       await delay(10)
       await queue.clean(0, 0)
 
@@ -4019,9 +4017,9 @@ describe('workers', function () {
       )
 
       const completedCount = await queue.getCompletedCount()
-      expect(completedCount).to.equal(0)
+      expect(completedCount).toEqual(0)
       const failedCount = await queue.getFailedCount()
-      expect(failedCount).to.equal(0)
+      expect(failedCount).toEqual(0)
 
       await worker.close()
     })
@@ -4045,8 +4043,8 @@ describe('workers', function () {
 
       const failing = new Promise<void>((resolve) => {
         worker.on('failed', async (job, err) => {
-          expect(job.data.foo).to.equal('bar')
-          expect(err).to.equal(failedError)
+          expect(job.data.foo).toEqual('bar')
+          expect(err).toEqual(failedError)
           await job.retry()
           resolve()
         })
@@ -4064,16 +4062,16 @@ describe('workers', function () {
       await completing
 
       const completedCount = await queue.getCompletedCount()
-      expect(completedCount).to.equal(1)
+      expect(completedCount).toEqual(1)
 
       await expect(retriedJob.retry()).to.be.rejectedWith(
         `Job ${retriedJob.id} is not in the failed state. reprocessJob`,
       )
 
       const completedCount2 = await queue.getCompletedCount()
-      expect(completedCount2).to.equal(1)
+      expect(completedCount2).toEqual(1)
       const failedCount = await queue.getFailedCount()
-      expect(failedCount).to.equal(0)
+      expect(failedCount).toEqual(0)
 
       await worker.close()
     })
@@ -4097,8 +4095,8 @@ describe('workers', function () {
 
       const failing = new Promise<void>((resolve) => {
         worker.on('failed', async (job, err) => {
-          expect(job.data.foo).to.equal('bar')
-          expect(err).to.equal(failedError)
+          expect(job.data.foo).toEqual('bar')
+          expect(err).toEqual(failedError)
           if (job.attemptsMade === 2) {
             await job.retry()
             resolve()
@@ -4124,14 +4122,14 @@ describe('workers', function () {
       await failedAgain
 
       const failedCount = await queue.getFailedCount()
-      expect(failedCount).to.equal(1)
+      expect(failedCount).toEqual(1)
 
       await expect(retriedJob.retry('completed')).to.be.rejectedWith(
         `Job ${retriedJob.id} is not in the completed state. reprocessJob`,
       )
 
       const completedCount = await queue.getCompletedCount()
-      expect(completedCount).to.equal(0)
+      expect(completedCount).toEqual(0)
 
       await worker.close()
     })
@@ -4153,7 +4151,7 @@ describe('workers', function () {
 
       const job = await queue.add('test', { foo: 'bar' })
 
-      expect(job.data.foo).to.equal('bar')
+      expect(job.data.foo).toEqual('bar')
 
       await activating
 
@@ -4661,7 +4659,7 @@ describe('workers', function () {
     })
     worker.concurrency = 10
 
-    expect(worker.concurrency).to.equal(10)
+    expect(worker.concurrency).toEqual(10)
 
     await worker.close()
   })

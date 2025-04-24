@@ -8,9 +8,9 @@ import type {
   Time,
   Tracer,
 } from '../src/interfaces'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it } from 'bun:test'
 import { assert, expect } from 'chai'
-import { default as IORedis } from 'ioredis'
-import { after, before, beforeEach, describe, it } from 'mocha'
+import IORedis from 'ioredis'
 import * as sinon from 'sinon'
 import { v4 } from 'uuid'
 import { FlowProducer, Job, JobScheduler, Queue, Worker } from '../src/classes'
@@ -115,13 +115,12 @@ describe('Telemetry', () => {
     end(): void {}
   }
 
-  let telemetryClient
-
+  let telemetryClient: Telemetry
   let queue: Queue
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -141,7 +140,7 @@ describe('Telemetry', () => {
     await removeAllQueueData(new IORedis(redisHost), queueName)
   })
 
-  after(async () => {
+  afterAll(async () => {
     await connection.quit()
   })
 
@@ -153,9 +152,9 @@ describe('Telemetry', () => {
 
       const span = activeContext.getSpan?.() as MockSpan
       expect(span).to.be.an.instanceOf(MockSpan)
-      expect(span.name).to.equal(`add ${queueName}.testJob`)
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
-      expect(span.attributes[TelemetryAttributes.QueueName]).to.equal(
+      expect(span.name).toEqual(`add ${queueName}.testJob`)
+      expect(span.options?.kind).toEqual(SpanKind.PRODUCER)
+      expect(span.attributes[TelemetryAttributes.QueueName]).toEqual(
         queueName,
       )
     })
@@ -201,12 +200,12 @@ describe('Telemetry', () => {
       const activeContext = telemetryClient.contextManager.active()
       const span = activeContext.getSpan?.() as MockSpan
       expect(span).to.be.an.instanceOf(MockSpan)
-      expect(span.name).to.equal(`addBulk ${queueName}`)
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
+      expect(span.name).toEqual(`addBulk ${queueName}`)
+      expect(span.options?.kind).toEqual(SpanKind.PRODUCER)
       expect(span.attributes[TelemetryAttributes.BulkNames]).toStrictEqual(
         jobs.map(job => job.name),
       )
-      expect(span.attributes[TelemetryAttributes.BulkCount]).to.equal(
+      expect(span.attributes[TelemetryAttributes.BulkCount]).toEqual(
         jobs.length,
       )
     })
@@ -252,9 +251,9 @@ describe('Telemetry', () => {
       const activeContext = telemetryClient.contextManager.active()
       const span = activeContext.getSpan?.() as MockSpan
       expect(span).to.be.an.instanceOf(MockSpan)
-      expect(span.name).to.equal(`add ${queueName}.repeatable-job`)
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
-      expect(span.attributes[TelemetryAttributes.JobSchedulerId]).to.equal(
+      expect(span.name).toEqual(`add ${queueName}.repeatable-job`)
+      expect(span.options?.kind).toEqual(SpanKind.PRODUCER)
+      expect(span.attributes[TelemetryAttributes.JobSchedulerId]).toEqual(
         jobSchedulerId,
       )
       expect(span.attributes[TelemetryAttributes.JobId]).to.be.a('string')
@@ -319,13 +318,13 @@ describe('Telemetry', () => {
       const span = startSpanSpy.returnValues[0] as MockSpan
 
       expect(span).to.be.an.instanceOf(MockSpan)
-      expect(span.name).to.equal(`process ${queueName}`)
-      expect(span.options?.kind).to.equal(SpanKind.CONSUMER)
-      expect(span.attributes[TelemetryAttributes.WorkerId]).to.equal(worker.id)
-      expect(span.attributes[TelemetryAttributes.WorkerName]).to.equal(
+      expect(span.name).toEqual(`process ${queueName}`)
+      expect(span.options?.kind).toEqual(SpanKind.CONSUMER)
+      expect(span.attributes[TelemetryAttributes.WorkerId]).toEqual(worker.id)
+      expect(span.attributes[TelemetryAttributes.WorkerName]).toEqual(
         'testWorker',
       )
-      expect(span.attributes[TelemetryAttributes.JobId]).to.equal(job.id)
+      expect(span.attributes[TelemetryAttributes.JobId]).toEqual(job.id)
 
       moveToCompletedStub.restore()
       await worker.close()
@@ -347,7 +346,7 @@ describe('Telemetry', () => {
 
       const workerActiveContext = telemetryClient.contextManager.active()
       const queueActiveContext = telemetryClient.contextManager.active()
-      expect(workerActiveContext).to.equal(queueActiveContext)
+      expect(workerActiveContext).toEqual(queueActiveContext)
 
       moveToCompletedStub.restore()
       await worker.close()
@@ -384,9 +383,9 @@ describe('Telemetry', () => {
       const span = traceSpy.returnValues[0] as MockSpan
 
       expect(span).to.be.an.instanceOf(MockSpan)
-      expect(span.name).to.equal(`addFlow ${queueName}`)
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
-      expect(span.attributes[TelemetryAttributes.FlowName]).to.equal(
+      expect(span.name).toEqual(`addFlow ${queueName}`)
+      expect(span.options?.kind).toEqual(SpanKind.PRODUCER)
+      expect(span.attributes[TelemetryAttributes.FlowName]).toEqual(
         testFlow.name,
       )
 
@@ -472,12 +471,12 @@ describe('Telemetry', () => {
       const span = traceSpy.returnValues[0] as MockSpan
 
       expect(span).to.be.an.instanceOf(MockSpan)
-      expect(span.name).to.equal('addBulkFlows')
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
-      expect(span.attributes[TelemetryAttributes.BulkNames]).to.equal(
+      expect(span.name).toEqual('addBulkFlows')
+      expect(span.options?.kind).toEqual(SpanKind.PRODUCER)
+      expect(span.attributes[TelemetryAttributes.BulkNames]).toEqual(
         testFlows.map(flow => flow.name).join(','),
       )
-      expect(span.attributes[TelemetryAttributes.BulkCount]).to.equal(
+      expect(span.attributes[TelemetryAttributes.BulkCount]).toEqual(
         testFlows.length,
       )
 
@@ -562,7 +561,7 @@ describe('Telemetry', () => {
 
       await processing
 
-      expect(fromMetadataSpy.callCount).to.equal(0)
+      expect(fromMetadataSpy.callCount).toEqual(0)
       await worker.close()
     })
 
@@ -588,7 +587,7 @@ describe('Telemetry', () => {
 
       await processing
 
-      expect(fromMetadataSpy.callCount).to.equal(0)
+      expect(fromMetadataSpy.callCount).toEqual(0)
       await worker.close()
     })
 
@@ -617,7 +616,7 @@ describe('Telemetry', () => {
 
       await processing
 
-      expect(fromMetadataSpy.callCount).to.equal(0)
+      expect(fromMetadataSpy.callCount).toEqual(0)
       await worker.close()
     })
 
@@ -659,7 +658,7 @@ describe('Telemetry', () => {
 
       await processing
 
-      expect(fromMetadataSpy.callCount).to.equal(0)
+      expect(fromMetadataSpy.callCount).toEqual(0)
       await flowProducer.close()
       await worker.close()
     })

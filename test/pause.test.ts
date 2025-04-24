@@ -1,7 +1,6 @@
 import type { Job } from '../src/classes'
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { v4 } from 'uuid'
 import { Queue, QueueEvents, Worker } from '../src/classes'
 import { delay, removeAllQueueData } from '../src/utils'
@@ -13,9 +12,9 @@ describe('Pause', () => {
   let queue: Queue
   let queueName: string
   let queueEvents: QueueEvents
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -315,7 +314,7 @@ describe('Pause', () => {
         await queue.pause()
 
         const finish = new Date().getTime()
-        expect(finish - start).to.be.lt(1000)
+        expect(finish - start).toBeLessThan(1000)
         resolve()
       })
     })
@@ -365,7 +364,7 @@ describe('Pause', () => {
           queueName,
           async (job) => {
             await delay(10)
-            if (job.attemptsMade == 0) {
+            if (job.attemptsMade === 0) {
               await queue.pause()
               throw new Error('Not yet!')
             }

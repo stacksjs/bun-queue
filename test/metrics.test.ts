@@ -1,6 +1,5 @@
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import * as sinon from 'sinon'
 import { v4 } from 'uuid'
 
@@ -22,8 +21,9 @@ describe('metrics', function () {
   let queueEvents: QueueEvents
   let queueName: string
 
-  let connection
-  before(async () => {
+  let connection: IORedis
+
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 

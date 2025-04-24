@@ -683,7 +683,7 @@ describe('Jobs getters', () => {
       queueName,
       async () => {
         counter++
-        if (counter == 2) {
+        if (counter === 2) {
           await queue.add('test', { foo: 3 })
           return queue.pause()
         }
@@ -751,7 +751,7 @@ describe('Jobs getters', () => {
       queueName,
       async () => {
         counter++
-        if (counter == 2) {
+        if (counter === 2) {
           await queue.add('test', { foo: 3 })
           return queue.pause()
         }
@@ -781,7 +781,7 @@ describe('Jobs getters', () => {
 
   it('should return 0 if queue is empty', async () => {
     const count = await queue.getJobCountByTypes()
-    expect(count).to.be.a('number')
+    expect(count).toBeNumber()
     expect(count).toBe(0)
   })
 

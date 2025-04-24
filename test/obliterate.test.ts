@@ -1,8 +1,7 @@
 import type { Job } from '../src/classes'
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { after } from 'lodash'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
 import { v4 } from 'uuid'
 import { FlowProducer, Queue, QueueEvents, Worker } from '../src/classes'
 import { delay, removeAllQueueData } from '../src/utils'
@@ -14,9 +13,9 @@ describe('Obliterate', () => {
   let queue: Queue
   let queueEvents: QueueEvents
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 

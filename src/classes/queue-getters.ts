@@ -319,7 +319,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
       total: number
     }> {
     const key = this.toKey(
-      type == 'processed'
+      type === 'processed'
         ? `${parentId}:processed`
         : `${parentId}:dependencies`,
     )

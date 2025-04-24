@@ -753,7 +753,7 @@ export class Job<
     if (
       this.attemptsMade + 1 < this.opts.attempts
       && !this.discarded
-      && !(err instanceof UnrecoverableError || err.name == 'UnrecoverableError')
+      && !(err instanceof UnrecoverableError || err.name === 'UnrecoverableError')
     ) {
       const opts = this.queue.opts as WorkerOptions
 
@@ -765,7 +765,7 @@ export class Job<
         opts.settings && opts.settings.backoffStrategy,
       )
 
-      return [delay != -1, delay == -1 ? 0 : delay]
+      return [delay !== -1, delay === -1 ? 0 : delay]
     }
     else {
       return [false, 0]
@@ -1195,9 +1195,9 @@ export class Job<
         number,
         string,
       ]
-      const finished = status != 0
+      const finished = status !== 0
       if (finished) {
-        if (status == -1 || status == 2) {
+        if (status === -1 || status === 2) {
           onFailed({ failedReason: result })
         }
         else {

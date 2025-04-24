@@ -1,7 +1,6 @@
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { after, every } from 'lodash'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
 import { v4 } from 'uuid'
 import {
   FlowProducer,
@@ -19,9 +18,9 @@ describe('Rate Limiter', () => {
   let queue: Queue
   let queueName: string
   let queueEvents: QueueEvents
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -73,7 +72,7 @@ describe('Rate Limiter', () => {
     await delay(100)
 
     const delayedCount = await queue.getDelayedCount()
-    expect(delayedCount).to.equal(0)
+    expect(delayedCount).toEqual(0)
     await worker.close()
   })
 
@@ -895,7 +894,7 @@ describe('Rate Limiter', () => {
         await result
 
         const pausedCount = await queue.getJobCountByTypes('paused')
-        expect(pausedCount).to.equal(1)
+        expect(pausedCount).toEqual(1)
 
         await worker.close()
       })

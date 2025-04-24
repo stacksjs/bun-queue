@@ -1,6 +1,6 @@
 import type { ConnectionOptions, RedisClient, RedisOptions } from '../interfaces'
 import { EventEmitter } from 'node:events'
-import { default as IORedis } from 'ioredis'
+import IORedis from 'ioredis'
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { CONNECTION_CLOSED_ERROR_MSG } from 'ioredis/built/utils'
@@ -339,8 +339,8 @@ export class RedisConnection extends EventEmitter {
           // Not sure if we need to wait for this
           await this.initializing
         }
-        if (!this.extraOptions.shared) {
-          if (status == 'initializing' || force) {
+        if (!this.extraOptions?.shared) {
+          if (status === 'initializing' || force) {
             // If we have not still connected to Redis, we need to disconnect.
             this._client.disconnect()
           }

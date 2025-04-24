@@ -1,7 +1,6 @@
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { after } from 'lodash'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
 import { v4 } from 'uuid'
 import { FlowProducer, Queue, QueueEvents, Worker } from '../src/classes'
 import { delay, removeAllQueueData } from '../src/utils'
@@ -13,9 +12,9 @@ describe('stalled jobs', () => {
   const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull'
   let queue: Queue
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -819,7 +818,7 @@ describe('stalled jobs', () => {
             'failed',
             after(concurrency, async (job, failedReason, prev) => {
               const failedCount = await queue.getFailedCount()
-              expect(failedCount).to.equal(3)
+              expect(failedCount).toEqual(3)
 
               expect(job.data.index).toBe(3)
               expect(prev).toBe('active')
@@ -865,7 +864,7 @@ describe('stalled jobs', () => {
           name: 'test',
           data: { index },
           opts: {
-            removeOnFail: index % 2 == 1,
+            removeOnFail: index % 2 === 1,
           },
         }))
 
@@ -890,7 +889,7 @@ describe('stalled jobs', () => {
             after(concurrency, async (job, failedReason, prev) => {
               expect(job).toBeUndefined()
               const failedCount = await queue.getFailedCount()
-              expect(failedCount).to.equal(2)
+              expect(failedCount).toEqual(2)
 
               expect(prev).toBe('active')
               expect(failedReason.message).toBe(errorMessage)
@@ -962,9 +961,9 @@ describe('stalled jobs', () => {
         const errorMessage = 'job stalled more than allowable limit'
         const allFailed = new Promise<void>((resolve) => {
           worker2.on('failed', async (job, failedReason, prev) => {
-            if (job.id == '4') {
+            if (job.id === '4') {
               const failedCount = await queue.getFailedCount()
-              expect(failedCount).to.equal(2)
+              expect(failedCount).toEqual(2)
 
               expect(job.data.index).toBe(3)
               expect(prev).toBe('active')
