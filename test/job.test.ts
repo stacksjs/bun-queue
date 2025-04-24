@@ -1,18 +1,15 @@
-/* eslint-env node */
-'use strict'
-
 import type { JobsOptions } from '../src/types'
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
+import IORedis from 'ioredis'
 import { after } from 'lodash'
 import {
-  after as afterAll,
+  expect,
+  afterAll,
   afterEach,
-  before,
+  beforeAll,
   beforeEach,
   describe,
   it,
-} from 'mocha'
+} from 'bun:test'
 import { v4 } from 'uuid'
 import { Job, Queue, QueueEvents, Worker } from '../src/classes'
 import { delay, getParentKey, removeAllQueueData } from '../src/utils'
@@ -23,8 +20,9 @@ describe('Job', () => {
 
   let queue: Queue
   let queueName: string
-  let connection
-  before(async () => {
+  let connection: IORedis
+
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -62,7 +60,7 @@ describe('Job', () => {
       expect(storedJob).toHaveProperty('data')
 
       expect(storedJob.data.foo).toBe('bar')
-      expect(storedJob.opts).to.be.an('object')
+      expect(storedJob.opts).toBeObject()
       expect(storedJob.opts.timestamp).toBe(timestamp)
     })
 
@@ -87,7 +85,7 @@ describe('Job', () => {
       const data = { foo: 'bar' } // 13 bytes
       const opts = { sizeLimit: 20 }
       const createdJob = await Job.create(queue, 'test', data, opts)
-      expect(createdJob).to.not.be.null
+      expect(createdJob).not.toBeNull()
       expect(createdJob).toHaveProperty('opts')
       expect(createdJob.opts.sizeLimit).toBe(20)
     })
@@ -207,7 +205,7 @@ describe('Job', () => {
       job.progress = 20
       const json = JSON.stringify(job)
       const parsed = JSON.parse(json)
-      expect(parsed).to.have.deep.property('data', data)
+      expect(parsed).toHaveProperty('data', data)
       expect(parsed).toHaveProperty('name', 'test')
       expect(parsed).toHaveProperty('returnvalue', 1)
       expect(parsed).toHaveProperty('progress', 20)
@@ -226,7 +224,7 @@ describe('Job', () => {
       const job = await Job.create(queue, 'test', data)
       const json = JSON.stringify(job)
       const parsed = JSON.parse(json)
-      expect(parsed).to.have.deep.property('data', data)
+      expect(parsed).toHaveProperty('data', data)
 
       const newQueue = new Queue(queueName, { connection, prefix })
       let worker: Worker
@@ -390,24 +388,24 @@ describe('Job', () => {
       const job = await Job.create(queue, 'test', { foo: 'bar' })
       await job.updateProgress({ total: 120, completed: 40 })
       const storedJob = await Job.fromId(queue, job.id!)
-      expect(storedJob!.progress).to.eql({ total: 120, completed: 40 })
+      expect(storedJob!.progress).toEqual({ total: 120, completed: 40 })
     })
 
     it('can set and get progress as string', async () => {
       const job = await Job.create(queue, 'test', { foo: 'bar' })
       await job.updateProgress('hello, world!')
       const storedJob = await Job.fromId(queue, job.id!)
-      expect(storedJob!.progress).to.eql('hello, world!')
+      expect(storedJob!.progress).toEqual('hello, world!')
     })
 
     it('can set and get progress as boolean', async () => {
       const job = await Job.create(queue, 'test', { foo: 'bar' })
       await job.updateProgress(false)
       let storedJob = await Job.fromId(queue, job.id!)
-      expect(storedJob!.progress).to.eql(false)
+      expect(storedJob!.progress).toEqual(false)
       await job.updateProgress(true)
       storedJob = await Job.fromId(queue, job.id!)
-      expect(storedJob!.progress).to.eql(true)
+      expect(storedJob!.progress).toEqual(true)
     })
 
     it('can set progress as number using the Queue instance', async () => {
@@ -423,7 +421,7 @@ describe('Job', () => {
       const job = await Job.create(queue, 'test', { foo: 'bar' })
       await queue.updateJobProgress(job.id!, { total: 120, completed: 40 })
       const storedJob = await Job.fromId(queue, job.id!)
-      expect(storedJob!.progress).to.eql({ total: 120, completed: 40 })
+      expect(storedJob!.progress).toEqual({ total: 120, completed: 40 })
     })
 
     describe('when job is removed', () => {
@@ -696,7 +694,7 @@ describe('Job', () => {
 
       const isCompleted = await job.isCompleted()
 
-      expect(isCompleted).to.be.false
+      expect(isCompleted).toBeFalse()
 
       await childrenWorker.close()
       await parentWorker.close()
@@ -716,7 +714,7 @@ describe('Job', () => {
       await job.moveToFailed(new Error('test error'), '0', true)
       const isFailed2 = await job.isFailed()
       expect(isFailed2).toBe(true)
-      expect(job.stacktrace).not.be.equal(null)
+      expect(job.stacktrace).not.toEqual(null)
       expect(job.stacktrace.length).toBe(1)
       expect(job.stacktrace[0]).toInclude('test_job.ts')
       await worker.close()
@@ -734,7 +732,7 @@ describe('Job', () => {
         await job.moveToFailed(new CustomError('test error'), '0', true)
         const isFailed2 = await job.isFailed()
         expect(isFailed2).toBe(true)
-        expect(job.stacktrace).not.be.equal(null)
+        expect(job.stacktrace).not.toEqual(null)
         expect(job.stacktrace.length).toBe(1)
         expect(job.stacktrace[0]).toInclude('test_job.ts')
         await worker.close()
@@ -763,7 +761,7 @@ describe('Job', () => {
 
       const isFailed2 = await job.isFailed()
       expect(isFailed2).toBe(false)
-      expect(job.stacktrace).not.be.equal(null)
+      expect(job.stacktrace).not.toEqual(null)
       expect(job.stacktrace.length).toBe(1)
       const isWaiting = await job.isWaiting()
       expect(isWaiting).toBe(true)
@@ -841,7 +839,7 @@ describe('Job', () => {
 
         expect(isFailed2).toBe(true)
         expect(state).toBe('failed')
-        expect(job.stacktrace).not.be.equal(null)
+        expect(job.stacktrace).not.toEqual(null)
         expect(job.stacktrace.length).toBe(1)
         await worker.close()
       })
@@ -867,7 +865,7 @@ describe('Job', () => {
         const isFailed2 = await job.isFailed()
 
         expect(isFailed2).toBe(false)
-        expect(job.stacktrace).not.be.equal(null)
+        expect(job.stacktrace).not.toEqual(null)
         expect(job.stacktrace.length).toBe(1)
         const isDelayed = await job.isDelayed()
         expect(isDelayed).toBe(true)
@@ -893,8 +891,8 @@ describe('Job', () => {
       await job.moveToFailed(new Error('failed once'), '0', true)
       const isFailed1 = await job.isFailed()
       const stackTrace1 = job.stacktrace[0]
-      expect(isFailed1).to.be.false
-      expect(job.stacktrace).not.be.equal(null)
+      expect(isFailed1).toBeFalse()
+      expect(job.stacktrace).not.toEqual(null)
       expect(job.stacktrace.length).toBe(stackTraceLimit)
       // second time failed.
       const again = (await worker.getNextJob(token)) as Job
@@ -904,7 +902,7 @@ describe('Job', () => {
       expect(isFailed2).toBeTrue()
       expect(again.name).toBe(job.name)
       expect(again.stacktrace.length).toBe(stackTraceLimit)
-      expect(stackTrace1).not.be.equal(stackTrace2)
+      expect(stackTrace1).not.toEqual(stackTrace2)
       await worker.close()
     })
 
@@ -925,7 +923,7 @@ describe('Job', () => {
         // first time failed.
         await job.moveToFailed(new Error('failed once'), '0', true)
         const isFailed1 = await job.isFailed()
-        expect(isFailed1).to.be.false
+        expect(isFailed1).toBeFalse()
         expect(job.stacktrace.length).toBe(stackTraceLimit)
         // second time failed.
         const again = (await worker.getNextJob(token)) as Job
@@ -947,7 +945,7 @@ describe('Job', () => {
       await job.moveToFailed(new Error('test error'), '0')
       const sameJob = await queue.getJob(id!)
       expect(sameJob).toBeTruthy()
-      expect(sameJob.stacktrace).to.be.not.empty
+      expect(sameJob.stacktrace).not.toBeEmpty()
       await worker.close()
     })
   })
@@ -1770,7 +1768,7 @@ describe('Job', () => {
 
       const result = await job.waitUntilFinished(queueEvents)
 
-      expect(result).to.be.an('object')
+      expect(result).toBeObject()
       expect(result.resultFoo).equal('bar')
 
       await worker.close()
@@ -1790,7 +1788,7 @@ describe('Job', () => {
       await delay(600)
 
       const result = await job.waitUntilFinished(queueEvents)
-      expect(result).to.be.an('object')
+      expect(result).toBeObject()
       expect(result.resultFoo).equal('bar')
 
       await worker.close()
@@ -1842,7 +1840,7 @@ describe('Job', () => {
       await delay(500)
       const result = await job.waitUntilFinished(queueEvents)
 
-      expect(result).to.be.an('object')
+      expect(result).toBeObject()
       expect(result.resultFoo).equal('bar')
 
       await worker.close()

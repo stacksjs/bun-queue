@@ -1906,7 +1906,7 @@ describe('Job Scheduler', function () {
       const removed = await queue.removeJobScheduler(repeatableJobs[0].key)
       expect(removed).toBeTrue()
       const removed2 = await queue.removeJobScheduler(repeatableJobs[0].key)
-      expect(removed2).to.be.false
+      expect(removed2).toBeFalse()
     })
   })
 
@@ -2365,7 +2365,7 @@ describe('Job Scheduler', function () {
 
     const jobs = await queue.getRepeatableJobs()
     // Repeatable job was recreated
-    expect(jobs.length).to.eql(0)
+    expect(jobs.length).toEqual(0)
 
     await worker!.close()
   })

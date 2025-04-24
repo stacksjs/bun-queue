@@ -807,7 +807,7 @@ describe('Rate Limiter', () => {
           await delay(dynamicLimit / 2)
 
           const jobs = await queue.getJobs(['prioritized'], 0, -1, true)
-          expect(jobs.map(x => x.name)).to.eql(['1', '2', '3', '4'])
+          expect(jobs.map(x => x.name)).toEqual(['1', '2', '3', '4'])
 
           await worker.close()
         })
@@ -844,7 +844,7 @@ describe('Rate Limiter', () => {
           await delay(dynamicLimit * 4)
 
           const jobs = await queue.getJobs(['prioritized'], 0, -1, true)
-          expect(jobs.map(x => x.name)).to.eql(['1', '3', '2', '4'])
+          expect(jobs.map(x => x.name)).toEqual(['1', '3', '2', '4'])
 
           await worker.close()
         })

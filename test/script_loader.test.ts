@@ -109,7 +109,7 @@ describe('scriptLoader', () => {
         didThrow = true
       }
 
-      expect(didThrow).to.eql(true)
+      expect(didThrow).toEqual(true)
       expect(error.message).to.have.string('No path mapping found')
     })
   })
@@ -153,7 +153,7 @@ describe('scriptLoader', () => {
         (res, include) => res + (include === 'strings.lua' ? 1 : 0),
         0,
       )
-      expect(count).to.eql(1)
+      expect(count).toEqual(1)
     })
 
     it('inserts scripts in dependency order', async () => {
@@ -169,7 +169,7 @@ describe('scriptLoader', () => {
         'fixture_recursive_child.lua',
         'fixture_recursive_parent.lua',
       ]
-      expect(includes).to.eql(expected)
+      expect(includes).toEqual(expected)
     })
 
     it('handles glob patterns in @includes statement', async () => {
@@ -196,10 +196,10 @@ describe('scriptLoader', () => {
       const info = cache.get(path.basename(path.resolve(fixture), '.lua'))
 
       expect(info).to.not.eql(undefined)
-      expect(info?.includes.length).to.eql(1)
+      expect(info?.includes.length).toEqual(1)
 
       const include = info?.includes[0]
-      expect(include?.name).to.eql('math')
+      expect(include?.name).toEqual('math')
       expect(include?.path.startsWith(includePath)).toBeTrue()
     })
 
@@ -213,13 +213,13 @@ describe('scriptLoader', () => {
       const info = cache.get(path.basename(path.resolve(fixture), '.lua'))
 
       expect(info).to.not.eql(undefined)
-      expect(info.includes.length).to.eql(2)
+      expect(info.includes.length).toEqual(2)
 
       const includes = info.includes.map(x => x.name)
 
       const expected = ['fixture_mapped_include_1', 'fixture_mapped_include_2']
 
-      expect(includes).to.eql(expected)
+      expect(includes).toEqual(expected)
     })
 
     it('errors on a missing include', async () => {
@@ -236,7 +236,7 @@ describe('scriptLoader', () => {
         didThrow = true
       }
 
-      expect(didThrow).to.eql(true)
+      expect(didThrow).toEqual(true)
       expect(error.message).to.have.string('include not found')
     })
 
@@ -256,7 +256,7 @@ describe('scriptLoader', () => {
         didThrow = true
       }
 
-      expect(didThrow).to.eql(true)
+      expect(didThrow).toEqual(true)
       expect(error.includes).toInclude(child)
     })
 
@@ -274,7 +274,7 @@ describe('scriptLoader', () => {
         didThrow = true
       }
 
-      expect(didThrow).to.eql(true)
+      expect(didThrow).toEqual(true)
       expect(error.message).to.have.string('includes/utils')
     })
 
@@ -324,8 +324,8 @@ describe('scriptLoader', () => {
 
       const commands = await loader.loadScripts(dirname)
 
-      expect(commands.length).to.eql(1)
-      expect(commands[0].name).to.eql('test')
+      expect(commands.length).toEqual(1)
+      expect(commands[0].name).toEqual('test')
     })
   })
 

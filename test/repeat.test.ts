@@ -1497,7 +1497,7 @@ describe('repeat', function () {
       const removed = await queue.removeRepeatableByKey(repeatableJobs[0].key)
       expect(removed).toBeTrue()
       const removed2 = await queue.removeRepeatableByKey(repeatableJobs[0].key)
-      expect(removed2).to.be.false
+      expect(removed2).toBeFalse()
     })
   })
 
@@ -1752,7 +1752,7 @@ describe('repeat', function () {
 
     const jobs = await queue.getRepeatableJobs()
     // Repeatable job was recreated
-    expect(jobs.length).to.eql(0)
+    expect(jobs.length).toEqual(0)
 
     await worker!.close()
   })

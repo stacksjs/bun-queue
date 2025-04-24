@@ -333,7 +333,7 @@ describe('Pause', () => {
 
     await queue.resume()
     const isResumedQueuePaused = await queue.isPaused()
-    expect(isResumedQueuePaused).to.be.false
+    expect(isResumedQueuePaused).toBeFalse()
   })
 
   it('should pause and resume worker without error', async () => {

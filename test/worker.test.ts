@@ -1189,7 +1189,7 @@ describe('workers', function () {
                 const job = await queue.getJob(jobId)
                 const logs = await queue.getJobLogs(jobId)
                 if (index >= datas.length - expectedCount) {
-                  expect(job).to.not.be.equal(undefined)
+                  expect(job).to.not.toEqual(undefined)
                   expect(logs.logs).to.not.be.empty
                 }
                 else {
@@ -1271,7 +1271,7 @@ describe('workers', function () {
                 const job = await queue.getJob(jobId)
                 const logs = await queue.getJobLogs(jobId)
                 if (index >= datas.length - expectedCount) {
-                  expect(job).to.not.be.equal(undefined)
+                  expect(job).to.not.toEqual(undefined)
                   expect(logs.logs).to.not.be.empty
                 }
                 else {
@@ -1434,7 +1434,7 @@ describe('workers', function () {
                 jobIds.map(async (jobId, index) => {
                   const job = await newQueue.getJob(jobId)
                   if (index >= datas.length - keepJobs) {
-                    expect(job).to.not.be.equal(undefined)
+                    expect(job).to.not.toEqual(undefined)
                   }
                   else {
                     expect(job).toBe(undefined)
@@ -1539,7 +1539,7 @@ describe('workers', function () {
                 jobIds.map(async (jobId, index) => {
                   const job = await newQueue.getJob(jobId)
                   if (index >= datas.length - keepJobs) {
-                    expect(job).to.not.be.equal(undefined)
+                    expect(job).to.not.toEqual(undefined)
                   }
                   else {
                     expect(job).toBe(undefined)
@@ -2565,7 +2565,7 @@ describe('workers', function () {
         worker.on('paused', async () => {
           // test that loop is stopped and worker is actually paused
           await runExecution
-          expect(worker.isRunning()).to.be.false
+          expect(worker.isRunning()).toBeFalse()
 
           worker.resume()
           resolve()
@@ -2782,8 +2782,8 @@ describe('workers', function () {
           queueEvents.on(
             'retries-exhausted',
             async ({ jobId, attemptsMade }) => {
-              expect(jobId).to.eql(job.id)
-              expect(1).to.eql(Number(attemptsMade))
+              expect(jobId).toEqual(job.id)
+              expect(1).toEqual(Number(attemptsMade))
               resolve()
             },
           )
@@ -3039,8 +3039,8 @@ describe('workers', function () {
           reject(new Error('Failed job was retried more than it should be!'))
         })
         queueEvents.on('retries-exhausted', async ({ jobId, attemptsMade }) => {
-          expect(jobId).to.eql(job.id)
-          expect(3).to.eql(Number(attemptsMade))
+          expect(jobId).toEqual(job.id)
+          expect(3).toEqual(Number(attemptsMade))
           resolve()
         })
       })
@@ -4325,7 +4325,7 @@ describe('workers', function () {
           = await parent.getDependencies()
         const isWaitingChildren2 = await parent.isWaitingChildren()
 
-        expect(isWaitingChildren2).to.be.false
+        expect(isWaitingChildren2).toBeFalse()
         const updatedParent = (await parentWorker.getNextJob(
           parentToken2,
         )) as Job
@@ -4338,7 +4338,7 @@ describe('workers', function () {
           [`${prefix}:${queueName}:${child3.id}`]: 'return value3',
         })
         expect(unprocessed4).toHaveLength(0)
-        expect(movedToWaitingChildren2).to.be.false
+        expect(movedToWaitingChildren2).toBeFalse()
 
         await childrenWorker.close()
         await parentWorker.close()
@@ -4483,7 +4483,7 @@ describe('workers', function () {
 
       if (isRedisVersionLowerThan(childrenWorker.redisVersion, '7.2.0')) {
         expect(unprocessed1!.length).to.be.greaterThanOrEqual(50)
-        expect(nextCursor1).to.not.be.equal(0)
+        expect(nextCursor1).to.not.toEqual(0)
       }
       else {
         expect(unprocessed1!.length).toBe(65)
@@ -4534,7 +4534,7 @@ describe('workers', function () {
         })
 
       expect(unprocessed3!.length).to.be.greaterThanOrEqual(50)
-      expect(nextCursor3).to.not.be.equal(0)
+      expect(nextCursor3).to.not.toEqual(0)
 
       await childrenWorker.close()
       await parentWorker.close()

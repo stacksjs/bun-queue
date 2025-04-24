@@ -608,7 +608,7 @@ function sandboxProcessTests(
 
       const completing = new Promise<void>((resolve, reject) => {
         const after4 = after(4, () => {
-          expect(worker.childPool.getAllFree().length).to.eql(4)
+          expect(worker.childPool.getAllFree().length).toEqual(4)
           resolve()
         })
 
@@ -618,7 +618,7 @@ function sandboxProcessTests(
             expect(
               Object.keys(worker.childPool.retained).length
               + worker.childPool.getAllFree().length,
-            ).to.eql(4)
+            ).toEqual(4)
             after4()
           }
           catch (err) {
@@ -652,7 +652,7 @@ function sandboxProcessTests(
 
       const completing = new Promise<void>((resolve, reject) => {
         const after4 = after(4, async () => {
-          expect(worker.childPool.getAllFree().length).to.eql(1)
+          expect(worker.childPool.getAllFree().length).toEqual(1)
           resolve()
         })
 
@@ -662,7 +662,7 @@ function sandboxProcessTests(
             expect(
               Object.keys(worker.childPool.retained).length
               + worker.childPool.getAllFree().length,
-            ).to.eql(1)
+            ).toEqual(1)
             await after4()
           }
           catch (err) {
@@ -1524,7 +1524,7 @@ function sandboxProcessTests(
       await worker.close()
 
       // ensure the child did get cleaned up
-      expect(!!child.killed).to.eql(true)
+      expect(!!child.killed).toEqual(true)
       expect(Object.keys(worker.childPool.retained)).toHaveLength(0)
       expect(worker.childPool.getAllFree()).toHaveLength(0)
 

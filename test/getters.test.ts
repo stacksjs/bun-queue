@@ -333,7 +333,7 @@ describe('Jobs getters', () => {
     const data = { foo: 'sup!' }
     const job = await queue.add('test', data)
     const returnedJob = await queue.getJob(job.id!)
-    expect(returnedJob!.data).to.eql(data)
+    expect(returnedJob!.data).toEqual(data)
     expect(returnedJob!.id).toBe(job.id)
   })
 
