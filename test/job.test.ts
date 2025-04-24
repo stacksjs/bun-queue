@@ -333,7 +333,7 @@ describe('Job', () => {
         `${prefix}:${parentQueueName}:${parentId}:processed`,
       )
 
-      expect(processed).to.deep.equal({})
+      expect(processed).toStrictEqual({})
 
       await childrenWorker.close()
       await parentWorker.close()
@@ -819,7 +819,7 @@ describe('Job', () => {
           `${prefix}:${queueName}:${job.id}`,
         )
 
-        expect(processed).to.deep.equal({})
+        expect(processed).toStrictEqual({})
 
         await worker.close()
       })

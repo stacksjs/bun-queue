@@ -4290,7 +4290,7 @@ describe('workers', function () {
           `${prefix}:${queueName}:${parent.id}:lock`,
         )
         expect(token).toBeNull()
-        expect(processed2).to.deep.equal({
+        expect(processed2).toStrictEqual({
           [`${prefix}:${queueName}:${child1.id}`]: 'return value1',
         })
         expect(unprocessed2).toHaveLength(2)
@@ -4307,7 +4307,7 @@ describe('workers', function () {
         const { processed: processedCount, unprocessed: unprocessedCount }
           = await parent.getDependenciesCount()
 
-        expect(processed3).to.deep.equal({
+        expect(processed3).toStrictEqual({
           [`${prefix}:${queueName}:${child1.id}`]: 'return value1',
           [`${prefix}:${queueName}:${child2.id}`]: 'return value2',
         })
@@ -4332,7 +4332,7 @@ describe('workers', function () {
         const movedToWaitingChildren2
           = await updatedParent.moveToWaitingChildren(parentToken2)
 
-        expect(processed4).to.deep.equal({
+        expect(processed4).toStrictEqual({
           [`${prefix}:${queueName}:${child1.id}`]: 'return value1',
           [`${prefix}:${queueName}:${child2.id}`]: 'return value2',
           [`${prefix}:${queueName}:${child3.id}`]: 'return value3',

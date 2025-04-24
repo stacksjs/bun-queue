@@ -203,7 +203,7 @@ describe('Telemetry', () => {
       expect(span).to.be.an.instanceOf(MockSpan)
       expect(span.name).to.equal(`addBulk ${queueName}`)
       expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
-      expect(span.attributes[TelemetryAttributes.BulkNames]).to.deep.equal(
+      expect(span.attributes[TelemetryAttributes.BulkNames]).toStrictEqual(
         jobs.map(job => job.name),
       )
       expect(span.attributes[TelemetryAttributes.BulkCount]).to.equal(

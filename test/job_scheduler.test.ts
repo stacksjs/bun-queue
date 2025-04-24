@@ -5,8 +5,8 @@ import type { JobsOptions } from '../src/types'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import IORedis from 'ioredis'
 import { rrulestr } from 'rrule'
-
 import * as sinon from 'sinon'
+
 import { v4 } from 'uuid'
 import {
   getNextMillis,
@@ -283,7 +283,7 @@ describe('Job Scheduler', function () {
       const repeatableJobs = await queue.getJobSchedulers()
       expect(repeatableJobs.length).toBe(1)
 
-      expect(repeatableJobs[0]).to.deep.equal({
+      expect(repeatableJobs[0]).toStrictEqual({
         key: 'test',
         name: 'test',
         next: 1486439520000,
@@ -397,7 +397,7 @@ describe('Job Scheduler', function () {
           const repeatableJobs = await queue.getJobSchedulers()
           expect(repeatableJobs.length).toBe(1)
 
-          expect(repeatableJobs[0]).to.deep.equal({
+          expect(repeatableJobs[0]).toStrictEqual({
             key: 'test',
             name: 'test',
             next: 1486439648000,
@@ -701,7 +701,7 @@ describe('Job Scheduler', function () {
 
     const scheduler = await queue.getJobScheduler('test')
 
-    expect(scheduler).to.deep.equal({
+    expect(scheduler).toStrictEqual({
       iterationCount: 1,
       key: 'test',
       name: 'test',
@@ -1042,7 +1042,7 @@ describe('Job Scheduler', function () {
 
         const scheduler = await queue.getJobScheduler('rrule')
 
-        expect(scheduler).to.deep.equal({
+        expect(scheduler).toStrictEqual({
           iterationCount: 1,
           key: 'rrule',
           name: 'rrule',
@@ -1969,7 +1969,7 @@ describe('Job Scheduler', function () {
       expect(count).toBe(1)
       expect(jobSchedulers).toHaveLength(1)
 
-      expect(jobSchedulers[0]).to.deep.equal({
+      expect(jobSchedulers[0]).toStrictEqual({
         iterationCount: 2,
         key: 'test',
         name: 'a',
@@ -2312,7 +2312,7 @@ describe('Job Scheduler', function () {
       expect(delayedJobs).toHaveLength(1)
 
       expect(delayedJobs[0].name).toBe('test2')
-      expect(delayedJobs[0].data).to.deep.equal({
+      expect(delayedJobs[0].data).toStrictEqual({
         foo: 'baz',
       })
       expect(delayedJobs[0].opts).to.deep.include({
@@ -2525,7 +2525,7 @@ describe('Job Scheduler', function () {
 
     const scheduler = await queue.getJobScheduler('repeat')
 
-    expect(scheduler).to.deep.equal({
+    expect(scheduler).toStrictEqual({
       iterationCount: 1,
       key: 'repeat',
       limit: 5,

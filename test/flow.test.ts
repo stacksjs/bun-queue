@@ -438,7 +438,7 @@ describe('flows', () => {
 
     expect(children[0].job.id).toBeTruthy()
     expect(children[0].job.data.foo).toBe('bar')
-    expect(children[0].job.parent).to.deep.equal({
+    expect(children[0].job.parent).toStrictEqual({
       id: job.id,
       queueKey: `${prefix}:${parentQueueName}`,
     })
@@ -778,7 +778,7 @@ describe('flows', () => {
         const values = await job.getDependencies({
           processed: {},
         })
-        expect(values).to.deep.equal({
+        expect(values).toStrictEqual({
           processed: {},
           nextProcessedCursor: 0,
         })
@@ -862,7 +862,7 @@ describe('flows', () => {
 
       const failedChildrenValues = await job.getFailedChildrenValues()
 
-      expect(failedChildrenValues).to.deep.equal({
+      expect(failedChildrenValues).toStrictEqual({
         [`${queue.qualifiedName}:${children[0].job.id}`]: 'error',
         [`${queue.qualifiedName}:${children[1].job.id}`]: 'error',
         [`${queue.qualifiedName}:${children[2].job.id}`]: 'error',
@@ -887,7 +887,7 @@ describe('flows', () => {
         const values = await job.getDependencies({
           processed: {},
         })
-        expect(values).to.deep.equal({
+        expect(values).toStrictEqual({
           processed: {},
           nextProcessedCursor: 0,
         })
@@ -1293,7 +1293,7 @@ describe('flows', () => {
               expect(prev).toBe('active')
               expect(failedReason).toBe(`children are failed`)
               const childrenCounts = await job.getDependenciesCount()
-              expect(childrenCounts).to.deep.equal({
+              expect(childrenCounts).toStrictEqual({
                 processed: 0,
                 unprocessed: 0,
                 ignored: 0,
@@ -1610,7 +1610,7 @@ describe('flows', () => {
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('bar')
-      expect(children[0].job.parent).to.deep.equal({
+      expect(children[0].job.parent).toStrictEqual({
         id: job.id,
         queueKey: `${prefix}:${parentQueueName}`,
       })
@@ -1795,7 +1795,7 @@ describe('flows', () => {
 
       expect(children[0].job.id).toBeTruthy()
       expect(children[0].job.data.foo).toBe('baz')
-      expect(children[0].job.parent).to.deep.equal({
+      expect(children[0].job.parent).toStrictEqual({
         id: job.id,
         queueKey: `${prefix}:${parentQueueName}`,
       })
@@ -3336,7 +3336,7 @@ describe('flows', () => {
           = await updatedGrandparentJob.getFailedChildrenValues()
 
         const failedReason = `child ${prefix}:${grandChildrenQueueName}:${updatedGrandchildJob.id} failed`
-        expect(failedChildrenValues).to.deep.equal({
+        expect(failedChildrenValues).toStrictEqual({
           [`${queue.qualifiedName}:${children[0].job.id}`]: failedReason,
         })
 
@@ -3390,7 +3390,7 @@ describe('flows', () => {
               expect(children[childKey]).toBe('failed')
 
               const childrenCounts = await job.getDependenciesCount()
-              expect(childrenCounts).to.deep.equal({
+              expect(childrenCounts).toStrictEqual({
                 processed: 0,
                 unprocessed: 0,
                 ignored: 1,
@@ -5137,7 +5137,7 @@ describe('flows', () => {
                   }
                   else {
                     expect(childJob).toBeTruthy()
-                    expect(childJob!.parent).to.deep.equal({
+                    expect(childJob!.parent).toStrictEqual({
                       id: tree.job.id,
                       queueKey: `${prefix}:${parentQueueName}`,
                     })
@@ -5264,7 +5264,7 @@ describe('flows', () => {
       for (let i = 0; i < tree.children.length; i++) {
         const child = tree.children[i]
         const childJob = await Job.fromId(queue, child.job.id)
-        expect(childJob.parent).to.deep.equal({
+        expect(childJob.parent).toStrictEqual({
           id: tree.job.id,
           queueKey: `${prefix}:${parentQueueName}`,
         })
@@ -5329,7 +5329,7 @@ describe('flows', () => {
         for (let i = 0; i < tree.children.length; i++) {
           const child = tree.children[i]
           const childJob = await Job.fromId(queue, child.job.id)
-          expect(childJob.parent).to.deep.equal({
+          expect(childJob.parent).toStrictEqual({
             id: tree.job.id,
             queueKey: `${prefix}:${parentQueueName}`,
           })
@@ -5397,7 +5397,7 @@ describe('flows', () => {
         for (let i = 0; i < tree.children.length; i++) {
           const child = tree.children[i]
           const childJob = await Job.fromId(queue, child.job.id)
-          expect(childJob.parent).to.deep.equal({
+          expect(childJob.parent).toStrictEqual({
             id: tree.job.id,
             queueKey: `${prefix}:${parentQueueName}`,
           })
@@ -5501,7 +5501,7 @@ describe('flows', () => {
           for (let i = 0; i < tree.children![0].children!.length; i++) {
             const child = tree.children![0].children![i]
             const childJob = await Job.fromId(queue, child.job.id)
-            expect(childJob.parent).to.deep.equal({
+            expect(childJob.parent).toStrictEqual({
               id: tree.children![0].job.id,
               queueKey: `${prefix}:${parentQueueName}`,
             })
