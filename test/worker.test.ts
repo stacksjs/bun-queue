@@ -2004,16 +2004,16 @@ describe('workers', function () {
 
       await job.retry()
 
-      expect(job.failedReason).to.be.null
-      expect(job.processedOn).to.be.null
-      expect(job.finishedOn).to.be.null
-      expect(job.returnvalue).to.be.null
+      expect(job.failedReason).toBeNull()
+      expect(job.processedOn).toBeNull()
+      expect(job.finishedOn).toBeNull()
+      expect(job.returnvalue).toBeNull()
 
       const updatedJob = await queue.getJob(job.id)
-      expect(updatedJob.failedReason).to.be.undefined
-      expect(updatedJob.processedOn).to.be.undefined
-      expect(updatedJob.finishedOn).to.be.undefined
-      expect(updatedJob.returnvalue).to.be.null
+      expect(updatedJob.failedReason).toBeUndefined()
+      expect(updatedJob.processedOn).toBeUndefined()
+      expect(updatedJob.finishedOn).toBeUndefined()
+      expect(updatedJob.returnvalue).toBeNull()
 
       await worker.resume()
     })
@@ -2643,7 +2643,7 @@ describe('workers', function () {
 
       worker.on('failed', async () => {
         const token = await client.get(`${prefix}:${queueName}:${job.id}:lock`)
-        expect(token).to.be.null
+        expect(token).toBeNull()
       })
 
       const workerCompleted = new Promise<void>((resolve) => {
@@ -2656,7 +2656,7 @@ describe('workers', function () {
 
       const token = await client.get(`${prefix}:${queueName}:${job.id}:lock`)
 
-      expect(token).to.be.null
+      expect(token).toBeNull()
 
       await worker.close()
     })
@@ -4289,7 +4289,7 @@ describe('workers', function () {
         const token = await client.get(
           `${prefix}:${queueName}:${parent.id}:lock`,
         )
-        expect(token).to.be.null
+        expect(token).toBeNull()
         expect(processed2).to.deep.equal({
           [`${prefix}:${queueName}:${child1.id}`]: 'return value1',
         })

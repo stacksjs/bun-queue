@@ -1,10 +1,7 @@
-import type {
-  QueueEventsListener,
-} from '../src/classes'
-import { expect } from 'chai'
-import { default as IORedis } from 'ioredis'
+import type { QueueEventsListener } from '../src/classes'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
+import IORedis from 'ioredis'
 import { after } from 'lodash'
-import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
 import { v4 } from 'uuid'
 import {
   FlowProducer,
@@ -23,9 +20,9 @@ describe('events', function () {
   let queue: Queue
   let queueEvents: QueueEvents
   let queueName: string
+  let connection: IORedis
 
-  let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -979,7 +976,7 @@ describe('events', function () {
     await delay(50) // additional delay since XREAD from '$' is unstable
     queueEvents.on('waiting', ({ jobId }) => {
       expect(jobId).toBe('1')
-      expect(state).to.be.undefined
+      expect(state).toBeUndefined()
       state = 'waiting'
     })
     queueEvents.once('active', ({ jobId, prev }) => {
@@ -992,7 +989,7 @@ describe('events', function () {
     const completed = new Promise<void>((resolve) => {
       queueEvents.once('completed', async ({ jobId, returnvalue }) => {
         expect(jobId).toBe('1')
-        expect(returnvalue).to.be.null
+        expect(returnvalue).toBeNull()
         expect(state).toBe('active')
         resolve()
       })

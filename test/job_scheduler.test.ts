@@ -557,7 +557,7 @@ describe('Job Scheduler', function () {
     it('should return undefined', async () => {
       const scheduler = await queue.getJobScheduler('test')
 
-      expect(scheduler).to.be.undefined
+      expect(scheduler).toBeUndefined()
     })
   })
 

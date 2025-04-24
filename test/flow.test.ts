@@ -344,7 +344,7 @@ describe('flows', () => {
         const jobIdFromDebounceKey = await queue.getDebounceJobId(
           'debounce_id',
         )
-        expect(jobIdFromDebounceKey).to.be.null
+        expect(jobIdFromDebounceKey).toBeNull()
 
         expect(debouncedCounter).toBe(1)
 
@@ -588,8 +588,8 @@ describe('flows', () => {
           = await children![0].job.removeChildDependency()
 
         expect(relationshipIsBroken).to.be.true
-        expect(children![0].job.parent).to.be.undefined
-        expect(children![0].job.parentKey).to.be.undefined
+        expect(children![0].job.parent).toBeUndefined()
+        expect(children![0].job.parentKey).toBeUndefined()
 
         const parentState = await job.getState()
 
@@ -657,8 +657,8 @@ describe('flows', () => {
           = await children![0].job.removeChildDependency()
 
         expect(relationshipIsBroken).to.be.true
-        expect(children![0].job.parent).to.be.undefined
-        expect(children![0].job.parentKey).to.be.undefined
+        expect(children![0].job.parent).toBeUndefined()
+        expect(children![0].job.parentKey).toBeUndefined()
 
         const parentState = await job.getState()
 
@@ -1571,7 +1571,7 @@ describe('flows', () => {
         parentWorker.on('completed', async (job: Job) => {
           expect(job.finishedOn).to.be.string
           const gotJob = await parentQueue.getJob(job.id)
-          expect(gotJob).to.be.undefined
+          expect(gotJob).toBeUndefined()
           const counts = await parentQueue.getJobCounts('completed')
           expect(counts.completed).toBe(0)
           resolve()
@@ -1719,7 +1719,7 @@ describe('flows', () => {
         parentWorker.on('completed', async (job: Job) => {
           expect(job.finishedOn).to.be.string
           const gotJob = await parentQueue.getJob(job.id)
-          expect(gotJob).to.be.undefined
+          expect(gotJob).toBeUndefined()
           const counts = await parentQueue.getJobCounts('completed')
           expect(counts.completed).toBe(0)
           resolve()
@@ -3024,7 +3024,7 @@ describe('flows', () => {
         expect(updatedGrandchildJob.failedReason).toBe('failed')
 
         const updatedParentJob = await queue.getJob(children[1].job.id)
-        expect(updatedParentJob).to.be.undefined
+        expect(updatedParentJob).toBeUndefined()
 
         const updatedGrandparentJob = await parentQueue.getJob(job.id)
         const updatedGrandparentState = await updatedGrandparentJob.getState()
@@ -4008,10 +4008,10 @@ describe('flows', () => {
     expect(children.length).to.be.greaterThanOrEqual(2)
 
     expect(children[0].job.id).to.be.ok
-    expect(children[0].children).to.be.undefined
+    expect(children[0].children).toBeUndefined()
 
     expect(children[1].job.id).to.be.ok
-    expect(children[1].children).to.be.undefined
+    expect(children[1].children).toBeUndefined()
 
     await flow.close()
 
@@ -5135,7 +5135,7 @@ describe('flows', () => {
                   const childJob = await Job.fromId(queue, child.job.id!)
 
                   if (!processed.includes(child.job.id!)) {
-                    expect(childJob).to.be.undefined
+                    expect(childJob).toBeUndefined()
                   }
                   else {
                     expect(childJob).to.be.ok
@@ -5276,12 +5276,12 @@ describe('flows', () => {
 
       const parentQueue = new Queue(parentQueueName, { connection, prefix })
       const parentJob = await Job.fromId(parentQueue, tree.job.id)
-      expect(parentJob).to.be.undefined
+      expect(parentJob).toBeUndefined()
 
       for (let i = 0; i < tree.children.length; i++) {
         const child = tree.children[i]
         const childJob = await Job.fromId(queue, child.job.id)
-        expect(childJob).to.be.undefined
+        expect(childJob).toBeUndefined()
       }
 
       expect(await tree.children[0].job.getState()).toBe('unknown')
@@ -5341,7 +5341,7 @@ describe('flows', () => {
 
         const parentQueue = new Queue(parentQueueName, { connection, prefix })
         const parentJob = await Job.fromId(parentQueue, tree.job.id)
-        expect(parentJob).to.be.undefined
+        expect(parentJob).toBeUndefined()
 
         for (let i = 0; i < tree.children.length; i++) {
           const child = tree.children[i]
@@ -5431,12 +5431,12 @@ describe('flows', () => {
 
         const parentQueue = new Queue(parentQueueName, { connection, prefix })
         const parentJob = await Job.fromId(parentQueue, tree.job.id)
-        expect(parentJob).to.be.undefined
+        expect(parentJob).toBeUndefined()
 
         for (let i = 0; i < tree.children.length; i++) {
           const child = tree.children[i]
           const childJob = await Job.fromId(queue, child.job.id)
-          expect(childJob).to.be.undefined
+          expect(childJob).toBeUndefined()
         }
 
         const jobs = await queue.getJobCountByTypes('completed')
@@ -5538,12 +5538,12 @@ describe('flows', () => {
             prefix,
           })
           const parentJob = await Job.fromId(parentQueue, tree.job.id)
-          expect(parentJob).to.be.undefined
+          expect(parentJob).toBeUndefined()
 
           for (let i = 0; i < tree.children![0].children!.length; i++) {
             const child = tree.children![0].children![i]
             const childJob = await Job.fromId(queue, child.job.id)
-            expect(childJob).to.be.undefined
+            expect(childJob).toBeUndefined()
           }
 
           const jobs = await queue.getJobCountByTypes('completed')
@@ -5658,12 +5658,12 @@ describe('flows', () => {
 
         const parentQueue = new Queue(parentQueueName, { connection, prefix })
         const parentJob = await Job.fromId(parentQueue, tree.job.id)
-        expect(parentJob).to.be.undefined
+        expect(parentJob).toBeUndefined()
 
         for (let i = 0; i < tree.children.length; i++) {
           const child = tree.children[i]
           const childJob = await Job.fromId(queue, child.job.id)
-          expect(childJob).to.be.undefined
+          expect(childJob).toBeUndefined()
         }
 
         const jobs = await queue.getJobCountByTypes('failed')

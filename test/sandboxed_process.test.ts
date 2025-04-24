@@ -110,7 +110,7 @@ describe('sandboxed process using child processes', () => {
             const retainedChild = Object.values(
               worker.childPool.retained,
             )[0]
-            expect(retainedChild).to.be.undefined
+            expect(retainedChild).toBeUndefined()
             resolve()
           }
           catch (err) {
@@ -1463,7 +1463,7 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job) => {
           try {
-            expect(job!.returnvalue).to.be.undefined
+            expect(job!.returnvalue).toBeUndefined()
             resolve()
           }
           catch (err) {

@@ -272,7 +272,7 @@ describe('stalled jobs', () => {
         worker2.on(
           'failed',
           after(concurrency, async (job, failedReason, prev) => {
-            expect(job).to.be.undefined
+            expect(job).toBeUndefined()
             expect(prev).toBe('active')
             expect(failedReason.message).toBe(errorMessage)
             resolve()
@@ -351,7 +351,7 @@ describe('stalled jobs', () => {
             worker.on(
               'failed',
               after(concurrency, async (job, failedReason, prev) => {
-                expect(job).to.be.undefined
+                expect(job).toBeUndefined()
                 expect(prev).toBe('active')
                 expect(failedReason.message).toBe(errorMessage)
                 resolve()
@@ -888,7 +888,7 @@ describe('stalled jobs', () => {
           worker2.on(
             'failed',
             after(concurrency, async (job, failedReason, prev) => {
-              expect(job).to.be.undefined
+              expect(job).toBeUndefined()
               const failedCount = await queue.getFailedCount()
               expect(failedCount).to.equal(2)
 
