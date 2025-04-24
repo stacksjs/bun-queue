@@ -195,7 +195,7 @@ describe('repeat', function () {
       ]);
 
       const count = await queue.count();
-      expect(count).to.be.eql(3);
+      expect(count).toBe(3);
     });
   });
 
@@ -208,7 +208,7 @@ describe('repeat', function () {
       ]);
 
       const repeatableJobs = await queue.getRepeatableJobs();
-      expect(repeatableJobs.length).to.be.eql(1);
+      expect(repeatableJobs.length).toBe(1);
     });
   });
 
@@ -244,7 +244,7 @@ describe('repeat', function () {
       ),
     ]);
     const count = await repeat.getRepeatableCount();
-    expect(count).to.be.eql(5);
+    expect(count).toBe(5);
 
     let jobs = await repeat.getRepeatableJobs(0, -1, true);
     jobs = await jobs.sort(function (a, b) {
@@ -1189,8 +1189,8 @@ describe('repeat', function () {
 
       expect(count).toBe(1);
       expect(configs).to.have.length(1);
-      expect(jobs.length).to.be.eql(2);
-      expect(jobs[0].id).to.be.eql(jobs[1].id);
+      expect(jobs.length).toBe(2);
+      expect(jobs[0].id).toBe(jobs[1].id);
     });
   });
 
@@ -1741,7 +1741,7 @@ describe('repeat', function () {
       },
     );
     let delayed = await queue.getDelayed();
-    expect(delayed.length).to.be.eql(1);
+    expect(delayed.length).toBe(1);
 
     await new Promise<void>(resolve => {
       queueEvents.on('removed', async ({ jobId, prev }) => {
@@ -1754,12 +1754,12 @@ describe('repeat', function () {
     });
 
     delayed = await queue.getDelayed();
-    expect(delayed.length).to.be.eql(0);
+    expect(delayed.length).toBe(0);
 
     await queue.add('myTestJob', { data: '2' }, { repeat: repeat });
 
     delayed = await queue.getDelayed();
-    expect(delayed.length).to.be.eql(1);
+    expect(delayed.length).toBe(1);
 
     // We need to force close in this case, as closing is too slow in Dragonfly.
     await worker.close(true);
@@ -1775,7 +1775,7 @@ describe('repeat', function () {
 
     // Get delayed jobs
     const delayed = await queue.getDelayed();
-    expect(delayed.length).to.be.eql(1);
+    expect(delayed.length).toBe(1);
 
     // Try to remove the delayed job
     const job = delayed[0];
@@ -1829,7 +1829,7 @@ describe('repeat', function () {
       processor = async (job: Job) => {
         try {
           expect(job.id).to.be.ok;
-          expect(job.data.p).to.be.eql(currentPriority++);
+          expect(job.data.p).toBe(currentPriority++);
         } catch (err) {
           reject(err);
         }

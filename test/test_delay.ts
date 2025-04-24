@@ -74,7 +74,7 @@ describe('Delayed jobs', function () {
 
           const delayedJobs = await queue.getDelayed();
           expect(delayedJobs.length).toBe(0);
-          expect(publishHappened).to.be.eql(true);
+          expect(publishHappened).toBe(true);
           resolve();
         } catch (err) {
           reject(err);
@@ -85,9 +85,9 @@ describe('Delayed jobs', function () {
     const job = await queue.add('test', { delayed: 'foobar' }, { delay });
 
     expect(job.id).to.be.ok;
-    expect(job.data.delayed).to.be.eql('foobar');
-    expect(job.opts.delay).to.be.eql(delay);
-    expect(job.delay).to.be.eql(delay);
+    expect(job.data.delayed).toBe('foobar');
+    expect(job.opts.delay).toBe(delay);
+    expect(job.delay).toBe(delay);
 
     await delayed;
     await completed;
@@ -137,7 +137,7 @@ describe('Delayed jobs', function () {
 
             const delayedJobs = await queue.getDelayed();
             expect(delayedJobs.length).toBe(0);
-            expect(publishHappened).to.be.eql(true);
+            expect(publishHappened).toBe(true);
             resolve();
           } catch (err) {
             reject(err);
@@ -152,9 +152,9 @@ describe('Delayed jobs', function () {
       );
 
       expect(job.id).to.be.ok;
-      expect(job.data.delayed).to.be.eql('foobar');
-      expect(job.opts.delay).to.be.eql(delayTime);
-      expect(job.delay).to.be.eql(delayTime);
+      expect(job.data.delayed).toBe('foobar');
+      expect(job.opts.delay).toBe(delayTime);
+      expect(job.delay).toBe(delayTime);
 
       await delayed;
 
@@ -179,7 +179,7 @@ describe('Delayed jobs', function () {
         const job = await queue.add('test', {}, { delay: 0 });
 
         const state = await job.getState();
-        expect(state).to.be.eql('waiting');
+        expect(state).toBe('waiting');
       });
     });
 
@@ -188,7 +188,7 @@ describe('Delayed jobs', function () {
         const job = await queue.add('test', {}, { delay: 0, priority: 1 });
 
         const state = await job.getState();
-        expect(state).to.be.eql('prioritized');
+        expect(state).toBe('prioritized');
       });
     });
   });
@@ -269,7 +269,7 @@ describe('Delayed jobs', function () {
 
           const delayedJobs = await queue.getDelayed();
           expect(delayedJobs.length).toBe(1);
-          expect(publishHappened).to.be.eql(true);
+          expect(publishHappened).toBe(true);
           resolve();
         } catch (err) {
           reject(err);
@@ -288,9 +288,9 @@ describe('Delayed jobs', function () {
     );
 
     expect(job.id).to.be.ok;
-    expect(job.data.delayed).to.be.eql('foobar');
-    expect(job.opts.delay).to.be.eql(delayTime);
-    expect(job.delay).to.be.eql(delayTime);
+    expect(job.data.delayed).toBe('foobar');
+    expect(job.opts.delay).toBe(delayTime);
+    expect(job.delay).toBe(delayTime);
 
     await delayed;
     await completed;
@@ -610,7 +610,7 @@ describe('Delayed jobs', function () {
 
             const delayedJobs = await queue.getDelayed();
             expect(delayedJobs.length).toBe(0);
-            expect(publishHappened).to.be.eql(true);
+            expect(publishHappened).toBe(true);
             resolve();
           } catch (err) {
             reject(err);
@@ -621,8 +621,8 @@ describe('Delayed jobs', function () {
       const job = await queue.add('test', { delayed: 'foobar' }, { delay });
 
       expect(job.id).to.be.ok;
-      expect(job.data.delayed).to.be.eql('foobar');
-      expect(job.opts.delay).to.be.eql(delay);
+      expect(job.data.delayed).toBe('foobar');
+      expect(job.opts.delay).toBe(delay);
 
       worker.run();
 

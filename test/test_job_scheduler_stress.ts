@@ -88,7 +88,7 @@ describe('Job Scheduler Stress', function () {
 
     const counts = await queue.getJobCounts();
 
-    expect(counts).to.be.eql({
+    expect(counts).toBe({
       active: 0,
       completed: 1,
       delayed: 1,
@@ -99,7 +99,7 @@ describe('Job Scheduler Stress', function () {
       'waiting-children': 0,
     });
 
-    expect(completedJobs).to.be.eql(1);
+    expect(completedJobs).toBe(1);
   });
 
   it('should start processing a job as soon as it is upserted when using every', async () => {
@@ -188,7 +188,7 @@ describe('Job Scheduler Stress', function () {
 
     const counts = await queue.getJobCounts();
 
-    expect(counts).to.be.eql({
+    expect(counts).toBe({
       active: 0,
       completed: 1,
       delayed: 1,
@@ -199,7 +199,7 @@ describe('Job Scheduler Stress', function () {
       'waiting-children': 0,
     });
 
-    expect(completedJobs).to.be.eql(1);
+    expect(completedJobs).toBe(1);
     await queue.close();
   });
 });

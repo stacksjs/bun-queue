@@ -202,7 +202,7 @@ describe('connection', () => {
       });
 
       const client = await queue.waitUntilReady();
-      expect(client.status).to.be.eql('ready');
+      expect(client.status).toBe('ready');
 
       await queue.close();
     });
@@ -233,7 +233,7 @@ describe('connection', () => {
       });
 
       const client = await queue.waitUntilReady();
-      expect(client.status).to.be.eql('ready');
+      expect(client.status).toBe('ready');
 
       await queue.close();
     });
@@ -373,7 +373,7 @@ describe('connection', () => {
     const client = queue['connection']['_client'];
     await queue.close();
 
-    expect(client.status).to.be.eql('end');
+    expect(client.status).toBe('end');
   });
 
   it('should recover from a connection loss', async () => {
@@ -493,14 +493,14 @@ describe('connection', () => {
         return testQueue.add({ foo: 'bar' });
       })
       .then(() => {
-        expect(testQueue.client).to.be.eql(client);
-        expect(testQueue.eclient).to.be.eql(subscriber);
+        expect(testQueue.client).toBe(client);
+        expect(testQueue.eclient).toBe(subscriber);
 
         return testQueue.close();
       })
       .then(() => {
-        expect(client.status).to.be.eql('ready');
-        expect(subscriber.status).to.be.eql('ready');
+        expect(client.status).toBe('ready');
+        expect(subscriber.status).toBe('ready');
         return Promise.all([client.quit(), subscriber.quit()]);
       });
   });

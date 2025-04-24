@@ -38,7 +38,7 @@ function sandboxProcessTests(
       pool.release(child);
       expect(pool.retained).to.be.empty;
       const newChild = await pool.retain(processor, NoopProc);
-      expect(child).to.be.eql(newChild);
+      expect(child).toBe(newChild);
     });
 
     it('should return a new child if reused the last free one', async () => {
@@ -48,10 +48,10 @@ function sandboxProcessTests(
       pool.release(child);
       expect(pool.retained).to.be.empty;
       let newChild = await pool.retain(processor, NoopProc);
-      expect(child).to.be.eql(newChild);
+      expect(child).toBe(newChild);
       child = newChild;
       newChild = await pool.retain(processor, NoopProc);
-      expect(child).not.to.be.eql(newChild);
+      expect(child).not.toBe(newChild);
     });
 
     it('should return a new child if none free', async () => {

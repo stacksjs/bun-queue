@@ -428,19 +428,19 @@ describe('flows', () => {
     const { children, job } = tree;
     const parentState = await job.getState();
 
-    expect(parentState).to.be.eql('waiting-children');
+    expect(parentState).toBe('waiting-children');
     expect(children).to.have.length(3);
 
     expect(children[0].job.id).to.be.ok;
-    expect(children[0].job.data.foo).to.be.eql('bar');
+    expect(children[0].job.data.foo).toBe('bar');
     expect(children[0].job.parent).to.deep.equal({
       id: job.id,
       queueKey: `${prefix}:${parentQueueName}`,
     });
     expect(children[1].job.id).to.be.ok;
-    expect(children[1].job.data.foo).to.be.eql('baz');
+    expect(children[1].job.data.foo).toBe('baz');
     expect(children[2].job.id).to.be.ok;
-    expect(children[2].job.data.foo).to.be.eql('qux');
+    expect(children[2].job.data.foo).toBe('qux');
 
     await processingChildren;
     await childrenWorker.close();
@@ -543,7 +543,7 @@ describe('flows', () => {
     );
     const parentState = await job.getState();
 
-    expect(parentState).to.be.eql('waiting-children');
+    expect(parentState).toBe('waiting-children');
     expect(children).to.have.length(2);
 
     await processingChildren;
@@ -837,15 +837,15 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(3);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('bar');
+      expect(children[0].job.data.foo).toBe('bar');
       expect(children[1].job.id).to.be.ok;
-      expect(children[1].job.data.foo).to.be.eql('baz');
+      expect(children[1].job.data.foo).toBe('baz');
       expect(children[2].job.id).to.be.ok;
-      expect(children[2].job.data.foo).to.be.eql('qux');
+      expect(children[2].job.data.foo).toBe('qux');
 
       await completed;
 
@@ -946,15 +946,15 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(3);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('bar');
+      expect(children[0].job.data.foo).toBe('bar');
       expect(children[1].job.id).to.be.ok;
-      expect(children[1].job.data.foo).to.be.eql('baz');
+      expect(children[1].job.data.foo).toBe('baz');
       expect(children[2].job.id).to.be.ok;
-      expect(children[2].job.data.foo).to.be.eql('qux');
+      expect(children[2].job.data.foo).toBe('qux');
 
       await completed;
       await childrenWorker.close();
@@ -1489,7 +1489,7 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(1);
 
       await processingParent;
@@ -1500,7 +1500,7 @@ describe('flows', () => {
 
       const count = await queue.getJobCountByTypes('completed');
 
-      expect(count).to.be.eql(3);
+      expect(count).toBe(3);
     });
   });
 
@@ -1595,19 +1595,19 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(3);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('bar');
+      expect(children[0].job.data.foo).toBe('bar');
       expect(children[0].job.parent).to.deep.equal({
         id: job.id,
         queueKey: `${prefix}:${parentQueueName}`,
       });
       expect(children[1].job.id).to.be.ok;
-      expect(children[1].job.data.foo).to.be.eql('baz');
+      expect(children[1].job.data.foo).toBe('baz');
       expect(children[2].job.id).to.be.ok;
-      expect(children[2].job.data.foo).to.be.eql('qux');
+      expect(children[2].job.data.foo).toBe('qux');
 
       await processingChildren;
       await childrenWorker.close();
@@ -1780,19 +1780,19 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(3);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('baz');
+      expect(children[0].job.data.foo).toBe('baz');
       expect(children[0].job.parent).to.deep.equal({
         id: job.id,
         queueKey: `${prefix}:${parentQueueName}`,
       });
       expect(children[1].job.id).to.be.ok;
-      expect(children[1].job.data.foo).to.be.eql('qux');
+      expect(children[1].job.data.foo).toBe('qux');
       expect(children[2].job.id).to.be.ok;
-      expect(children[2].job.data.foo).to.be.eql('bar');
+      expect(children[2].job.data.foo).toBe('bar');
 
       await processingGrandChildren;
 
@@ -1891,11 +1891,11 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(1);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('bar');
+      expect(children[0].job.data.foo).toBe('bar');
 
       await processingChildren;
       await childrenWorker.close();
@@ -2263,11 +2263,11 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(1);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('bar');
+      expect(children[0].job.data.foo).toBe('bar');
 
       await processingChildren;
       await childrenWorker.close();
@@ -2425,7 +2425,7 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(3);
 
       grandChildrenWorker.run();
@@ -2555,7 +2555,7 @@ describe('flows', () => {
         const { children, job } = tree;
         const parentState = await job.getState();
 
-        expect(parentState).to.be.eql('waiting-children');
+        expect(parentState).toBe('waiting-children');
 
         await processingChildren;
         await failed;
@@ -2566,22 +2566,22 @@ describe('flows', () => {
         );
         const grandChildState = await updatedGrandchildJob.getState();
 
-        expect(grandChildState).to.be.eql('failed');
-        expect(updatedGrandchildJob.failedReason).to.be.eql('failed');
+        expect(grandChildState).toBe('failed');
+        expect(updatedGrandchildJob.failedReason).toBe('failed');
 
         const updatedParentJob = await queue.getJob(children[1].job.id);
         const updatedParentState = await updatedParentJob.getState();
 
-        expect(updatedParentState).to.be.eql('failed');
-        expect(updatedParentJob.failedReason).to.be.eql(
+        expect(updatedParentState).toBe('failed');
+        expect(updatedParentJob.failedReason).toBe(
           `child ${prefix}:${grandChildrenQueueName}:${updatedGrandchildJob.id} failed`,
         );
 
         const updatedGrandparentJob = await parentQueue.getJob(job.id);
         const updatedGrandparentState = await updatedGrandparentJob.getState();
 
-        expect(updatedGrandparentState).to.be.eql('failed');
-        expect(updatedGrandparentJob.failedReason).to.be.eql(
+        expect(updatedGrandparentState).toBe('failed');
+        expect(updatedGrandparentJob.failedReason).toBe(
           `child ${prefix}:${queueName}:${updatedParentJob.id} failed`,
         );
 
@@ -2986,7 +2986,7 @@ describe('flows', () => {
         const { children, job } = tree;
         const parentState = await job.getState();
 
-        expect(parentState).to.be.eql('waiting-children');
+        expect(parentState).toBe('waiting-children');
 
         await processingChildren;
         await failing;
@@ -3001,8 +3001,8 @@ describe('flows', () => {
         );
         const grandChildState = await updatedGrandchildJob.getState();
 
-        expect(grandChildState).to.be.eql('failed');
-        expect(updatedGrandchildJob.failedReason).to.be.eql('failed');
+        expect(grandChildState).toBe('failed');
+        expect(updatedGrandchildJob.failedReason).toBe('failed');
 
         const updatedParentJob = await queue.getJob(children[1].job.id);
         expect(updatedParentJob).to.be.undefined;
@@ -3010,8 +3010,8 @@ describe('flows', () => {
         const updatedGrandparentJob = await parentQueue.getJob(job.id);
         const updatedGrandparentState = await updatedGrandparentJob.getState();
 
-        expect(updatedGrandparentState).to.be.eql('failed');
-        expect(updatedGrandparentJob.failedReason).to.be.eql(
+        expect(updatedGrandparentState).toBe('failed');
+        expect(updatedGrandparentJob.failedReason).toBe(
           `child ${prefix}:${queueName}:${children[1].job.id} failed`,
         );
 
@@ -3137,7 +3137,7 @@ describe('flows', () => {
         const { children, job } = tree;
         const parentState = await job.getState();
 
-        expect(parentState).to.be.eql('waiting-children');
+        expect(parentState).toBe('waiting-children');
 
         await processingChildren;
         await failed;
@@ -3147,21 +3147,21 @@ describe('flows', () => {
           grandChildren[0].job.id,
         );
         const grandChildState = await updatedGrandchildJob.getState();
-        expect(grandChildState).to.be.eql('failed');
-        expect(updatedGrandchildJob.failedReason).to.be.eql('failed');
+        expect(grandChildState).toBe('failed');
+        expect(updatedGrandchildJob.failedReason).toBe('failed');
 
         const updatedParentJob = await queue.getJob(children[0].job.id);
         const updatedParentState = await updatedParentJob.getState();
 
-        expect(updatedParentState).to.be.eql('failed');
-        expect(updatedParentJob.failedReason).to.be.eql(
+        expect(updatedParentState).toBe('failed');
+        expect(updatedParentJob.failedReason).toBe(
           `child ${prefix}:${grandChildrenQueueName}:${updatedGrandchildJob.id} failed`,
         );
 
         const updatedGrandparentJob = await parentQueue.getJob(job.id);
         const updatedGrandparentState = await updatedGrandparentJob.getState();
 
-        expect(updatedGrandparentState).to.be.eql('waiting');
+        expect(updatedGrandparentState).toBe('waiting');
 
         await parentQueue.close();
         await grandChildrenQueue.close();
@@ -3285,7 +3285,7 @@ describe('flows', () => {
         const { children, job } = tree;
         const parentState = await job.getState();
 
-        expect(parentState).to.be.eql('waiting-children');
+        expect(parentState).toBe('waiting-children');
 
         await processingChildren;
         await failed;
@@ -3295,21 +3295,21 @@ describe('flows', () => {
           grandChildren[0].job.id,
         );
         const grandChildState = await updatedGrandchildJob.getState();
-        expect(grandChildState).to.be.eql('failed');
-        expect(updatedGrandchildJob.failedReason).to.be.eql('failed');
+        expect(grandChildState).toBe('failed');
+        expect(updatedGrandchildJob.failedReason).toBe('failed');
 
         const updatedParentJob = await queue.getJob(children[0].job.id);
         const updatedParentState = await updatedParentJob.getState();
 
-        expect(updatedParentState).to.be.eql('failed');
-        expect(updatedParentJob.failedReason).to.be.eql(
+        expect(updatedParentState).toBe('failed');
+        expect(updatedParentJob.failedReason).toBe(
           `child ${prefix}:${grandChildrenQueueName}:${updatedGrandchildJob.id} failed`,
         );
 
         const updatedGrandparentJob = await parentQueue.getJob(job.id);
         const updatedGrandparentState = await updatedGrandparentJob.getState();
 
-        expect(updatedGrandparentState).to.be.eql('waiting');
+        expect(updatedGrandparentState).toBe('waiting');
 
         const failedChildrenValues =
           await updatedGrandparentJob.getFailedChildrenValues();
@@ -3845,7 +3845,7 @@ describe('flows', () => {
     const { children, job } = tree;
     const parentState = await job.getState();
 
-    expect(parentState).to.be.eql('waiting-children');
+    expect(parentState).toBe('waiting-children');
     expect(children).to.have.length(values.length);
 
     await processingChildren;
@@ -3904,16 +3904,16 @@ describe('flows', () => {
     expect(children).to.have.length(1);
 
     expect(children[0].job.id).to.be.ok;
-    expect(children[0].job.data.foo).to.be.eql('bar');
-    expect(children[0].job.queueName).to.be.eql(queueName);
+    expect(children[0].job.data.foo).toBe('bar');
+    expect(children[0].job.queueName).toBe(queueName);
     expect(children[0].children).to.have.length(1);
 
     expect(children[0].children[0].job.id).to.be.ok;
-    expect(children[0].children[0].job.queueName).to.be.eql(queueName);
-    expect(children[0].children[0].job.data.foo).to.be.eql('baz');
+    expect(children[0].children[0].job.queueName).toBe(queueName);
+    expect(children[0].children[0].job.data.foo).toBe('baz');
 
     expect(children[0].children[0].children[0].job.id).to.be.ok;
-    expect(children[0].children[0].children[0].job.data.foo).to.be.eql('qux');
+    expect(children[0].children[0].children[0].job.data.foo).toBe('qux');
 
     await flow.close();
 
@@ -4032,16 +4032,16 @@ describe('flows', () => {
       expect(children).to.have.length(1);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('bar');
-      expect(children[0].job.queueName).to.be.eql(queueName);
+      expect(children[0].job.data.foo).toBe('bar');
+      expect(children[0].job.queueName).toBe(queueName);
       expect(children[0].children).to.have.length(1);
 
       expect(children[0].children[0].job.id).to.be.ok;
-      expect(children[0].children[0].job.queueName).to.be.eql(queueName);
-      expect(children[0].children[0].job.data.foo).to.be.eql('baz');
+      expect(children[0].children[0].job.queueName).toBe(queueName);
+      expect(children[0].children[0].job.data.foo).toBe('baz');
 
       expect(children[0].children[0].children[0].job.id).to.be.ok;
-      expect(children[0].children[0].children[0].job.data.foo).to.be.eql('qux');
+      expect(children[0].children[0].children[0].job.data.foo).toBe('qux');
 
       await flow.close();
 
@@ -4148,7 +4148,7 @@ describe('flows', () => {
       const { children, job } = tree;
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(3);
 
       await processingChildren;
@@ -4278,18 +4278,18 @@ describe('flows', () => {
     const { children, job } = tree;
     const parentState = await job.getState();
 
-    expect(parentState).to.be.eql('waiting-children');
+    expect(parentState).toBe('waiting-children');
     expect(children).to.have.length(3);
 
     const { unprocessed } = await job.getDependencies();
 
     expect(unprocessed.length).to.be.greaterThan(0);
     expect(children[0].job.id).to.be.ok;
-    expect(children[0].job.data.foo).to.be.eql('bar');
+    expect(children[0].job.data.foo).toBe('bar');
     expect(children[1].job.id).to.be.ok;
-    expect(children[1].job.data.foo).to.be.eql('baz');
+    expect(children[1].job.data.foo).toBe('baz');
     expect(children[2].job.id).to.be.ok;
-    expect(children[2].job.data.foo).to.be.eql('qux');
+    expect(children[2].job.data.foo).toBe('qux');
 
     await processingChildren;
     await childrenWorker.close();
@@ -4321,7 +4321,7 @@ describe('flows', () => {
           const childrenValues = await job.getChildrenValues();
           const waitingChildrenCount = await queue.getWaitingChildrenCount();
 
-          expect(job.data.idx).to.be.eql(values.length - 1 - processedChildren);
+          expect(job.data.idx).toBe(values.length - 1 - processedChildren);
           switch (job.data.idx) {
             case 0:
               {
@@ -4413,14 +4413,14 @@ describe('flows', () => {
     expect(children).to.have.length(1);
 
     expect(children![0].job.id).to.be.ok;
-    expect(children![0].job.data.foo).to.be.eql('bar');
+    expect(children![0].job.data.foo).toBe('bar');
     expect(children![0].children).to.have.length(1);
 
     expect(children![0].children![0].job.id).to.be.ok;
-    expect(children![0].children![0].job.data.foo).to.be.eql('baz');
+    expect(children![0].children![0].job.data.foo).toBe('baz');
 
     expect(children![0].children![0].children![0].job.id).to.be.ok;
-    expect(children![0].children![0].children![0].job.data.foo).to.be.eql(
+    expect(children![0].children![0].children![0].job.data.foo).toBe(
       'qux',
     );
 
@@ -4566,7 +4566,7 @@ describe('flows', () => {
       expect(children).to.have.length(1);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('bar');
+      expect(children[0].job.data.foo).toBe('bar');
 
       childrenWorker.run();
       parentWorker.run();
@@ -4665,7 +4665,7 @@ describe('flows', () => {
       expect(children).to.have.length(1);
 
       expect(children[0].job.id).to.be.ok;
-      expect(children[0].job.data.foo).to.be.eql('bar');
+      expect(children[0].job.data.foo).toBe('bar');
 
       const isDelayed = await children![0].job.isDelayed();
 
@@ -4718,7 +4718,7 @@ describe('flows', () => {
     expect(children).to.have.length(1);
 
     expect(children![0].job.id).to.be.ok;
-    expect(children![0].job.data.foo).to.be.eql('bar');
+    expect(children![0].job.data.foo).toBe('bar');
 
     await processingChildren;
     await childrenWorker.close();
@@ -4780,7 +4780,7 @@ describe('flows', () => {
     expect(children).to.have.length(1);
 
     expect(children![0].job.id).to.be.ok;
-    expect(children![0].job.data.foo).to.be.eql('bar');
+    expect(children![0].job.data.foo).toBe('bar');
 
     await processingChildren;
     await childrenWorker.close();
@@ -4897,7 +4897,7 @@ describe('flows', () => {
       );
       const parentState = await job.getState();
 
-      expect(parentState).to.be.eql('waiting-children');
+      expect(parentState).toBe('waiting-children');
       expect(children).to.have.length(2);
 
       await processingChildren;
@@ -5002,7 +5002,7 @@ describe('flows', () => {
       expect(firstJob.children).to.have.length(1);
 
       expect(firstJob.children[0].job.id).to.be.ok;
-      expect(firstJob.children[0].job.data.foo).to.be.eql('bar');
+      expect(firstJob.children[0].job.data.foo).toBe('bar');
       expect(firstJob.children).to.have.length(1);
 
       const secondJob = trees[1];
@@ -5012,7 +5012,7 @@ describe('flows', () => {
       expect(secondJob.children).to.have.length(1);
 
       expect(secondJob.children[0].job.id).to.be.ok;
-      expect(secondJob.children[0].job.data.foo).to.be.eql('baz');
+      expect(secondJob.children[0].job.data.foo).toBe('baz');
 
       const parentWorker = new Worker(rootQueueName, rootProcessor, {
         connection,

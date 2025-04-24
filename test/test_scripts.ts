@@ -62,7 +62,7 @@ describe('scripts', function () {
 
       page.items = page.items.sort((a, b) => a.id.localeCompare(b.id));
 
-      expect(page).to.be.eql({
+      expect(page).toBe({
         items: [
           { id: 'a' },
           { id: 'b' },
@@ -92,8 +92,8 @@ describe('scripts', function () {
       const page = await scripts.paginate(testSet, { start: 3, end: 7 });
 
       expect(page.items).to.have.lengthOf(5);
-      expect(page.cursor).to.be.eql('0');
-      expect(page.total).to.be.eql(members.length);
+      expect(page.cursor).toBe('0');
+      expect(page.total).toBe(members.length);
     });
 
     it('should paginate a large set in pages of given size', async () => {
@@ -118,7 +118,7 @@ describe('scripts', function () {
         const end = start + pageSize - 1;
         const page = await scripts.paginate(testSet, { start, end });
         expect(page.items).to.have.lengthOf(pageSize);
-        expect(page.total).to.be.eql(totalItems);
+        expect(page.total).toBe(totalItems);
         pagedItems.push(...page.items);
       }
 
@@ -126,7 +126,7 @@ describe('scripts', function () {
         .map(i => ({ id: parseInt(i.id) }))
         .sort((a, b) => a.id - b.id);
 
-      expect(sortedItems).to.be.eql(items.map(i => ({ id: i })));
+      expect(sortedItems).toBe(items.map(i => ({ id: i })));
     });
   });
 
@@ -157,7 +157,7 @@ describe('scripts', function () {
 
       const page = await scripts.paginate(testHash, { start: 0, end: 9 });
 
-      expect(page).to.be.eql({
+      expect(page).toBe({
         items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].map(key => ({
           id: key,
           v: key,
@@ -189,11 +189,11 @@ describe('scripts', function () {
 
       expect(page.items).to.have.lengthOf(5);
 
-      expect(page.items).to.be.eql(
+      expect(page.items).toBe(
         ['d', 'e', 'f', 'g', 'h'].map(key => ({ id: key, v: key })),
       );
 
-      expect(page).to.be.eql({
+      expect(page).toBe({
         items: ['d', 'e', 'f', 'g', 'h'].map(key => ({ id: key, v: key })),
         jobs: [],
         cursor: '0',
@@ -229,7 +229,7 @@ describe('scripts', function () {
 
         const page = await scripts.paginate(testHash, { start, end });
         expect(page.items).to.have.lengthOf(pageSize);
-        expect(page.total).to.be.eql(totalItems);
+        expect(page.total).toBe(totalItems);
         pagedItems.push(...page.items);
       }
 
@@ -242,7 +242,7 @@ describe('scripts', function () {
         itemsObject[key] = parseInt(itemsObject[key]);
       }
 
-      expect(itemsObject).to.be.eql(items);
+      expect(itemsObject).toBe(items);
     });
   });
 });

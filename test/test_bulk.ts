@@ -1,8 +1,7 @@
 import type { Job } from '../src/classes'
-import { describe, expect, it } from 'bun:test'
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import process from 'node:process'
 import { default as IORedis } from 'ioredis'
-import { after, before, beforeEach, describe, it } from 'mocha'
 import { v4 } from 'uuid'
 import { Queue, QueueEvents, Worker } from '../src/classes'
 import { delay, removeAllQueueData } from '../src/utils'
@@ -15,7 +14,7 @@ describe('bulk jobs', () => {
   let queueName: string
 
   let connection
-  before(async () => {
+  beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
 
@@ -59,9 +58,9 @@ describe('bulk jobs', () => {
     expect(jobs).to.have.length(2)
 
     expect(jobs[0].id).to.be.ok
-    expect(jobs[0].data.foo).to.be.eql('bar')
+    expect(jobs[0].data.foo).toBe('bar')
     expect(jobs[1].id).to.be.ok
-    expect(jobs[1].data.foo).to.be.eql('baz')
+    expect(jobs[1].data.foo).toBe('baz')
 
     await processing
     await worker.close()
@@ -106,9 +105,9 @@ describe('bulk jobs', () => {
     expect(jobs).to.have.length(2)
 
     expect(jobs[0].id).to.be.ok
-    expect(jobs[0].data.foo).to.be.eql('bar')
+    expect(jobs[0].data.foo).toBe('bar')
     expect(jobs[1].id).to.be.ok
-    expect(jobs[1].data.foo).to.be.eql('baz')
+    expect(jobs[1].data.foo).toBe('baz')
 
     const { unprocessed } = await parent.getDependenciesCount({
       unprocessed: true,
@@ -192,10 +191,10 @@ describe('bulk jobs', () => {
     ])
     expect(jobs).to.have.length(2)
 
-    expect(jobs[0].id).to.be.eql('test1')
-    expect(jobs[0].data.foo).to.be.eql('bar')
-    expect(jobs[1].id).to.be.eql('test2')
-    expect(jobs[1].data.foo).to.be.eql('baz')
+    expect(jobs[0].id).toBe('test1')
+    expect(jobs[0].data.foo).toBe('bar')
+    expect(jobs[1].id).toBe('test2')
+    expect(jobs[1].data.foo).toBe('baz')
 
     await processing
     await worker.close()

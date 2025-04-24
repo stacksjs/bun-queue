@@ -265,7 +265,7 @@ describe('Job', function () {
       await job.updateData({ baz: 'qux' });
 
       const updatedJob = await Job.fromId(queue, job.id);
-      expect(updatedJob.data).to.be.eql({ baz: 'qux' });
+      expect(updatedJob.data).toBe({ baz: 'qux' });
     });
 
     describe('when job is removed', () => {
@@ -445,15 +445,15 @@ describe('Job', function () {
       await job.log(firstLog);
       await job.log(secondLog);
       const logs = await queue.getJobLogs(job.id);
-      expect(logs).to.be.eql({ logs: [firstLog, secondLog], count: 2 });
+      expect(logs).toBe({ logs: [firstLog, secondLog], count: 2 });
       const firstSavedLog = await queue.getJobLogs(job.id, 0, 0, true);
-      expect(firstSavedLog).to.be.eql({ logs: [firstLog], count: 2 });
+      expect(firstSavedLog).toBe({ logs: [firstLog], count: 2 });
       const secondSavedLog = await queue.getJobLogs(job.id, 1, 1);
-      expect(secondSavedLog).to.be.eql({ logs: [secondLog], count: 2 });
+      expect(secondSavedLog).toBe({ logs: [secondLog], count: 2 });
       await job.remove();
 
       const logsRemoved = await queue.getJobLogs(job.id);
-      expect(logsRemoved).to.be.eql({ logs: [], count: 0 });
+      expect(logsRemoved).toBe({ logs: [], count: 0 });
     });
 
     it('can log two rows with text in desc order', async () => {
@@ -465,15 +465,15 @@ describe('Job', function () {
       await job.log(firstLog);
       await job.log(secondLog);
       const logs = await queue.getJobLogs(job.id, 0, -1, false);
-      expect(logs).to.be.eql({ logs: [secondLog, firstLog], count: 2 });
+      expect(logs).toBe({ logs: [secondLog, firstLog], count: 2 });
       const secondSavedLog = await queue.getJobLogs(job.id, 0, 0, false);
-      expect(secondSavedLog).to.be.eql({ logs: [secondLog], count: 2 });
+      expect(secondSavedLog).toBe({ logs: [secondLog], count: 2 });
       const firstSavedLog = await queue.getJobLogs(job.id, 1, 1, false);
-      expect(firstSavedLog).to.be.eql({ logs: [firstLog], count: 2 });
+      expect(firstSavedLog).toBe({ logs: [firstLog], count: 2 });
       await job.remove();
 
       const logsRemoved = await queue.getJobLogs(job.id);
-      expect(logsRemoved).to.be.eql({ logs: [], count: 0 });
+      expect(logsRemoved).toBe({ logs: [], count: 0 });
     });
 
     it('should preserve up to keepLogs latest entries', async () => {
@@ -492,19 +492,19 @@ describe('Job', function () {
       expect(count1).toBe(1);
 
       const logs1 = await queue.getJobLogs(job.id!);
-      expect(logs1).to.be.eql({ logs: [firstLog], count: 1 });
+      expect(logs1).toBe({ logs: [firstLog], count: 1 });
 
       const count2 = await job.log(secondLog);
       expect(count2).toBe(2);
 
       const logs2 = await queue.getJobLogs(job.id!);
-      expect(logs2).to.be.eql({ logs: [firstLog, secondLog], count: 2 });
+      expect(logs2).toBe({ logs: [firstLog, secondLog], count: 2 });
 
       const count3 = await job.log(thirdLog);
       expect(count3).toBe(2);
 
       const logs3 = await queue.getJobLogs(job.id!);
-      expect(logs3).to.be.eql({ logs: [secondLog, thirdLog], count: 2 });
+      expect(logs3).toBe({ logs: [secondLog, thirdLog], count: 2 });
     });
 
     it('should allow to add job logs from Queue instance', async () => {
@@ -518,7 +518,7 @@ describe('Job', function () {
 
       const logs = await queue.getJobLogs(job.id!);
 
-      expect(logs).to.be.eql({ logs: [firstLog, secondLog], count: 2 });
+      expect(logs).toBe({ logs: [firstLog, secondLog], count: 2 });
     });
 
     describe('when job is removed', () => {
@@ -542,12 +542,12 @@ describe('Job', function () {
       await job.log(firstLog);
       await job.log(secondLog);
       const logs = await queue.getJobLogs(job.id);
-      expect(logs).to.be.eql({ logs: [firstLog, secondLog], count: 2 });
+      expect(logs).toBe({ logs: [firstLog, secondLog], count: 2 });
 
       await job.clearLogs();
 
       const logsRemoved = await queue.getJobLogs(job.id);
-      expect(logsRemoved).to.be.eql({ logs: [], count: 0 });
+      expect(logsRemoved).toBe({ logs: [], count: 0 });
     });
 
     it('can preserve up to keepLogs latest entries', async () => {
@@ -562,7 +562,7 @@ describe('Job', function () {
       await job.log(thirdLog);
 
       const logs1 = await queue.getJobLogs(job.id);
-      expect(logs1).to.be.eql({
+      expect(logs1).toBe({
         logs: [firstLog, secondLog, thirdLog],
         count: 3,
       });
@@ -570,7 +570,7 @@ describe('Job', function () {
       await job.clearLogs(4);
 
       const logs2 = await queue.getJobLogs(job.id);
-      expect(logs2).to.be.eql({
+      expect(logs2).toBe({
         logs: [firstLog, secondLog, thirdLog],
         count: 3,
       });
@@ -578,7 +578,7 @@ describe('Job', function () {
       await job.clearLogs(3);
 
       const logs3 = await queue.getJobLogs(job.id);
-      expect(logs3).to.be.eql({
+      expect(logs3).toBe({
         logs: [firstLog, secondLog, thirdLog],
         count: 3,
       });
@@ -586,12 +586,12 @@ describe('Job', function () {
       await job.clearLogs(2);
 
       const logs4 = await queue.getJobLogs(job.id);
-      expect(logs4).to.be.eql({ logs: [secondLog, thirdLog], count: 2 });
+      expect(logs4).toBe({ logs: [secondLog, thirdLog], count: 2 });
 
       await job.clearLogs(0);
 
       const logsRemoved = await queue.getJobLogs(job.id);
-      expect(logsRemoved).to.be.eql({ logs: [], count: 0 });
+      expect(logsRemoved).toBe({ logs: [], count: 0 });
     });
   });
 
@@ -1085,14 +1085,14 @@ describe('Job', function () {
             { priority: 16 },
           );
 
-          expect(job.priority).to.be.eql(16);
+          expect(job.priority).toBe(16);
 
           await job.changePriority({
             priority: 0,
             lifo: true,
           });
 
-          expect(job.priority).to.be.eql(0);
+          expect(job.priority).toBe(0);
 
           const worker = new Worker(
             queueName,
@@ -1107,7 +1107,7 @@ describe('Job', function () {
             worker.on(
               'completed',
               after(2, job => {
-                expect(job.name).to.be.eql('test1');
+                expect(job.name).toBe('test1');
                 resolve();
               }),
             );
@@ -1150,7 +1150,7 @@ describe('Job', function () {
             worker.on(
               'completed',
               after(2, job => {
-                expect(job.name).to.be.eql('test1');
+                expect(job.name).toBe('test1');
                 resolve();
               }),
             );
@@ -1183,9 +1183,9 @@ describe('Job', function () {
           queueName,
           async (job: Job) => {
             if (job.name === 'test1') {
-              expect(job.priority).to.be.eql(8);
+              expect(job.priority).toBe(8);
             } else {
-              expect(job.priority).to.be.eql(1);
+              expect(job.priority).toBe(1);
             }
             await delay(20);
           },
@@ -1197,7 +1197,7 @@ describe('Job', function () {
           worker.on(
             'completed',
             after(2, job => {
-              expect(job.name).to.be.eql('test1');
+              expect(job.name).toBe('test1');
               resolve();
             }),
           );
@@ -1237,7 +1237,7 @@ describe('Job', function () {
             worker.on(
               'completed',
               after(2, job => {
-                expect(job.name).to.be.eql('test1');
+                expect(job.name).toBe('test1');
                 resolve();
               }),
             );
@@ -1280,7 +1280,7 @@ describe('Job', function () {
           worker.on(
             'completed',
             after(2, job => {
-              expect(job.name).to.be.eql('test1');
+              expect(job.name).toBe('test1');
               resolve();
             }),
           );
@@ -1314,8 +1314,8 @@ describe('Job', function () {
           'priority',
         );
 
-        expect(count).to.be.eql(0);
-        expect(priority).to.be.eql('10');
+        expect(count).toBe(0);
+        expect(priority).toBe('10');
       });
     });
 
@@ -1368,7 +1368,7 @@ describe('Job', function () {
           'completed',
           after(4, () => {
             try {
-              expect(completed).to.be.eql(['a', 'b', 'c', 'd']);
+              expect(completed).toBe(['a', 'b', 'c', 'd']);
               resolve();
             } catch (err) {
               reject(err);

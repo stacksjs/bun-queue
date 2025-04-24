@@ -42,7 +42,7 @@ describe('scriptLoader', () => {
       const expectedPath = path.join(__dirname, '../actual.lua');
       loader.addPathMapping('test', '../');
       const actual = loader.resolvePath('<test>/actual.lua');
-      expect(expectedPath).to.be.eql(actual);
+      expect(expectedPath).toBe(actual);
     });
 
     it('mappings can be absolute based on project root', () => {
@@ -52,7 +52,7 @@ describe('scriptLoader', () => {
       );
       loader.addPathMapping('test', '~/scripts/metrics');
       const actual = loader.resolvePath('<test>/actual.lua');
-      expect(expectedPath).to.be.eql(actual);
+      expect(expectedPath).toBe(actual);
     });
 
     it('mappings can be based on other mapped paths', () => {
@@ -78,13 +78,13 @@ describe('scriptLoader', () => {
       const expectedPath = __dirname + '/fixtures/scripts/actual.lua';
       loader.addPathMapping('test', './fixtures/scripts');
       const actual = loader.resolvePath('<test>/actual.lua');
-      expect(expectedPath).to.be.eql(actual);
+      expect(expectedPath).toBe(actual);
     });
 
     it('substitutes ~ with the project root', () => {
       const expectedPath = path.join(getRootPath(), '/scripts/actual.lua');
       const actual = loader.resolvePath('~/scripts/actual.lua');
-      expect(expectedPath).to.be.eql(actual);
+      expect(expectedPath).toBe(actual);
     });
 
     it('substitutes "base" with the bullmq base commands folder', () => {
@@ -93,7 +93,7 @@ describe('scriptLoader', () => {
         '/src/commands/pause-4.lua',
       );
       const actual = loader.resolvePath('<base>/pause-4.lua');
-      expect(expectedPath).to.be.eql(actual);
+      expect(expectedPath).toBe(actual);
     });
 
     it('errors on an unrecognized mapping', () => {

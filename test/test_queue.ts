@@ -46,8 +46,8 @@ describe('queues', function () {
 
       const job = await queue.add(queueName, { foo: 'bar', bar: 1 });
       const job2 = await queue.getJob(job.id!);
-      expect(job2?.data.foo).to.be.eql('bar');
-      expect(job2?.data.bar).to.be.eql(1);
+      expect(job2?.data.foo).toBe('bar');
+      expect(job2?.data.bar).toBe(1);
       await queue.close();
     });
   });
@@ -114,17 +114,17 @@ describe('queues', function () {
       await Promise.all(added);
 
       const count = await queue.count();
-      expect(count).to.be.eql(maxJobs);
+      expect(count).toBe(maxJobs);
       const priorityCount = await queue.getJobCountByTypes('prioritized');
-      expect(priorityCount).to.be.eql(maxJobs);
+      expect(priorityCount).toBe(maxJobs);
 
       await queue.drain();
       const countAfterEmpty = await queue.count();
-      expect(countAfterEmpty).to.be.eql(0);
+      expect(countAfterEmpty).toBe(0);
 
       const client = await queue.client;
       const keys = await client.keys(`${prefix}:${queue.name}:*`);
-      expect(keys.length).to.be.eql(5);
+      expect(keys.length).toBe(5);
 
       for (const key of keys) {
         const type = key.split(':')[2];
@@ -152,21 +152,21 @@ describe('queues', function () {
             });
 
             const count = await queue.count();
-            expect(count).to.be.eql(4);
+            expect(count).toBe(4);
 
             await queue.drain();
 
             const client = await queue.client;
             const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-            expect(keys.length).to.be.eql(4);
+            expect(keys.length).toBe(4);
             for (const key of keys) {
               const type = key.split(':')[2];
               expect(['events', 'meta', 'id', 'marker']).to.include(type);
             }
 
             const countAfterEmpty = await queue.count();
-            expect(countAfterEmpty).to.be.eql(0);
+            expect(countAfterEmpty).toBe(0);
 
             await flow.close();
           });
@@ -186,21 +186,21 @@ describe('queues', function () {
             });
 
             const count = await queue.count();
-            expect(count).to.be.eql(2);
+            expect(count).toBe(2);
 
             await queue.drain();
 
             const client = await queue.client;
             const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-            expect(keys.length).to.be.eql(4);
+            expect(keys.length).toBe(4);
             for (const key of keys) {
               const type = key.split(':')[2];
               expect(['id', 'meta', 'marker', 'events']).to.include(type);
             }
 
             const countAfterEmpty = await queue.count();
-            expect(countAfterEmpty).to.be.eql(0);
+            expect(countAfterEmpty).toBe(0);
 
             await flow.close();
           });
@@ -232,17 +232,17 @@ describe('queues', function () {
             });
 
             const count = await queue.count();
-            expect(count).to.be.eql(1);
+            expect(count).toBe(1);
 
             await queue.drain();
 
             const client = await queue.client;
             const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-            expect(keys.length).to.be.eql(6);
+            expect(keys.length).toBe(6);
 
             const countAfterEmpty = await queue.count();
-            expect(countAfterEmpty).to.be.eql(1);
+            expect(countAfterEmpty).toBe(1);
 
             await flow.close();
             await childrenQueue.close();
@@ -275,31 +275,31 @@ describe('queues', function () {
             });
 
             const count = await queue.count();
-            expect(count).to.be.eql(3);
+            expect(count).toBe(3);
 
             await queue.drain();
 
             const client = await queue.client;
             const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-            expect(keys.length).to.be.eql(4);
+            expect(keys.length).toBe(4);
             for (const key of keys) {
               const type = key.split(':')[2];
               expect(['id', 'meta', 'events', 'marker']).to.include(type);
             }
 
             const countAfterEmpty = await queue.count();
-            expect(countAfterEmpty).to.be.eql(0);
+            expect(countAfterEmpty).toBe(0);
 
             const childrenFailedCount = await queue.getJobCountByTypes(
               'failed',
             );
-            expect(childrenFailedCount).to.be.eql(0);
+            expect(childrenFailedCount).toBe(0);
 
             const parentWaitCount = await parentQueue.getJobCountByTypes(
               'wait',
             );
-            expect(parentWaitCount).to.be.eql(1);
+            expect(parentWaitCount).toBe(1);
             await parentQueue.close();
             await flow.close();
             await removeAllQueueData(new IORedis(redisHost), parentQueueName);
@@ -326,29 +326,29 @@ describe('queues', function () {
             });
 
             const count = await queue.count();
-            expect(count).to.be.eql(1);
+            expect(count).toBe(1);
 
             await queue.drain();
 
             const client = await queue.client;
             const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-            expect(keys.length).to.be.eql(4);
+            expect(keys.length).toBe(4);
             for (const key of keys) {
               const type = key.split(':')[2];
               expect(['id', 'meta', 'events', 'marker']).to.include(type);
             }
 
             const countAfterEmpty = await queue.count();
-            expect(countAfterEmpty).to.be.eql(0);
+            expect(countAfterEmpty).toBe(0);
 
             const failedCount = await queue.getJobCountByTypes('failed');
-            expect(failedCount).to.be.eql(0);
+            expect(failedCount).toBe(0);
 
             const parentWaitCount = await parentQueue.getJobCountByTypes(
               'wait',
             );
-            expect(parentWaitCount).to.be.eql(1);
+            expect(parentWaitCount).toBe(1);
             await parentQueue.close();
             await flow.close();
             await removeAllQueueData(new IORedis(redisHost), parentQueueName);
@@ -377,10 +377,10 @@ describe('queues', function () {
         await Promise.all(added);
         await Promise.all(delayed);
         const count = await queue.count();
-        expect(count).to.be.eql(maxJobs + maxDelayedJobs);
+        expect(count).toBe(maxJobs + maxDelayedJobs);
         await queue.drain(false);
         const countAfterEmpty = await queue.count();
-        expect(countAfterEmpty).to.be.eql(50);
+        expect(countAfterEmpty).toBe(50);
       });
     });
 
@@ -404,10 +404,10 @@ describe('queues', function () {
         await Promise.all(added);
         await Promise.all(delayed);
         const count = await queue.count();
-        expect(count).to.be.eql(maxJobs + maxDelayedJobs);
+        expect(count).toBe(maxJobs + maxDelayedJobs);
         await queue.drain(true);
         const countAfterEmpty = await queue.count();
-        expect(countAfterEmpty).to.be.eql(0);
+        expect(countAfterEmpty).toBe(0);
       });
     });
 
@@ -423,12 +423,12 @@ describe('queues', function () {
 
         await Promise.all(added);
         const count = await queue.count();
-        expect(count).to.be.eql(maxJobs);
+        expect(count).toBe(maxJobs);
         const count2 = await queue.getJobCounts('paused');
-        expect(count2.paused).to.be.eql(maxJobs);
+        expect(count2.paused).toBe(maxJobs);
         await queue.drain();
         const countAfterEmpty = await queue.count();
-        expect(countAfterEmpty).to.be.eql(0);
+        expect(countAfterEmpty).toBe(0);
       });
     });
   });
@@ -441,7 +441,7 @@ describe('queues', function () {
 
       const count = await client.zcard(`${prefix}:${queue.name}:priority`);
 
-      expect(count).to.be.eql(2);
+      expect(count).toBe(2);
 
       await queue.removeDeprecatedPriorityKey();
 
@@ -449,7 +449,7 @@ describe('queues', function () {
         `${prefix}:${queue.name}:priority`,
       );
 
-      expect(updatedCount).to.be.eql(0);
+      expect(updatedCount).toBe(0);
     });
   });
 
@@ -474,7 +474,7 @@ describe('queues', function () {
       let order = 0;
       const failing = new Promise<void>(resolve => {
         worker.on('failed', job => {
-          expect(order).to.be.eql(job.data.idx);
+          expect(order).toBe(job.data.idx);
           if (order === jobCount - 1) {
             resolve();
           }
@@ -494,7 +494,7 @@ describe('queues', function () {
       order = 0;
       const completing = new Promise<void>(resolve => {
         worker.on('completed', job => {
-          expect(order).to.be.eql(job.data.idx);
+          expect(order).toBe(job.data.idx);
           if (order === jobCount - 1) {
             resolve();
           }
@@ -582,7 +582,7 @@ describe('queues', function () {
         let timestamp;
         const failing = new Promise<void>(resolve => {
           worker.on('failed', job => {
-            expect(order).to.be.eql(job.data.idx);
+            expect(order).toBe(job.data.idx);
             if (job.data.idx === jobCount / 2 - 1) {
               timestamp = Date.now();
             }
@@ -605,7 +605,7 @@ describe('queues', function () {
         order = 0;
         const completing = new Promise<void>(resolve => {
           worker.on('completed', job => {
-            expect(order).to.be.eql(job.data.idx);
+            expect(order).toBe(job.data.idx);
             if (order === jobCount / 2 - 1) {
               resolve();
             }
@@ -647,7 +647,7 @@ describe('queues', function () {
         let order = 0;
         const failing = new Promise<void>(resolve => {
           worker.on('failed', job => {
-            expect(order).to.be.eql(job.data.idx);
+            expect(order).toBe(job.data.idx);
             if (order === jobCount - 1) {
               resolve();
             }

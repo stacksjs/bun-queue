@@ -339,7 +339,7 @@ describe('Jobs getters', function () {
     const job = await queue.add('test', data);
     const returnedJob = await queue.getJob(job.id!);
     expect(returnedJob!.data).to.eql(data);
-    expect(returnedJob!.id).to.be.eql(job.id);
+    expect(returnedJob!.id).toBe(job.id);
   });
 
   it('should get undefined for nonexistent specific job', async () => {
@@ -497,7 +497,7 @@ describe('Jobs getters', function () {
     });
 
     queue.on('failed', function(job, error) {
-      expect(error.message).to.be.eql('operation timed out');
+      expect(error.message).toBe('operation timed out');
       done();
     });
 
@@ -597,8 +597,8 @@ describe('Jobs getters', function () {
         try {
           const jobs = await queue.getJobs('completed', 1, 2, true);
           expect(jobs).to.be.an('array').that.has.length(2);
-          expect(jobs[0].data.foo).to.be.eql(2);
-          expect(jobs[1].data.foo).to.be.eql(3);
+          expect(jobs[0].data.foo).toBe(2);
+          expect(jobs[1].data.foo).toBe(3);
           expect(jobs[0]).to.have.property('finishedOn');
           expect(jobs[1]).to.have.property('finishedOn');
           expect(jobs[0]).to.have.property('processedOn');
@@ -629,8 +629,8 @@ describe('Jobs getters', function () {
           const jobs = await queue.getJobs('completed', -3, -1, true);
           expect(jobs).to.be.an('array').that.has.length(3);
           expect(jobs[0].data.foo).toBe(1);
-          expect(jobs[1].data.foo).to.be.eql(2);
-          expect(jobs[2].data.foo).to.be.eql(3);
+          expect(jobs[1].data.foo).toBe(2);
+          expect(jobs[2].data.foo).toBe(3);
           await worker.close();
           done();
         } catch (err) {
@@ -657,8 +657,8 @@ describe('Jobs getters', function () {
           const jobs = await queue.getJobs('completed', -300, 99999, true);
           expect(jobs).to.be.an('array').that.has.length(3);
           expect(jobs[0].data.foo).toBe(1);
-          expect(jobs[1].data.foo).to.be.eql(2);
-          expect(jobs[2].data.foo).to.be.eql(3);
+          expect(jobs[1].data.foo).toBe(2);
+          expect(jobs[2].data.foo).toBe(3);
           await worker.close();
           done();
         } catch (err) {
@@ -822,7 +822,7 @@ describe('Jobs getters', function () {
       await completing;
 
       const counts = await queue.getJobCounts();
-      expect(counts).to.be.eql({
+      expect(counts).toBe({
         active: 1,
         completed: 1,
         delayed: 1,
@@ -853,7 +853,7 @@ describe('Jobs getters', function () {
 
       const counts = await queue.getCountsPerPriority([0, 1, 2, 3]);
 
-      expect(counts).to.be.eql({
+      expect(counts).toBe({
         '0': 11,
         '1': 11,
         '2': 10,
@@ -877,7 +877,7 @@ describe('Jobs getters', function () {
 
         const counts = await queue.getCountsPerPriority([0, 1, 2, 3]);
 
-        expect(counts).to.be.eql({
+        expect(counts).toBe({
           '0': 11,
           '1': 11,
           '2': 10,

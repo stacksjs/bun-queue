@@ -139,12 +139,12 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     const processing = new Promise<void>((resolve, reject) => {
       queueEvents.on('progress', ({ jobId, data }) => {
         expect(jobId).to.be.ok;
-        expect(data).to.be.eql(42);
+        expect(data).toBe(42);
         resolve();
       });
 
@@ -180,7 +180,7 @@ describe('workers', function () {
 
     const job = await trimmedEventsQueue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     const processing = new Promise<void>((resolve, reject) => {
       processor = async (job: Job) => {
@@ -218,12 +218,12 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     const processing = new Promise<void>((resolve, reject) => {
       queueEvents.on('progress', ({ jobId, data }) => {
         expect(jobId).to.be.ok;
-        expect(data).to.be.eql({ percentage: 42 });
+        expect(data).toBe({ percentage: 42 });
         resolve();
       });
 
@@ -250,12 +250,12 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     const processing = new Promise<void>((resolve, reject) => {
       queueEvents.on('progress', ({ jobId, data }) => {
         expect(jobId).to.be.ok;
-        expect(data).to.be.eql('progress as string');
+        expect(data).toBe('progress as string');
         resolve();
       });
 
@@ -282,12 +282,12 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     const processing = new Promise<void>((resolve, reject) => {
       queueEvents.on('progress', ({ jobId, data }) => {
         expect(jobId).to.be.ok;
-        expect(data).to.be.eql(true);
+        expect(data).toBe(true);
         resolve();
       });
 
@@ -346,16 +346,16 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     await new Promise<void>((resolve, reject) => {
       worker.on('completed', async (job: Job, data: any) => {
         try {
           expect(job).to.be.ok;
-          expect(data).to.be.eql(37);
+          expect(data).toBe(37);
 
           const gotJob = await queue.getJob(job.id);
-          expect(gotJob.returnvalue).to.be.eql(37);
+          expect(gotJob.returnvalue).toBe(37);
           resolve();
         } catch (err) {
           reject(err);
@@ -413,20 +413,20 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     await new Promise<void>((resolve, reject) => {
       worker.on('completed', async (job: Job, data: any) => {
         try {
           expect(job).to.be.ok;
-          expect(data).to.be.eql(37);
+          expect(data).toBe(37);
           const gotJob = await queue.getJob(job.id);
-          expect(gotJob.returnvalue).to.be.eql(37);
+          expect(gotJob.returnvalue).toBe(37);
 
           const retval = await (
             await queue.client
           ).hget(queue.toKey(gotJob.id), 'returnvalue');
-          expect(JSON.parse(retval)).to.be.eql(37);
+          expect(JSON.parse(retval)).toBe(37);
           resolve();
         } catch (err) {
           reject(err);
@@ -451,12 +451,12 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     await new Promise<void>(resolve => {
       worker.on('completed', (job: Job, data: any) => {
         expect(job).to.be.ok;
-        expect(data).to.be.eql('my data');
+        expect(data).toBe('my data');
         resolve();
       });
     });
@@ -477,7 +477,7 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     await new Promise<void>(resolve => {
       worker.on('completed', job => {
@@ -506,17 +506,17 @@ describe('workers', function () {
 
     const job1 = await queue.add('test', { foo: 'bar', index: 1 });
     expect(job1.id).to.be.ok;
-    expect(job1.data.foo).to.be.eql('bar');
+    expect(job1.data.foo).toBe('bar');
 
     let completedIndex;
     await new Promise<void>((resolve, reject) => {
       worker.on('completed', (job: Job, result: any) => {
         try {
           expect(job).to.be.ok;
-          expect(result).to.be.eql('my data');
+          expect(result).toBe('my data');
 
           if (!completedIndex) {
-            expect(job.data.index).to.be.eql(2);
+            expect(job.data.index).toBe(2);
             completedIndex = 2;
           }
 
@@ -692,15 +692,15 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     const failing = new Promise<void>((resolve, reject) => {
       worker.once('failed', async (job, err) => {
         try {
           expect(job).to.be.ok;
           expect(job!.finishedOn).to.be.a('number');
-          expect(job!.data.foo).to.be.eql('bar');
-          expect(err).to.be.eql(jobError);
+          expect(job!.data.foo).toBe('bar');
+          expect(err).toBe(jobError);
           resolve();
         } catch (err) {
           reject(err);
@@ -757,14 +757,14 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     await new Promise<void>((resolve, reject) => {
       worker.once('failed', (job, err) => {
         try {
           expect(job.id).to.be.ok;
-          expect(job.data.foo).to.be.eql('bar');
-          expect(err).to.be.eql(jobError);
+          expect(job.data.foo).toBe('bar');
+          expect(err).toBe(jobError);
           resolve();
         } catch (err) {
           reject(err);
@@ -825,8 +825,8 @@ describe('workers', function () {
       worker.once('failed', async (job, err) => {
         try {
           expect(job).to.be.ok;
-          expect(job.data.foo).to.be.eql('bar');
-          expect(err).to.be.eql(notEvenErr);
+          expect(job.data.foo).toBe('bar');
+          expect(err).toBe(notEvenErr);
           failedOnce = true;
         } catch (err) {
           reject(err);
@@ -838,7 +838,7 @@ describe('workers', function () {
     const completing = new Promise<void>((resolve, reject) => {
       worker.once('completed', () => {
         try {
-          expect(failedOnce).to.be.eql(true);
+          expect(failedOnce).toBe(true);
           resolve();
         } catch (err) {
           reject(err);
@@ -848,7 +848,7 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     await failing;
     await job.retry();
@@ -877,8 +877,8 @@ describe('workers', function () {
       worker.once('completed', async (job, result) => {
         try {
           expect(job).to.be.ok;
-          expect(job.data.foo).to.be.eql('bar');
-          expect(result).to.be.eql(count++);
+          expect(job.data.foo).toBe('bar');
+          expect(result).toBe(count++);
           completedOnce = true;
         } catch (err) {
           reject(err);
@@ -889,7 +889,7 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     await completing;
     await job.retry('completed');
@@ -935,7 +935,7 @@ describe('workers', function () {
       const job = await queue.add('test', { foo: 'bar' });
 
       expect(job.id).to.be.ok;
-      expect(job.data.foo).to.be.eql('bar');
+      expect(job.data.foo).toBe('bar');
 
       await delay(100);
       /* Try to gracefully close while having a job that will be failed running */
@@ -944,8 +944,8 @@ describe('workers', function () {
       await new Promise<void>(resolve => {
         worker.once('failed', async (job, err) => {
           expect(job).to.be.ok;
-          expect(job.data.foo).to.be.eql('bar');
-          expect(err).to.be.eql(jobError);
+          expect(job.data.foo).toBe('bar');
+          expect(err).toBe(jobError);
           resolve();
         });
       });
@@ -970,7 +970,7 @@ describe('workers', function () {
       const job = await queue.add('test', { foo: 'bar' });
 
       expect(job.id).to.be.ok;
-      expect(job.data.foo).to.be.eql('bar');
+      expect(job.data.foo).toBe('bar');
 
       await delay(100);
       /* Try to gracefully close while having a job that will be completed running */
@@ -981,7 +981,7 @@ describe('workers', function () {
           try {
             expect(job).to.be.ok;
             expect(job.finishedOn).to.be.a('number');
-            expect(job.data.foo).to.be.eql('bar');
+            expect(job.data.foo).toBe('bar');
             resolve();
           } catch (err) {
             reject(err);
@@ -1285,7 +1285,7 @@ describe('workers', function () {
         { removeOnComplete: true },
       );
       expect(job.id).to.be.ok;
-      expect(job.data.foo).to.be.eql('bar');
+      expect(job.data.foo).toBe('bar');
 
       const completed = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job) => {
@@ -1327,7 +1327,7 @@ describe('workers', function () {
 
       const job = await newQueue.add('test', { foo: 'bar' });
       expect(job.id).to.be.ok;
-      expect(job.data.foo).to.be.eql('bar');
+      expect(job.data.foo).toBe('bar');
 
       await new Promise<void>((resolve, reject) => {
         worker.on('completed', async job => {
@@ -1449,7 +1449,7 @@ describe('workers', function () {
 
       const job = await newQueue.add('test', { foo: 'bar' });
       expect(job.id).to.be.ok;
-      expect(job.data.foo).to.be.eql('bar');
+      expect(job.data.foo).toBe('bar');
 
       await new Promise<void>(resolve => {
         worker.on('failed', async job => {
@@ -1577,7 +1577,7 @@ describe('workers', function () {
         processor = async (job: Job) => {
           try {
             expect(job.id).to.be.ok;
-            expect(job.data.p).to.be.eql(currentPriority);
+            expect(job.data.p).toBe(currentPriority);
           } catch (err) {
             reject(err);
           }
@@ -1640,7 +1640,7 @@ describe('workers', function () {
 
               countersPerPriority[job.data.p] = +job.id!;
               expect(job.id).to.be.ok;
-              expect(job.data.p).to.be.eql(currentPriority);
+              expect(job.data.p).toBe(currentPriority);
             } catch (err) {
               reject(err);
             }
@@ -1680,7 +1680,7 @@ describe('workers', function () {
               }
 
               expect(job.id).to.be.ok;
-              expect(job.data.p).to.be.eql(2);
+              expect(job.data.p).toBe(2);
             } catch (err) {
               reject(err);
             }
@@ -1910,7 +1910,7 @@ describe('workers', function () {
         worker.once('completed', async job => {
           try {
             expect(job).to.be.ok;
-            expect(job.data.foo).to.be.eql('bar');
+            expect(job.data.foo).toBe('bar');
           } catch (err) {
             reject(err);
           }
@@ -1920,7 +1920,7 @@ describe('workers', function () {
 
       const job = await queue.add('test', { foo: 'bar' });
       expect(job.id).to.be.ok;
-      expect(job.data.foo).to.be.eql('bar');
+      expect(job.data.foo).toBe('bar');
 
       await completing;
       await queue.pause();
@@ -1952,12 +1952,12 @@ describe('workers', function () {
 
     const job = await queue.add('test', { foo: 'bar' });
     expect(job.id).to.be.ok;
-    expect(job.data.foo).to.be.eql('bar');
+    expect(job.data.foo).toBe('bar');
 
     worker.once('failed', async (job, err) => {
       expect(job).to.be.ok;
-      expect(job.data.foo).to.be.eql('bar');
-      expect(err).to.be.eql(notEvenErr);
+      expect(job.data.foo).toBe('bar');
+      expect(err).toBe(notEvenErr);
       failedOnce = true;
 
       await worker.pause(true);
@@ -1980,7 +1980,7 @@ describe('workers', function () {
 
     await new Promise<void>(resolve => {
       worker.once('completed', () => {
-        expect(failedOnce).to.be.eql(true);
+        expect(failedOnce).toBe(true);
         resolve();
       });
     });
@@ -2012,7 +2012,7 @@ describe('workers', function () {
 
             // Check job is still locked
             const renewedLock = await client.get(lockKey(job.id!));
-            expect(renewedLock).to.be.eql(lock);
+            expect(renewedLock).toBe(lock);
 
             count++;
 
@@ -2296,7 +2296,7 @@ describe('workers', function () {
 
               // We should not have 4 more in parallel.
               // At the end, due to empty list, no new job will process, so nbProcessing will decrease.
-              expect(nbProcessing).to.be.eql(
+              expect(nbProcessing).toBe(
                 Math.min(pendingMessageToProcess, 4),
               );
               pendingMessageToProcess--;
@@ -2347,11 +2347,11 @@ describe('workers', function () {
 
                 await delay(wait);
                 if (job.data.index < 8) {
-                  expect(nbProcessing).to.be.eql(
+                  expect(nbProcessing).toBe(
                     Math.min(pendingMessageToProcess, 4),
                   );
                 } else {
-                  expect(nbProcessing).to.be.eql(
+                  expect(nbProcessing).toBe(
                     Math.min(pendingMessageToProcess, 8),
                   );
                 }
@@ -2416,13 +2416,13 @@ describe('workers', function () {
 
               await delay(wait);
               if (pendingMessageToProcess > 11) {
-                expect(nbProcessing).to.be.eql(
+                expect(nbProcessing).toBe(
                   Math.min(pendingMessageToProcess, 4),
                 );
               } else if (pendingMessageToProcess == 11) {
-                expect(nbProcessing).to.be.eql(3);
+                expect(nbProcessing).toBe(3);
               } else {
-                expect(nbProcessing).to.be.eql(
+                expect(nbProcessing).toBe(
                   Math.min(pendingMessageToProcess, 2),
                 );
               }
@@ -2547,9 +2547,9 @@ describe('workers', function () {
       const failed = new Promise<void>((resolve, reject) => {
         worker.once('failed', async job => {
           try {
-            expect(job?.delay).to.be.eql(300);
+            expect(job?.delay).toBe(300);
             const gotJob = await queue.getJob(job.id!);
-            expect(gotJob!.delay).to.be.eql(300);
+            expect(gotJob!.delay).toBe(300);
             resolve();
           } catch (err) {
             reject(err);
@@ -2637,9 +2637,9 @@ describe('workers', function () {
             try {
               const attemptsMade = job?.attemptsMade;
               if (attemptsMade! > 2) {
-                expect(job!.delay).to.be.eql(0);
+                expect(job!.delay).toBe(0);
                 const gotJob = await queue.getJob(job.id!);
-                expect(gotJob!.delay).to.be.eql(0);
+                expect(gotJob!.delay).toBe(0);
                 resolve();
               }
             } catch (err) {
@@ -2683,9 +2683,9 @@ describe('workers', function () {
             try {
               const attemptsMade = job?.attemptsMade;
               if (attemptsMade! > 3) {
-                expect(job!.delay).to.be.eql(0);
+                expect(job!.delay).toBe(0);
                 const gotJob = await queue.getJob(job.id!);
-                expect(gotJob!.delay).to.be.eql(0);
+                expect(gotJob!.delay).toBe(0);
                 const timeDiff = Date.now() - now;
                 expect(timeDiff).to.be.greaterThanOrEqual(2250);
                 expect(timeDiff).to.be.lessThanOrEqual(2750);
@@ -2823,7 +2823,7 @@ describe('workers', function () {
         queueName,
         async job => {
           await delay(10);
-          expect(job.attemptsMade).to.be.eql(tries);
+          expect(job.attemptsMade).toBe(tries);
           tries++;
           if (job.attemptsMade < 1) {
             throw new Error('Not yet!');
@@ -2862,7 +2862,7 @@ describe('workers', function () {
               id++;
               await delay(200);
               if (job.attemptsMade === 0) {
-                expect(job.id).to.be.eql(`${id}`);
+                expect(job.id).toBe(`${id}`);
               }
               if (job.id == '1' && job.attemptsMade < 1) {
                 throw new Error('Not yet!');
@@ -2913,7 +2913,7 @@ describe('workers', function () {
               await delay(200);
               if (job.attemptsMade === 0) {
                 id++;
-                expect(job.id).to.be.eql(`${id}`);
+                expect(job.id).toBe(`${id}`);
               }
               if (job.id == '1' && job.attemptsMade < 1) {
                 throw new Error('Not yet!');
@@ -2965,7 +2965,7 @@ describe('workers', function () {
           if (job.attemptsMade < 3) {
             throw new Error('Not yet!');
           }
-          expect(job.attemptsMade).to.be.eql(tries);
+          expect(job.attemptsMade).toBe(tries);
         },
         { connection, prefix },
       );
@@ -3068,10 +3068,10 @@ describe('workers', function () {
             'failed',
             after(2, (job: Job, error) => {
               const elapse = Date.now() - start;
-              expect(error.name).to.be.eql('UnrecoverableError');
-              expect(error.message).to.be.eql('Unrecoverable');
+              expect(error.name).toBe('UnrecoverableError');
+              expect(error.message).toBe('Unrecoverable');
               expect(elapse).to.be.greaterThan(1000);
-              expect(job.attemptsMade).to.be.eql(2);
+              expect(job.attemptsMade).toBe(2);
               resolve();
             }),
           );
@@ -3143,8 +3143,8 @@ describe('workers', function () {
           worker.on('completed', job => {
             const elapse = Date.now() - start;
             expect(elapse).to.be.greaterThan(2000);
-            expect(job.returnvalue).to.be.eql(Step.Finish);
-            expect(job.attemptsMade).to.be.eql(3);
+            expect(job.returnvalue).toBe(Step.Finish);
+            expect(job.attemptsMade).toBe(3);
             resolve();
           });
         });
@@ -3222,9 +3222,9 @@ describe('workers', function () {
               const elapse = Date.now() - start;
               expect(elapse).to.be.greaterThan(3000);
               expect(elapse).to.be.lessThan(4000);
-              expect(job.failedReason).to.be.eql('Timeout');
-              expect(job.returnvalue).to.be.eql(Step.Finish);
-              expect(job.attemptsMade).to.be.eql(2);
+              expect(job.failedReason).toBe('Timeout');
+              expect(job.returnvalue).toBe(Step.Finish);
+              expect(job.attemptsMade).toBe(2);
               resolve();
             });
           });
@@ -3281,9 +3281,9 @@ describe('workers', function () {
             worker.on('completed', job => {
               const elapse = Date.now() - start;
               expect(elapse).to.be.greaterThan(200);
-              expect(job.returnvalue).to.be.eql(Step.Finish);
-              expect(job.attemptsMade).to.be.eql(1);
-              expect(job.attemptsStarted).to.be.eql(2);
+              expect(job.returnvalue).toBe(Step.Finish);
+              expect(job.attemptsMade).toBe(1);
+              expect(job.attemptsStarted).toBe(2);
               resolve();
             });
 
@@ -3521,8 +3521,8 @@ describe('workers', function () {
             await new Promise<void>((resolve, reject) => {
               worker.on('completed', job => {
                 expect(job.returnvalue).to.equal(Step.Finish);
-                expect(job.attemptsMade).to.be.eql(1);
-                expect(job.attemptsStarted).to.be.eql(2);
+                expect(job.attemptsMade).toBe(1);
+                expect(job.attemptsStarted).toBe(2);
                 resolve();
               });
 

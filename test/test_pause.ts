@@ -72,7 +72,7 @@ describe('Pause', function () {
     let counter = 2;
     const processPromise = new Promise<void>(resolve => {
       process = async (job: Job) => {
-        expect(isPaused).to.be.eql(false);
+        expect(isPaused).toBe(false);
         expect(job.data.foo).toBe('paused');
         counter--;
         if (counter === 0) {
@@ -105,7 +105,7 @@ describe('Pause', function () {
     const processPromise = new Promise<void>((resolve, reject) => {
       process = async (job: Job) => {
         try {
-          expect(isPaused).to.be.eql(false);
+          expect(isPaused).toBe(false);
           expect(job.data.foo).toBe('paused');
 
           if (first) {
@@ -113,7 +113,7 @@ describe('Pause', function () {
             isPaused = true;
             return queue.pause();
           } else {
-            expect(isResumed).to.be.eql(true);
+            expect(isResumed).toBe(true);
             await queue.close();
             resolve();
           }
@@ -153,7 +153,7 @@ describe('Pause', function () {
     let process;
     const processPromise = new Promise<void>(resolve => {
       process = async () => {
-        expect(worker.isPaused()).to.be.eql(false);
+        expect(worker.isPaused()).toBe(false);
         counter--;
         if (counter === 0) {
           await queue.close();
@@ -174,8 +174,8 @@ describe('Pause', function () {
     await queue.add('test', { foo: 'paused' });
     await queue.add('test', { foo: 'paused' });
 
-    expect(counter).to.be.eql(2);
-    expect(worker.isPaused()).to.be.eql(true);
+    expect(counter).toBe(2);
+    expect(worker.isPaused()).toBe(true);
 
     await worker.resume();
 
@@ -209,20 +209,20 @@ describe('Pause', function () {
     await worker.pause();
 
     let active = await queue.getJobCountByTypes('active');
-    expect(active).to.be.eql(0);
-    expect(worker.isPaused()).to.be.eql(true);
+    expect(active).toBe(0);
+    expect(worker.isPaused()).toBe(true);
 
     // One job from the 10 posted above will be processed, so we expect 9 jobs pending
     let paused = await queue.getJobCountByTypes('delayed', 'waiting');
-    expect(paused).to.be.eql(9);
+    expect(paused).toBe(9);
 
     await queue.add('test', {});
 
     active = await queue.getJobCountByTypes('active');
-    expect(active).to.be.eql(0);
+    expect(active).toBe(0);
 
     paused = await queue.getJobCountByTypes('paused', 'waiting', 'delayed');
-    expect(paused).to.be.eql(10);
+    expect(paused).toBe(10);
 
     await worker.close();
   });
@@ -261,9 +261,9 @@ describe('Pause', function () {
     await Promise.all([worker1.pause(), worker2.pause()]);
 
     const count = await queue.getJobCounts('active', 'waiting', 'completed');
-    expect(count.active).to.be.eql(0);
-    expect(count.waiting).to.be.eql(2);
-    expect(count.completed).to.be.eql(2);
+    expect(count.active).toBe(0);
+    expect(count.waiting).toBe(2);
+    expect(count.completed).toBe(2);
 
     return Promise.all([worker1.close(), worker2.close()]);
   });
@@ -287,9 +287,9 @@ describe('Pause', function () {
     await queue.add('test', 2);
 
     const count = await queue.getJobCounts('active', 'waiting', 'completed');
-    expect(count.active).to.be.eql(0);
-    expect(count.waiting).to.be.eql(1);
-    expect(count.completed).to.be.eql(1);
+    expect(count.active).toBe(0);
+    expect(count.waiting).toBe(1);
+    expect(count.completed).toBe(1);
 
     return worker.close();
   });

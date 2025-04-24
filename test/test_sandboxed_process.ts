@@ -64,9 +64,9 @@ describe('Sandboxed process using child processes', () => {
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.returnvalue).to.be.eql(42);
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(42);
+            expect(job.returnvalue).toBe(42);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(42);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -182,9 +182,9 @@ describe('Sandboxed process using worker threads', () => {
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.returnvalue).to.be.eql(42);
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(42);
+            expect(job.returnvalue).toBe(42);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(42);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -250,9 +250,9 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.returnvalue).to.be.eql(42);
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(42);
+            expect(job.returnvalue).toBe(42);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(42);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -285,9 +285,9 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.returnvalue).to.be.eql(42);
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(42);
+            expect(job.returnvalue).toBe(42);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(42);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -321,9 +321,9 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.returnvalue).to.be.eql(42);
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(42);
+            expect(job.returnvalue).toBe(42);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(42);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -357,8 +357,8 @@ function sandboxProcessTests(
         const completing = new Promise<void>((resolve, reject) => {
           worker.on('completed', async (job: Job, value: any) => {
             try {
-              expect(job.data).to.be.eql({ foo: 'bar' });
-              expect(value).to.be.eql(42);
+              expect(job.data).toBe({ foo: 'bar' });
+              expect(value).toBe(42);
               expect(
                 Object.keys(worker['childPool'].retained),
               ).to.have.lengthOf(0);
@@ -392,8 +392,8 @@ function sandboxProcessTests(
         const completing = new Promise<void>((resolve, reject) => {
           worker.on('completed', async (job: Job, value: any) => {
             try {
-              expect(job.data).to.be.eql({ foo: 'bar' });
-              expect(value).to.be.eql(42);
+              expect(job.data).toBe({ foo: 'bar' });
+              expect(value).toBe(42);
               expect(
                 Object.keys(worker['childPool'].retained),
               ).to.have.lengthOf(0);
@@ -427,8 +427,8 @@ function sandboxProcessTests(
 
         const completing = new Promise<void>(resolve => {
           worker.on('completed', async (job: Job, value: any) => {
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(1);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(1);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -467,8 +467,8 @@ function sandboxProcessTests(
 
         const completing = new Promise<void>(resolve => {
           worker.on('completed', async (job: Job, value: any) => {
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(1);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(1);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -526,10 +526,10 @@ function sandboxProcessTests(
             after(2, (job: Job, error) => {
               try {
                 const elapse = Date.now() - start;
-                expect(error.name).to.be.eql('UnrecoverableError');
-                expect(error.message).to.be.eql(UNRECOVERABLE_ERROR);
+                expect(error.name).toBe('UnrecoverableError');
+                expect(error.message).toBe(UNRECOVERABLE_ERROR);
                 expect(elapse).to.be.greaterThan(1000);
-                expect(job.attemptsMade).to.be.eql(2);
+                expect(job.attemptsMade).toBe(2);
                 resolve();
               } catch (err) {
                 reject(err);
@@ -558,8 +558,8 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(42);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(42);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -604,7 +604,7 @@ function sandboxProcessTests(
 
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(value).to.be.eql(42);
+            expect(value).toBe(42);
             expect(
               Object.keys(worker['childPool'].retained).length +
                 worker['childPool'].getAllFree().length,
@@ -647,7 +647,7 @@ function sandboxProcessTests(
 
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(value).to.be.eql(42);
+            expect(value).toBe(42);
             expect(
               Object.keys(worker['childPool'].retained).length +
                 worker['childPool'].getAllFree().length,
@@ -679,10 +679,10 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(100);
-            expect(job.progress).to.be.eql(100);
-            expect(progresses).to.be.eql([10, 27, 78, 100]);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(100);
+            expect(job.progress).toBe(100);
+            expect(progresses).toBe([10, 27, 78, 100]);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -718,8 +718,8 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.data).to.be.eql({ foo: 'baz' });
-            expect(value).to.be.eql('result');
+            expect(job.data).toBe({ foo: 'baz' });
+            expect(value).toBe('result');
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -749,7 +749,7 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job) => {
           try {
-            expect(job.data).to.be.eql({
+            expect(job.data).toBe({
               step: 'FINISH',
               extraDataSecondStep: 'second data',
               extraDataFinishedStep: 'finish data',
@@ -793,7 +793,7 @@ function sandboxProcessTests(
       const parentCompleting = new Promise<void>((resolve, reject) => {
         parentWorker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(value).to.be.eql({
+            expect(value).toBe({
               [`${prefix}:${queueName}:${childJobId}`]: { childResult: 'bar' },
             });
             resolve();
@@ -858,7 +858,7 @@ function sandboxProcessTests(
       const parentFailing = new Promise<void>((resolve, reject) => {
         parentWorker.on('failed', async (_, error: Error) => {
           try {
-            expect(error.message).to.be.eql(
+            expect(error.message).toBe(
               'TimeoutError: getChildrenValues timed out in (500ms)',
             );
             resolve();
@@ -950,8 +950,8 @@ function sandboxProcessTests(
         const completing = new Promise<void>((resolve, reject) => {
           worker.on('completed', async (job: Job, value: any) => {
             try {
-              expect(job.data).to.be.eql({ foo: 'bar' });
-              expect(value).to.be.eql('variable');
+              expect(job.data).toBe({ foo: 'bar' });
+              expect(value).toBe('variable');
               expect(
                 Object.keys(worker['childPool'].retained),
               ).to.have.lengthOf(0);
@@ -985,8 +985,8 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql(queueName);
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe(queueName);
             expect(Object.keys(worker['childPool'].retained)).to.have.lengthOf(
               0,
             );
@@ -1019,8 +1019,8 @@ function sandboxProcessTests(
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job, value: any) => {
           try {
-            expect(job.data).to.be.eql({ foo: 'bar' });
-            expect(value).to.be.eql({
+            expect(job.data).toBe({ foo: 'bar' });
+            expect(value).toBe({
               id: 'job-id',
               queueKey: `${prefix}:${parentQueueName}`,
             });
@@ -1305,8 +1305,8 @@ function sandboxProcessTests(
           completing = new Promise<void>((resolve, reject) => {
             worker.on('completed', async (job: Job, value: any) => {
               try {
-                expect(job.data).to.be.eql({ foo: 'bar' });
-                expect(value).to.be.eql(42);
+                expect(job.data).toBe({ foo: 'bar' });
+                expect(value).toBe(42);
                 expect(
                   Object.keys(worker['childPool'].retained),
                 ).to.have.lengthOf(0);

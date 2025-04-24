@@ -70,7 +70,7 @@ describe('Concurrency', () => {
             await delay(100);
             bar.tick();
             parallelJobs--;
-            expect(parallelJobs).to.be.eql(0);
+            expect(parallelJobs).toBe(0);
             if (count == numJobs) {
               resolve();
             }
@@ -99,7 +99,7 @@ describe('Concurrency', () => {
     await processing;
 
     const globalConcurrency = await queue.getGlobalConcurrency();
-    expect(globalConcurrency).to.be.eql(1);
+    expect(globalConcurrency).toBe(1);
 
     await worker.close();
     await queue.close();
@@ -135,7 +135,7 @@ describe('Concurrency', () => {
             count++;
             parallelJobs++;
             await delay(100);
-            expect(parallelJobs).to.be.eql(2);
+            expect(parallelJobs).toBe(2);
             await delay(100);
             bar.tick();
             parallelJobs--;
@@ -436,7 +436,7 @@ describe('Concurrency', () => {
               await delay(100);
               bar.tick();
               parallelJobs--;
-              expect(parallelJobs).to.be.eql(0);
+              expect(parallelJobs).toBe(0);
               await job.moveToWaitingChildren(token!);
               if (count == numJobs + 3) {
                 resolve();

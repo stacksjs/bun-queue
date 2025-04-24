@@ -149,7 +149,7 @@ describe('events', function () {
       const cleaned = new Promise<void>((resolve, reject) => {
         queueEvents.once('cleaned', async ({ count }) => {
           try {
-            expect(count).to.be.eql('50');
+            expect(count).toBe('50');
             resolve();
           } catch (error) {
             reject(error);
@@ -570,7 +570,7 @@ describe('events', function () {
 
         const count = await queue.getJobCountByTypes();
 
-        expect(count).to.be.eql(2);
+        expect(count).toBe(2);
 
         expect(debouncedCounter).toBe(2);
         expect(secondJob.id).toBe('4');
@@ -817,7 +817,7 @@ describe('events', function () {
 
         const count = await queue.getJobCountByTypes();
 
-        expect(count).to.be.eql(2);
+        expect(count).toBe(2);
 
         expect(deduplicatedCounter).toBe(2);
         expect(secondJob.id).toBe('4');
@@ -1012,7 +1012,7 @@ describe('events', function () {
 
       const eventsLength = await client.xlen(trimmedQueue.keys.events);
 
-      expect(eventsLength).to.be.eql(0);
+      expect(eventsLength).toBe(0);
 
       await trimmedQueue.close();
       await removeAllQueueData(new IORedis(redisHost), queueName);

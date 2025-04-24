@@ -44,7 +44,7 @@ describe('Obliterate', function () {
     const client = await queue.client;
     const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-    expect(keys.length).to.be.eql(0);
+    expect(keys.length).toBe(0);
   });
 
   it('should obliterate a queue which is empty but has had jobs in the past', async () => {
@@ -57,7 +57,7 @@ describe('Obliterate', function () {
 
     const client = await queue.client;
     const keys = await client.keys(`${prefix}:${queue.name}:*`);
-    expect(keys.length).to.be.eql(0);
+    expect(keys.length).toBe(0);
   });
 
   it('should obliterate a queue with jobs in different statuses', async () => {
@@ -87,7 +87,7 @@ describe('Obliterate', function () {
     await queue.obliterate();
     const client = await queue.client;
     const keys = await client.keys(`${prefix}:${queue.name}:*`);
-    expect(keys.length).to.be.eql(0);
+    expect(keys.length).toBe(0);
 
     await worker.close();
   });
@@ -112,20 +112,20 @@ describe('Obliterate', function () {
           });
 
           const count = await queue.count();
-          expect(count).to.be.eql(4);
+          expect(count).toBe(4);
 
           await queue.obliterate();
 
           const client = await queue.client;
           const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-          expect(keys.length).to.be.eql(0);
+          expect(keys.length).toBe(0);
 
           const countAfterEmpty = await queue.count();
-          expect(countAfterEmpty).to.be.eql(0);
+          expect(countAfterEmpty).toBe(0);
 
           const failedCount = await queue.getJobCountByTypes('failed');
-          expect(failedCount).to.be.eql(0);
+          expect(failedCount).toBe(0);
 
           await flow.close();
         });
@@ -177,7 +177,7 @@ describe('Obliterate', function () {
           const client = await queue.client;
           const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-          expect(keys.length).to.be.eql(0);
+          expect(keys.length).toBe(0);
 
           await worker.close();
           await flow.close();
@@ -210,17 +210,17 @@ describe('Obliterate', function () {
           });
 
           const count = await queue.count();
-          expect(count).to.be.eql(1);
+          expect(count).toBe(1);
 
           await queue.obliterate();
 
           const client = await queue.client;
           const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-          expect(keys.length).to.be.eql(3);
+          expect(keys.length).toBe(3);
 
           const countAfterEmpty = await queue.count();
-          expect(countAfterEmpty).to.be.eql(1);
+          expect(countAfterEmpty).toBe(1);
           await childrenQueue.close();
           await flow.close();
         });
@@ -252,29 +252,29 @@ describe('Obliterate', function () {
           });
 
           const count = await queue.count();
-          expect(count).to.be.eql(3);
+          expect(count).toBe(3);
 
           await queue.obliterate();
 
           const client = await queue.client;
           const keys = await client.keys(`${prefix}:${queueName}:*`);
 
-          expect(keys.length).to.be.eql(0);
+          expect(keys.length).toBe(0);
 
           const eventsCount = await client.xlen(
             `${prefix}:${parentQueueName}:events`,
           );
 
-          expect(eventsCount).to.be.eql(2); // added and waiting-children events
+          expect(eventsCount).toBe(2); // added and waiting-children events
 
           const countAfterEmpty = await queue.count();
-          expect(countAfterEmpty).to.be.eql(0);
+          expect(countAfterEmpty).toBe(0);
 
           const childrenFailedCount = await queue.getJobCountByTypes('failed');
-          expect(childrenFailedCount).to.be.eql(0);
+          expect(childrenFailedCount).toBe(0);
 
           const parentWaitCount = await parentQueue.getJobCountByTypes('wait');
-          expect(parentWaitCount).to.be.eql(1);
+          expect(parentWaitCount).toBe(1);
           await parentQueue.close();
           await flow.close();
           await removeAllQueueData(new IORedis(redisHost), parentQueueName);
@@ -301,23 +301,23 @@ describe('Obliterate', function () {
           });
 
           const count = await queue.count();
-          expect(count).to.be.eql(1);
+          expect(count).toBe(1);
 
           await queue.obliterate();
 
           const client = await queue.client;
           const keys = await client.keys(`${prefix}:${queue.name}:*`);
 
-          expect(keys.length).to.be.eql(0);
+          expect(keys.length).toBe(0);
 
           const countAfterEmpty = await queue.count();
-          expect(countAfterEmpty).to.be.eql(0);
+          expect(countAfterEmpty).toBe(0);
 
           const failedCount = await queue.getJobCountByTypes('failed');
-          expect(failedCount).to.be.eql(0);
+          expect(failedCount).toBe(0);
 
           const parentWaitCount = await parentQueue.getJobCountByTypes('wait');
-          expect(parentWaitCount).to.be.eql(1);
+          expect(parentWaitCount).toBe(1);
           await parentQueue.close();
           await flow.close();
           await removeAllQueueData(new IORedis(redisHost), parentQueueName);
@@ -388,7 +388,7 @@ describe('Obliterate', function () {
     await queue.obliterate({ force: true });
     const client = await queue.client;
     const keys = await client.keys(`${prefix}:${queue.name}:*`);
-    expect(keys.length).to.be.eql(0);
+    expect(keys.length).toBe(0);
 
     await worker.close();
   });
@@ -412,7 +412,7 @@ describe('Obliterate', function () {
     await queue.obliterate();
     const client = await queue.client;
     const keys = await client.keys(`${prefix}:${queue.name}:*`);
-    expect(keys.length).to.be.eql(0);
+    expect(keys.length).toBe(0);
   });
 
   it('should remove job logs', async () => {
@@ -488,6 +488,6 @@ describe('Obliterate', function () {
     await queue.obliterate();
     const client = await queue.client;
     const keys = await client.keys(`${prefix}:${queue.name}*`);
-    expect(keys.length).to.be.eql(0);
+    expect(keys.length).toBe(0);
   });
 });
