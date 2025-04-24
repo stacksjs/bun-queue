@@ -448,7 +448,7 @@ function sandboxProcessTests(
         await completing;
         inspect.restore();
 
-        expect(output).to.be.equal('message\n');
+        expect(output).toBe('message\n');
 
         await worker.close();
       });
@@ -488,7 +488,7 @@ function sandboxProcessTests(
         await completing;
         inspect.restore();
 
-        expect(output).to.be.equal('error message\n');
+        expect(output).toBe('error message\n');
 
         await worker.close();
       });
@@ -540,7 +540,7 @@ function sandboxProcessTests(
 
         const state = await job.getState();
 
-        expect(state).to.be.equal('failed');
+        expect(state).toBe('failed');
 
         await worker.close();
       });
@@ -917,7 +917,7 @@ function sandboxProcessTests(
 
       const completing = new Promise<void>((resolve, reject) => {
         worker.on('completed', async (job: Job) => {
-          expect(job.data.bar).to.be.equal('foo');
+          expect(job.data.bar).toBe('foo');
           resolve();
         });
       });
@@ -928,7 +928,7 @@ function sandboxProcessTests(
 
       const state = await queue.getJobState(job.id!);
 
-      expect(state).to.be.equal('delayed');
+      expect(state).toBe('delayed');
 
       await completing;
       await worker.close();
@@ -1230,7 +1230,7 @@ function sandboxProcessTests(
 
       const failedJobs = await queue.getFailed();
       expect(failedJobs).to.have.lengthOf(1);
-      expect(failedJobs[0].failedReason).to.be.equal(
+      expect(failedJobs[0].failedReason).toBe(
         'Unexpected exit code: 1 signal: null',
       );
     });
@@ -1255,11 +1255,11 @@ function sandboxProcessTests(
 
       const failedJobs = await queue.getFailed();
       expect(failedJobs).to.have.lengthOf(1);
-      expect(failedJobs[0].failedReason).to.be.equal(
+      expect(failedJobs[0].failedReason).toBe(
         'Unexpected exit code: 10 signal: null',
       );
 
-      expect(failedJobs[0].progress).to.be.equal(50);
+      expect(failedJobs[0].progress).toBe(50);
     });
 
     it('should fail if the process file is broken', async () => {
@@ -1275,7 +1275,7 @@ function sandboxProcessTests(
       const failing = new Promise<void>((resolve, reject) => {
         worker.on('failed', async (job, error) => {
           try {
-            expect(error.message).to.be.equal('Broken file processor');
+            expect(error.message).toBe('Broken file processor');
             resolve();
           } catch (err) {
             reject(err);
@@ -1362,7 +1362,7 @@ function sandboxProcessTests(
 
         const started = new Promise<void>((resolve, reject) => {
           worker.on('active', async (job, prev) => {
-            expect(prev).to.be.equal('waiting');
+            expect(prev).toBe('waiting');
             resolve();
           });
         });
@@ -1473,7 +1473,7 @@ function sandboxProcessTests(
       // await this After we've added the job
       const onJobActive = new Promise<void>(resolve => {
         worker.on('active', (job, prev) => {
-          expect(prev).to.be.equal('waiting');
+          expect(prev).toBe('waiting');
           resolve();
         });
       });

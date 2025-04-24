@@ -188,10 +188,10 @@ describe('metrics', function () {
       timmings.reduce((sum, timing) => sum + timing, 0) / ONE_MINUTE,
     );
 
-    expect(metrics.meta.count).to.be.equal(numJobs);
-    expect(metrics.data.length).to.be.equal(numPoints);
-    expect(metrics.count).to.be.equal(metrics.data.length);
-    expect(processed).to.be.equal(numJobs);
+    expect(metrics.meta.count).toBe(numJobs);
+    expect(metrics.data.length).toBe(numPoints);
+    expect(metrics.count).toBe(metrics.data.length);
+    expect(processed).toBe(numJobs);
     expect(metrics.data).to.be.deep.equal(fixture);
   });
 
@@ -275,10 +275,10 @@ describe('metrics', function () {
 
     const metrics = await queue.getMetrics('completed');
 
-    expect(metrics.meta.count).to.be.equal(numJobs);
-    expect(metrics.data.length).to.be.equal(MetricsTime.FIFTEEN_MINUTES);
-    expect(metrics.count).to.be.equal(metrics.data.length);
-    expect(processed).to.be.equal(numJobs);
+    expect(metrics.meta.count).toBe(numJobs);
+    expect(metrics.data.length).toBe(MetricsTime.FIFTEEN_MINUTES);
+    expect(metrics.count).toBe(metrics.data.length);
+    expect(processed).toBe(numJobs);
     expect(metrics.data).to.be.deep.equal(fixture);
   });
 
@@ -345,10 +345,10 @@ describe('metrics', function () {
       timmings.reduce((sum, timing) => sum + timing, 0) / ONE_MINUTE,
     );
 
-    expect(metrics.meta.count).to.be.equal(numJobs);
-    expect(metrics.data.length).to.be.equal(numPoints);
-    expect(metrics.count).to.be.equal(metrics.data.length);
-    expect(processed).to.be.equal(numJobs);
+    expect(metrics.meta.count).toBe(numJobs);
+    expect(metrics.data.length).toBe(numPoints);
+    expect(metrics.count).toBe(metrics.data.length);
+    expect(processed).toBe(numJobs);
     expect(metrics.data).to.be.deep.equal(fixture);
   });
 
@@ -409,7 +409,7 @@ describe('metrics', function () {
 
     await closing;
 
-    expect(processed).to.be.equal(numJobs);
+    expect(processed).toBe(numJobs);
 
     const numPoints = Math.floor(
       timmings.reduce((sum, timing) => sum + timing, 0) / ONE_MINUTE,
@@ -425,8 +425,8 @@ describe('metrics', function () {
         skip,
         skip + pageSize - 1,
       );
-      expect(metrics.meta.count).to.be.equal(numJobs);
-      expect(metrics.data.length).to.be.equal(
+      expect(metrics.meta.count).toBe(numJobs);
+      expect(metrics.data.length).toBe(
         Math.min(numPoints - skip, pageSize),
       );
 

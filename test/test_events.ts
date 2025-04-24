@@ -168,7 +168,7 @@ describe('events', function () {
       await cleaned;
 
       const actualCount = await queue.count();
-      expect(actualCount).to.be.equal(0);
+      expect(actualCount).toBe(0);
 
       await worker.close();
     });
@@ -234,7 +234,7 @@ describe('events', function () {
       await drained;
 
       const jobs = await queue.getJobCountByTypes('completed');
-      expect(jobs).to.be.equal(4);
+      expect(jobs).toBe(4);
 
       await worker.close();
     });
@@ -274,8 +274,8 @@ describe('events', function () {
     await delay(2000);
 
     const jobs = await queue.getJobCountByTypes('completed');
-    expect(jobs).to.be.equal(4);
-    expect(counterDrainedEvents).to.be.equal(2);
+    expect(jobs).toBe(4);
+    expect(counterDrainedEvents).toBe(2);
 
     await worker.close();
   });
@@ -303,7 +303,7 @@ describe('events', function () {
     await delay(10);
 
     const jobs = await queue.getJobCountByTypes('completed');
-    expect(jobs).to.be.equal(2);
+    expect(jobs).toBe(2);
 
     await worker.close();
   });
@@ -331,7 +331,7 @@ describe('events', function () {
     await error;
 
     const jobs = await queue.getJobCountByTypes('completed');
-    expect(jobs).to.be.equal(1);
+    expect(jobs).toBe(1);
 
     await worker.close();
   });
@@ -354,8 +354,8 @@ describe('events', function () {
 
       const added = new Promise<void>(resolve => {
         queueEvents.once('added', ({ jobId, name }) => {
-          expect(jobId).to.be.equal('1');
-          expect(name).to.be.equal(testName);
+          expect(jobId).toBe('1');
+          expect(name).toBe(testName);
           resolve();
         });
 
@@ -394,7 +394,7 @@ describe('events', function () {
 
       await new Promise<void>(resolve => {
         queueEvents.once('duplicated', ({ jobId }) => {
-          expect(jobId).to.be.equal('a1');
+          expect(jobId).toBe('a1');
           resolve();
         });
       });
@@ -421,11 +421,11 @@ describe('events', function () {
         let secondJob;
         queueEvents.on('debounced', ({ jobId, debounceId }) => {
           if (debouncedCounter > 1) {
-            expect(jobId).to.be.equal(secondJob.id);
-            expect(debounceId).to.be.equal('a1');
+            expect(jobId).toBe(secondJob.id);
+            expect(debounceId).toBe('a1');
           } else {
-            expect(jobId).to.be.equal(job.id);
-            expect(debounceId).to.be.equal('a1');
+            expect(jobId).toBe(job.id);
+            expect(debounceId).toBe('a1');
           }
           debouncedCounter++;
         });
@@ -459,7 +459,7 @@ describe('events', function () {
         );
         await delay(100);
 
-        expect(debouncedCounter).to.be.equal(4);
+        expect(debouncedCounter).toBe(4);
       });
 
       describe('when removing debounced job', function () {
@@ -509,7 +509,7 @@ describe('events', function () {
           );
           await delay(100);
 
-          expect(debouncedCounter).to.be.equal(2);
+          expect(debouncedCounter).toBe(2);
         });
       });
     });
@@ -547,7 +547,7 @@ describe('events', function () {
 
         const completing = new Promise<void>(resolve => {
           queueEvents.once('completed', ({ jobId }) => {
-            expect(jobId).to.be.equal('1');
+            expect(jobId).toBe('1');
             resolve();
           });
 
@@ -572,8 +572,8 @@ describe('events', function () {
 
         expect(count).to.be.eql(2);
 
-        expect(debouncedCounter).to.be.equal(2);
-        expect(secondJob.id).to.be.equal('4');
+        expect(debouncedCounter).toBe(2);
+        expect(secondJob.id).toBe('4');
         await worker.close();
       });
 
@@ -604,7 +604,7 @@ describe('events', function () {
           );
           await secondJob.remove();
 
-          expect(debouncedCounter).to.be.equal(2);
+          expect(debouncedCounter).toBe(2);
         });
       });
     });
@@ -627,9 +627,9 @@ describe('events', function () {
           'deduplicated',
           ({ jobId, deduplicationId, deduplicatedJobId }) => {
             try {
-              expect(jobId).to.be.equal('a1');
-              expect(deduplicationId).to.be.equal('dedupKey');
-              expect(deduplicatedJobId).to.be.equal('a2');
+              expect(jobId).toBe('a1');
+              expect(deduplicationId).toBe('dedupKey');
+              expect(deduplicatedJobId).toBe('a2');
               resolve();
             } catch (error) {
               reject(error);
@@ -668,11 +668,11 @@ describe('events', function () {
         let secondJob;
         queueEvents.on('deduplicated', ({ jobId, deduplicationId }) => {
           if (deduplicatedCounter > 1) {
-            expect(jobId).to.be.equal(secondJob.id);
-            expect(deduplicationId).to.be.equal('a1');
+            expect(jobId).toBe(secondJob.id);
+            expect(deduplicationId).toBe('a1');
           } else {
-            expect(jobId).to.be.equal(job.id);
-            expect(deduplicationId).to.be.equal('a1');
+            expect(jobId).toBe(job.id);
+            expect(deduplicationId).toBe('a1');
           }
           deduplicatedCounter++;
         });
@@ -706,7 +706,7 @@ describe('events', function () {
         );
         await delay(100);
 
-        expect(deduplicatedCounter).to.be.equal(4);
+        expect(deduplicatedCounter).toBe(4);
       });
 
       describe('when removing deduplicated job', function () {
@@ -756,7 +756,7 @@ describe('events', function () {
           );
           await delay(100);
 
-          expect(deduplicatedCounter).to.be.equal(2);
+          expect(deduplicatedCounter).toBe(2);
         });
       });
     });
@@ -794,7 +794,7 @@ describe('events', function () {
 
         const completing = new Promise<void>(resolve => {
           queueEvents.once('completed', ({ jobId }) => {
-            expect(jobId).to.be.equal('1');
+            expect(jobId).toBe('1');
             resolve();
           });
 
@@ -819,8 +819,8 @@ describe('events', function () {
 
         expect(count).to.be.eql(2);
 
-        expect(deduplicatedCounter).to.be.equal(2);
-        expect(secondJob.id).to.be.equal('4');
+        expect(deduplicatedCounter).toBe(2);
+        expect(secondJob.id).toBe('4');
         await worker.close();
       });
 
@@ -866,7 +866,7 @@ describe('events', function () {
           await secondJob.remove();
           await deduplication;
 
-          expect(deduplicatedCounter).to.be.equal(2);
+          expect(deduplicatedCounter).toBe(2);
         });
       });
     });
@@ -918,8 +918,8 @@ describe('events', function () {
           try {
             const job = await queue.getJob(jobId);
             const state = await job.getState();
-            expect(state).to.be.equal('waiting-children');
-            expect(job.name).to.be.equal(name);
+            expect(state).toBe('waiting-children');
+            expect(job.name).toBe(name);
             resolve();
           } catch (err) {
             reject(err);
@@ -931,7 +931,7 @@ describe('events', function () {
         queueEvents.on('waiting', async ({ jobId, prev }) => {
           try {
             const job = await queue.getJob(jobId);
-            expect(prev).to.be.equal('waiting-children');
+            expect(prev).toBe('waiting-children');
             if (job.name === name) {
               resolve();
             }
@@ -970,22 +970,22 @@ describe('events', function () {
     let state: string;
     await delay(50); // additional delay since XREAD from '$' is unstable
     queueEvents.on('waiting', function ({ jobId }) {
-      expect(jobId).to.be.equal('1');
+      expect(jobId).toBe('1');
       expect(state).to.be.undefined;
       state = 'waiting';
     });
     queueEvents.once('active', function ({ jobId, prev }) {
-      expect(jobId).to.be.equal('1');
-      expect(prev).to.be.equal('waiting');
-      expect(state).to.be.equal('waiting');
+      expect(jobId).toBe('1');
+      expect(prev).toBe('waiting');
+      expect(state).toBe('waiting');
       state = 'active';
     });
 
     const completed = new Promise<void>(resolve => {
       queueEvents.once('completed', async function ({ jobId, returnvalue }) {
-        expect(jobId).to.be.equal('1');
+        expect(jobId).toBe('1');
         expect(returnvalue).to.be.null;
-        expect(state).to.be.equal('active');
+        expect(state).toBe('active');
         resolve();
       });
     });
@@ -1067,8 +1067,8 @@ describe('events', function () {
         '-',
       );
 
-      expect(drained).to.be.equal('drained');
-      expect(completed).to.be.equal('completed');
+      expect(drained).toBe('drained');
+      expect(completed).toBe('completed');
 
       const eventsLength = await client.xlen(trimmedQueue.keys.events);
 
@@ -1299,13 +1299,13 @@ describe('events', function () {
 
     let eventsLength = await client.xlen(trimmedQueue.keys.events);
 
-    expect(eventsLength).to.be.equal(8);
+    expect(eventsLength).toBe(8);
 
     await trimmedQueue.trimEvents(0);
 
     eventsLength = await client.xlen(trimmedQueue.keys.events);
 
-    expect(eventsLength).to.be.equal(0);
+    expect(eventsLength).toBe(0);
 
     await trimmedQueue.close();
     await removeAllQueueData(new IORedis(redisHost), queueName);
@@ -1332,7 +1332,7 @@ describe('events', function () {
       const customEvent = new Promise<void>(resolve => {
         queueEvents2.on<CustomListener>('example', async ({ custom }) => {
           await delay(250);
-          await expect(custom).to.be.equal('value');
+          await expect(custom).toBe('value');
           resolve();
         });
       });

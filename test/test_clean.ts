@@ -372,7 +372,7 @@ describe('Cleaner', () => {
             }
 
             const jobs = await queue.getJobCountByTypes('completed');
-            expect(jobs).to.be.equal(0);
+            expect(jobs).toBe(0);
 
             await worker.close();
             await flow.close();
@@ -429,13 +429,13 @@ describe('Cleaner', () => {
             ]);
 
             const parentState = await tree.job.getState();
-            expect(parentState).to.be.equal('failed');
+            expect(parentState).toBe('failed');
 
             const job = queue.getJob(tree.job.id!);
             expect(job).to.not.be.undefined;
 
             const jobs = await queue.getJobCountByTypes('completed');
-            expect(jobs).to.be.equal(0);
+            expect(jobs).toBe(0);
 
             await worker.close();
             await flow.close();
@@ -495,10 +495,10 @@ describe('Cleaner', () => {
           expect(keys.length).to.be.eql(0);
 
           const jobs = await queue.getJobCountByTypes('completed');
-          expect(jobs).to.be.equal(2);
+          expect(jobs).toBe(2);
 
           const parentState = await tree.job.getState();
-          expect(parentState).to.be.equal('unknown');
+          expect(parentState).toBe('unknown');
 
           await worker.close();
           await flow.close();
@@ -637,11 +637,11 @@ describe('Cleaner', () => {
           expect(job).to.not.be.undefined;
 
           const jobs = await queue.getJobCountByTypes('completed');
-          expect(jobs).to.be.equal(0);
+          expect(jobs).toBe(0);
 
           const parentState = await parent.getState();
 
-          expect(parentState).to.be.equal('active');
+          expect(parentState).toBe('active');
 
           await worker.close();
         });

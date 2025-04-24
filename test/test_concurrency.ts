@@ -205,8 +205,8 @@ describe('Concurrency', () => {
     await delay(4000);
 
     const jobs = await queue.getJobCountByTypes('completed');
-    expect(jobs).to.be.equal(2);
-    expect(counterDrainedEvents).to.be.equal(1);
+    expect(jobs).toBe(2);
+    expect(counterDrainedEvents).toBe(1);
 
     await worker.close();
     await queue.close();
@@ -538,7 +538,7 @@ describe('Concurrency', () => {
       worker2.on(
         'stalled',
         after(globalConcurrency, (jobId, prev) => {
-          expect(prev).to.be.equal('active');
+          expect(prev).toBe('active');
           resolve();
         }),
       );
@@ -558,7 +558,7 @@ describe('Concurrency', () => {
       const job = processedJobs[index++];
       sum += Number(job.data);
       if (i % 2 == 0) {
-        expect(sum).to.be.equal(1);
+        expect(sum).toBe(1);
         sum = 0;
       }
     }
@@ -610,7 +610,7 @@ describe('Concurrency', () => {
 
       await processing;
 
-      expect(processedJobs.length).to.be.equal(numJobs);
+      expect(processedJobs.length).toBe(numJobs);
 
       await worker.close();
       await queue.close();
@@ -662,7 +662,7 @@ describe('Concurrency', () => {
 
         await processing;
 
-        expect(processedJobs.length).to.be.equal(numJobs);
+        expect(processedJobs.length).toBe(numJobs);
 
         await worker.close();
         await queue.close();
@@ -694,7 +694,7 @@ describe('Concurrency', () => {
       }
       const job1 = await worker.getNextJob(token);
       const state = await job1!.getState();
-      expect(state).to.be.equal('active');
+      expect(state).toBe('active');
       await delay(50);
       let isMaxed = await queue.isMaxed();
       expect(isMaxed).to.be.true;

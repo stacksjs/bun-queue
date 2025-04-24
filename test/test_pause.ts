@@ -73,7 +73,7 @@ describe('Pause', function () {
     const processPromise = new Promise<void>(resolve => {
       process = async (job: Job) => {
         expect(isPaused).to.be.eql(false);
-        expect(job.data.foo).to.be.equal('paused');
+        expect(job.data.foo).toBe('paused');
         counter--;
         if (counter === 0) {
           resolve();
@@ -106,7 +106,7 @@ describe('Pause', function () {
       process = async (job: Job) => {
         try {
           expect(isPaused).to.be.eql(false);
-          expect(job.data.foo).to.be.equal('paused');
+          expect(job.data.foo).toBe('paused');
 
           if (first) {
             first = false;
@@ -382,7 +382,7 @@ describe('Pause', function () {
         queueEvents.on('waiting', async ({ prev }) => {
           if (prev === 'failed') {
             const count = await queue.getJobCountByTypes('paused');
-            expect(count).to.be.equal(1);
+            expect(count).toBe(1);
             await queue.resume();
             resolve();
           }

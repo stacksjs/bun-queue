@@ -88,7 +88,7 @@ describe('Jobs getters', function () {
       expect(nextWorkers).to.have.length(2);
 
       const nextWorkersCount = await queue.getWorkersCount();
-      expect(nextWorkersCount).to.be.equal(2);
+      expect(nextWorkersCount).toBe(2);
 
       await worker.close();
       await worker2.close();
@@ -107,7 +107,7 @@ describe('Jobs getters', function () {
       expect(workers).to.have.length(1);
 
       const workersCount = await queue.getWorkersCount();
-      expect(workersCount).to.be.equal(1);
+      expect(workersCount).toBe(1);
 
       const worker2 = new Worker(queueName, async () => {}, {
         autorun: false,
@@ -121,7 +121,7 @@ describe('Jobs getters', function () {
       expect(nextWorkers).to.have.length(2);
 
       const nextWorkersCount = await queue.getWorkersCount();
-      expect(nextWorkersCount).to.be.equal(2);
+      expect(nextWorkersCount).toBe(2);
 
       const rawnames = nextWorkers.map(nextWorker => {
         const workerValues = nextWorker.rawname.split(':');
@@ -164,13 +164,13 @@ describe('Jobs getters', function () {
       expect(workers).to.have.length(1);
 
       const workersCount = await queue.getWorkersCount();
-      expect(workersCount).to.be.equal(1);
+      expect(workersCount).toBe(1);
 
       const workers2 = await queue2.getWorkers();
       expect(workers2).to.have.length(1);
 
       const workersCount2 = await queue2.getWorkersCount();
-      expect(workersCount2).to.be.equal(1);
+      expect(workersCount2).toBe(1);
 
       await queue2.close();
       await worker.close();
@@ -262,7 +262,7 @@ describe('Jobs getters', function () {
 
       const jobState = await queue.getJobState(job.id!);
 
-      expect(jobState).to.be.equal('waiting');
+      expect(jobState).toBe('waiting');
     });
   });
 
@@ -272,9 +272,9 @@ describe('Jobs getters', function () {
 
     const jobs = await queue.getWaiting();
     expect(jobs).to.be.a('array');
-    expect(jobs.length).to.be.equal(2);
-    expect(jobs[0].data.foo).to.be.equal('bar');
-    expect(jobs[1].data.baz).to.be.equal('qux');
+    expect(jobs.length).toBe(2);
+    expect(jobs[0].data.foo).toBe('bar');
+    expect(jobs[1].data.baz).toBe('qux');
   });
 
   it('should get all waiting jobs when no range is provided', async () => {
@@ -288,18 +288,18 @@ describe('Jobs getters', function () {
     const jobsWithoutProvidingRange = await queue.getWaiting();
     const allJobs = await queue.getWaiting(0, -1);
 
-    expect(allJobs.length).to.be.equal(4);
-    expect(jobsWithoutProvidingRange.length).to.be.equal(allJobs.length);
+    expect(allJobs.length).toBe(4);
+    expect(jobsWithoutProvidingRange.length).toBe(allJobs.length);
 
-    expect(allJobs[0].data.foo).to.be.equal('bar');
-    expect(allJobs[1].data.baz).to.be.equal('qux');
-    expect(allJobs[2].data.bar).to.be.equal('qux');
-    expect(allJobs[3].data.baz).to.be.equal('xuq');
+    expect(allJobs[0].data.foo).toBe('bar');
+    expect(allJobs[1].data.baz).toBe('qux');
+    expect(allJobs[2].data.bar).toBe('qux');
+    expect(allJobs[3].data.baz).toBe('xuq');
 
-    expect(jobsWithoutProvidingRange[0].data.foo).to.be.equal('bar');
-    expect(jobsWithoutProvidingRange[1].data.baz).to.be.equal('qux');
-    expect(jobsWithoutProvidingRange[2].data.bar).to.be.equal('qux');
-    expect(jobsWithoutProvidingRange[3].data.baz).to.be.equal('xuq');
+    expect(jobsWithoutProvidingRange[0].data.foo).toBe('bar');
+    expect(jobsWithoutProvidingRange[1].data.baz).toBe('qux');
+    expect(jobsWithoutProvidingRange[2].data.bar).toBe('qux');
+    expect(jobsWithoutProvidingRange[3].data.baz).toBe('xuq');
   });
 
   it('should get paused jobs', async function () {
@@ -310,9 +310,9 @@ describe('Jobs getters', function () {
     ]);
     const jobs = await queue.getWaiting();
     expect(jobs).to.be.a('array');
-    expect(jobs.length).to.be.equal(2);
-    expect(jobs[0].data.foo).to.be.equal('bar');
-    expect(jobs[1].data.baz).to.be.equal('qux');
+    expect(jobs.length).toBe(2);
+    expect(jobs[0].data.foo).toBe('bar');
+    expect(jobs[1].data.baz).toBe('qux');
   });
 
   it('should get active jobs', async function () {
@@ -321,8 +321,8 @@ describe('Jobs getters', function () {
       processor = async () => {
         const jobs = await queue.getActive();
         expect(jobs).to.be.a('array');
-        expect(jobs.length).to.be.equal(1);
-        expect(jobs[0].data.foo).to.be.equal('bar');
+        expect(jobs.length).toBe(1);
+        expect(jobs[0].data.foo).toBe('bar');
         resolve();
       };
     });
@@ -344,7 +344,7 @@ describe('Jobs getters', function () {
 
   it('should get undefined for nonexistent specific job', async () => {
     const returnedJob = await queue.getJob('test');
-    expect(returnedJob).to.be.equal(undefined);
+    expect(returnedJob).toBe(undefined);
   });
 
   it('should get completed jobs', async () => {
@@ -363,7 +363,7 @@ describe('Jobs getters', function () {
           expect(jobs).to.be.a('array');
 
           // We need a "empty completed" kind of function.
-          //expect(jobs.length).to.be.equal(2);
+          //expect(jobs.length).toBe(2);
           await worker.close();
           resolve();
         }
@@ -419,7 +419,7 @@ describe('Jobs getters', function () {
 
         const count = await queue.count();
 
-        expect(count).to.be.equal(9);
+        expect(count).toBe(9);
       });
     });
   });
@@ -434,7 +434,7 @@ describe('Jobs getters', function () {
 
       const prioritizedJobs = await queue.getPrioritized();
 
-      expect(prioritizedJobs.length).to.be.equal(8);
+      expect(prioritizedJobs.length).toBe(8);
     });
   });
 
@@ -448,7 +448,7 @@ describe('Jobs getters', function () {
 
       const prioritizedCount = await queue.getPrioritizedCount();
 
-      expect(prioritizedCount).to.be.equal(8);
+      expect(prioritizedCount).toBe(8);
     });
   });
 
@@ -628,7 +628,7 @@ describe('Jobs getters', function () {
         try {
           const jobs = await queue.getJobs('completed', -3, -1, true);
           expect(jobs).to.be.an('array').that.has.length(3);
-          expect(jobs[0].data.foo).to.be.equal(1);
+          expect(jobs[0].data.foo).toBe(1);
           expect(jobs[1].data.foo).to.be.eql(2);
           expect(jobs[2].data.foo).to.be.eql(3);
           await worker.close();
@@ -656,7 +656,7 @@ describe('Jobs getters', function () {
         try {
           const jobs = await queue.getJobs('completed', -300, 99999, true);
           expect(jobs).to.be.an('array').that.has.length(3);
-          expect(jobs[0].data.foo).to.be.equal(1);
+          expect(jobs[0].data.foo).toBe(1);
           expect(jobs[1].data.foo).to.be.eql(2);
           expect(jobs[2].data.foo).to.be.eql(3);
           await worker.close();
@@ -715,7 +715,7 @@ describe('Jobs getters', function () {
 
         expect(jobs).to.be.an('array');
         expect(jobs).to.have.length(1);
-        expect(jobs[0].name).to.be.equal('test2');
+        expect(jobs[0].name).toBe('test2');
       });
     });
 
@@ -775,7 +775,7 @@ describe('Jobs getters', function () {
   it('should return 0 if queue is empty', async function () {
     const count = await queue.getJobCountByTypes();
     expect(count).to.be.a('number');
-    expect(count).to.be.equal(0);
+    expect(count).toBe(0);
   });
 
   describe('.getJobCounts', () => {
@@ -911,7 +911,7 @@ describe('Jobs getters', function () {
 
       expect(result.items).to.be.an('array').that.has.length(4);
       expect(result.jobs).to.be.an('array').that.has.length(4);
-      expect(result.total).to.be.equal(4);
+      expect(result.total).toBe(4);
 
       for (const job of result.jobs) {
         expect(job).to.have.property('opts');
@@ -932,7 +932,7 @@ describe('Jobs getters', function () {
       );
 
       expect(result2.items).to.be.an('array').that.has.length(3);
-      expect(result2.total).to.be.equal(4);
+      expect(result2.total).toBe(4);
 
       await flowProducer.close();
     });
@@ -977,7 +977,7 @@ describe('Jobs getters', function () {
       );
 
       expect(result.items).to.be.an('array').that.has.length(0);
-      expect(result.total).to.be.equal(0);
+      expect(result.total).toBe(0);
 
       const result2 = await queue.getDependencies(
         flow.job.id!,
@@ -988,7 +988,7 @@ describe('Jobs getters', function () {
 
       expect(result2.items).to.be.an('array').that.has.length(4);
       expect(result2.jobs).to.be.an('array').that.has.length(4);
-      expect(result2.total).to.be.equal(4);
+      expect(result2.total).toBe(4);
 
       for (const job of result2.jobs) {
         expect(job).to.have.property('opts');

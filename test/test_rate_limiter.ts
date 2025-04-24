@@ -364,7 +364,7 @@ describe('Rate Limiter', function () {
       const margin = 0.95; // 5% margin for CI
 
       const ttl = await queue.getRateLimitTtl();
-      expect(ttl).to.be.equal(-2);
+      expect(ttl).toBe(-2);
 
       const worker = new Worker(
         queueName,
@@ -454,7 +454,7 @@ describe('Rate Limiter', function () {
 
         const failing = new Promise<void>(resolve => {
           worker.on('error', err => {
-            expect(err.message).to.be.equal(
+            expect(err.message).toBe(
               `Missing lock for job ${job.id}. moveJobFromActiveToWait`,
             );
             resolve();
@@ -479,7 +479,7 @@ describe('Rate Limiter', function () {
         const duration = 100;
 
         const ttl = await queue.getRateLimitTtl();
-        expect(ttl).to.be.equal(-2);
+        expect(ttl).toBe(-2);
 
         const worker = new Worker(
           queueName,
@@ -542,7 +542,7 @@ describe('Rate Limiter', function () {
           const duration = 100;
 
           const ttl = await queue.getRateLimitTtl();
-          expect(ttl).to.be.equal(-2);
+          expect(ttl).toBe(-2);
 
           const worker = new Worker(
             queueName,
@@ -550,7 +550,7 @@ describe('Rate Limiter', function () {
               if (job.attemptsStarted === 1) {
                 delay(50);
                 const currentTtl = await queue.getRateLimitTtl(2);
-                expect(currentTtl).to.be.equal(0);
+                expect(currentTtl).toBe(0);
               }
             },
             {
@@ -602,7 +602,7 @@ describe('Rate Limiter', function () {
           const duration = 100;
 
           const ttl = await queue.getRateLimitTtl();
-          expect(ttl).to.be.equal(-2);
+          expect(ttl).toBe(-2);
 
           const worker = new Worker(
             queueName,
@@ -745,7 +745,7 @@ describe('Rate Limiter', function () {
             // after every job has been completed
             after(numJobs, async args => {
               try {
-                expect(args.jobId).to.be.equal('1');
+                expect(args.jobId).toBe('1');
                 resolve();
               } catch (err) {
                 reject(err);
@@ -900,7 +900,7 @@ describe('Rate Limiter', function () {
         const duration = 1000;
 
         const ttl = await queue.getRateLimitTtl();
-        expect(ttl).to.be.equal(-2);
+        expect(ttl).toBe(-2);
 
         const worker = new Worker(queueName, async () => {}, {
           autorun: false,

@@ -70,10 +70,10 @@ describe('Delayed jobs', function () {
           ).to.be.lessThan(delay * margin);
 
           const jobs = await queue.getWaiting();
-          expect(jobs.length).to.be.equal(0);
+          expect(jobs.length).toBe(0);
 
           const delayedJobs = await queue.getDelayed();
-          expect(delayedJobs.length).to.be.equal(0);
+          expect(delayedJobs.length).toBe(0);
           expect(publishHappened).to.be.eql(true);
           resolve();
         } catch (err) {
@@ -133,10 +133,10 @@ describe('Delayed jobs', function () {
             ).to.be.lessThan(delayTime * margin);
 
             const jobs = await queue.getWaiting();
-            expect(jobs.length).to.be.equal(0);
+            expect(jobs.length).toBe(0);
 
             const delayedJobs = await queue.getDelayed();
-            expect(delayedJobs.length).to.be.equal(0);
+            expect(delayedJobs.length).toBe(0);
             expect(publishHappened).to.be.eql(true);
             resolve();
           } catch (err) {
@@ -265,10 +265,10 @@ describe('Delayed jobs', function () {
           ).to.be.lessThan(delayTime * margin);
 
           const jobs = await queue.getWaiting();
-          expect(jobs.length).to.be.equal(0);
+          expect(jobs.length).toBe(0);
 
           const delayedJobs = await queue.getDelayed();
-          expect(delayedJobs.length).to.be.equal(1);
+          expect(delayedJobs.length).toBe(1);
           expect(publishHappened).to.be.eql(true);
           resolve();
         } catch (err) {
@@ -296,7 +296,7 @@ describe('Delayed jobs', function () {
     await completed;
 
     const count = await queue.getJobCountByTypes('active');
-    expect(count).to.be.equal(0);
+    expect(count).toBe(0);
 
     await queueEvents.close();
     await worker.close();
@@ -314,7 +314,7 @@ describe('Delayed jobs', function () {
       processor = async (job: Job) => {
         order++;
         try {
-          expect(order).to.be.equal(job.data.order);
+          expect(order).toBe(job.data.order);
           expect(job.processedOn! - job.timestamp).to.be.greaterThanOrEqual(
             job.opts.delay,
           );
@@ -524,10 +524,10 @@ describe('Delayed jobs', function () {
 
       await completed;
 
-      expect(processedJobs.length).to.be.equal(countJobs);
+      expect(processedJobs.length).toBe(countJobs);
 
       const count = await queue.getJobCountByTypes('failed', 'wait', 'delayed');
-      expect(count).to.be.equal(0);
+      expect(count).toBe(0);
 
       await worker.close();
     }).timeout(4000);
@@ -543,7 +543,7 @@ describe('Delayed jobs', function () {
         queueName,
         async (job: Job) => {
           try {
-            expect(order).to.be.equal(job.data.order);
+            expect(order).toBe(job.data.order);
 
             if (order === numJobs) {
               resolve();
@@ -606,10 +606,10 @@ describe('Delayed jobs', function () {
           try {
             expect(Date.now() > timestamp + delay);
             const jobs = await queue.getWaiting();
-            expect(jobs.length).to.be.equal(0);
+            expect(jobs.length).toBe(0);
 
             const delayedJobs = await queue.getDelayed();
-            expect(delayedJobs.length).to.be.equal(0);
+            expect(delayedJobs.length).toBe(0);
             expect(publishHappened).to.be.eql(true);
             resolve();
           } catch (err) {

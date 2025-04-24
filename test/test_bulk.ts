@@ -1,83 +1,86 @@
-import { expect } from 'chai';
-import { default as IORedis } from 'ioredis';
-import { after, beforeEach, describe, it, before } from 'mocha';
-import { v4 } from 'uuid';
-import { Queue, QueueEvents, Worker, Job } from '../src/classes';
-import { removeAllQueueData, delay } from '../src/utils';
+import type { Job } from '../src/classes'
+import { describe, expect, it } from 'bun:test'
+import process from 'node:process'
+import { default as IORedis } from 'ioredis'
+import { after, before, beforeEach, describe, it } from 'mocha'
+import { v4 } from 'uuid'
+import { Queue, QueueEvents, Worker } from '../src/classes'
+import { delay, removeAllQueueData } from '../src/utils'
 
 describe('bulk jobs', () => {
-  const redisHost = process.env.REDIS_HOST || 'localhost';
-  const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull';
+  const redisHost = process.env.REDIS_HOST || 'localhost'
+  const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull'
 
-  let queue: Queue;
-  let queueName: string;
+  let queue: Queue
+  let queueName: string
 
-  let connection;
-  before(async function () {
-    connection = new IORedis(redisHost, { maxRetriesPerRequest: null });
-  });
+  let connection
+  before(async () => {
+    connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
+  })
 
-  beforeEach(async function () {
-    queueName = `test-${v4()}`;
-    queue = new Queue(queueName, { connection, prefix });
-  });
+  beforeEach(async () => {
+    queueName = `test-${v4()}`
+    queue = new Queue(queueName, { connection, prefix })
+  })
 
-  afterEach(async function () {
-    await queue.close();
-    await removeAllQueueData(new IORedis(redisHost), queueName);
-  });
+  afterEach(async () => {
+    await queue.close()
+    await removeAllQueueData(new IORedis(redisHost), queueName)
+  })
 
-  after(async function () {
-    await connection.quit();
-  });
+  after(async () => {
+    await connection.quit()
+  })
 
   it('should process jobs', async () => {
-    const name = 'test';
-    let processor;
+    const name = 'test'
+    let processor
     const processing = new Promise<void>(
       resolve =>
         (processor = async (job: Job) => {
           if (job.data.idx === 0) {
-            expect(job.data.foo).to.be.equal('bar');
-          } else {
-            expect(job.data.idx).to.be.equal(1);
-            expect(job.data.foo).to.be.equal('baz');
-            resolve();
+            expect(job.data.foo).toBe('bar')
+          }
+          else {
+            expect(job.data.idx).toBe(1)
+            expect(job.data.foo).toBe('baz')
+            resolve()
           }
         }),
-    );
-    const worker = new Worker(queueName, processor, { connection, prefix });
-    await worker.waitUntilReady();
+    )
+    const worker = new Worker(queueName, processor, { connection, prefix })
+    await worker.waitUntilReady()
 
     const jobs = await queue.addBulk([
       { name, data: { idx: 0, foo: 'bar' } },
       { name, data: { idx: 1, foo: 'baz' } },
-    ]);
-    expect(jobs).to.have.length(2);
+    ])
+    expect(jobs).to.have.length(2)
 
-    expect(jobs[0].id).to.be.ok;
-    expect(jobs[0].data.foo).to.be.eql('bar');
-    expect(jobs[1].id).to.be.ok;
-    expect(jobs[1].data.foo).to.be.eql('baz');
+    expect(jobs[0].id).to.be.ok
+    expect(jobs[0].data.foo).to.be.eql('bar')
+    expect(jobs[1].id).to.be.ok
+    expect(jobs[1].data.foo).to.be.eql('baz')
 
-    await processing;
-    await worker.close();
-  });
+    await processing
+    await worker.close()
+  })
 
   it('should allow to pass parent option', async () => {
-    const name = 'test';
-    const parentQueueName = `parent-queue-${v4()}`;
-    const parentQueue = new Queue(parentQueueName, { connection, prefix });
+    const name = 'test'
+    const parentQueueName = `parent-queue-${v4()}`
+    const parentQueue = new Queue(parentQueueName, { connection, prefix })
 
     const parentWorker = new Worker(parentQueueName, null, {
       connection,
       prefix,
-    });
-    const childrenWorker = new Worker(queueName, null, { connection, prefix });
-    await parentWorker.waitUntilReady();
-    await childrenWorker.waitUntilReady();
+    })
+    const childrenWorker = new Worker(queueName, null, { connection, prefix })
+    await parentWorker.waitUntilReady()
+    await childrenWorker.waitUntilReady()
 
-    const parent = await parentQueue.add('parent', { some: 'data' });
+    const parent = await parentQueue.add('parent', { some: 'data' })
     const jobs = await queue.addBulk([
       {
         name,
@@ -99,101 +102,102 @@ describe('bulk jobs', () => {
           },
         },
       },
-    ]);
-    expect(jobs).to.have.length(2);
+    ])
+    expect(jobs).to.have.length(2)
 
-    expect(jobs[0].id).to.be.ok;
-    expect(jobs[0].data.foo).to.be.eql('bar');
-    expect(jobs[1].id).to.be.ok;
-    expect(jobs[1].data.foo).to.be.eql('baz');
+    expect(jobs[0].id).to.be.ok
+    expect(jobs[0].data.foo).to.be.eql('bar')
+    expect(jobs[1].id).to.be.ok
+    expect(jobs[1].data.foo).to.be.eql('baz')
 
     const { unprocessed } = await parent.getDependenciesCount({
       unprocessed: true,
-    });
+    })
 
-    expect(unprocessed).to.be.equal(2);
+    expect(unprocessed).toBe(2)
 
-    await childrenWorker.close();
-    await parentWorker.close();
-    await parentQueue.close();
-    await removeAllQueueData(new IORedis(redisHost), parentQueueName);
-  });
+    await childrenWorker.close()
+    await parentWorker.close()
+    await parentQueue.close()
+    await removeAllQueueData(new IORedis(redisHost), parentQueueName)
+  })
 
   it('should keep workers busy', async () => {
-    const numJobs = 6;
-    const queueEvents = new QueueEvents(queueName, { connection, prefix });
-    await queueEvents.waitUntilReady();
+    const numJobs = 6
+    const queueEvents = new QueueEvents(queueName, { connection, prefix })
+    await queueEvents.waitUntilReady()
 
     const worker = new Worker(
       queueName,
       async () => {
-        await delay(900);
+        await delay(900)
       },
       { connection, prefix },
-    );
+    )
     const worker2 = new Worker(
       queueName,
       async () => {
-        await delay(900);
+        await delay(900)
       },
       { connection, prefix },
-    );
-    await worker.waitUntilReady();
-    await worker2.waitUntilReady();
+    )
+    await worker.waitUntilReady()
+    await worker2.waitUntilReady()
 
-    let counter = 0;
-    const completed = new Promise<void>(resolve => {
+    let counter = 0
+    const completed = new Promise<void>((resolve) => {
       queueEvents.on('completed', () => {
-        counter++;
+        counter++
         if (counter === numJobs) {
-          resolve();
+          resolve()
         }
-      });
-    });
+      })
+    })
 
-    const jobs = Array.from(Array(numJobs).keys()).map(index => ({
+    const jobs = Array.from(Array.from({ length: numJobs }).keys()).map(index => ({
       name: 'test',
       data: { index },
-    }));
+    }))
 
-    await queue.addBulk(jobs);
+    await queue.addBulk(jobs)
 
-    await completed;
-    await worker.close();
-    await worker2.close();
-    await queueEvents.close();
-  }).timeout(10_000);
+    await completed
+    await worker.close()
+    await worker2.close()
+    await queueEvents.close()
+  }).timeout(10_000)
 
   it('should process jobs with custom ids', async () => {
-    const name = 'test';
-    let processor;
+    const name = 'test'
+    let processor
     const processing = new Promise<void>(
       resolve =>
         (processor = async (job: Job) => {
           if (job.data.idx === 0) {
-            expect(job.data.foo).to.be.equal('bar');
-          } else {
-            expect(job.data.idx).to.be.equal(1);
-            expect(job.data.foo).to.be.equal('baz');
-            resolve();
+            expect(job.data.foo).toBe('bar')
+          }
+          else {
+            expect(job.data.idx).toBe(1)
+            expect(job.data.foo).toBe('baz')
+            resolve()
           }
         }),
-    );
-    const worker = new Worker(queueName, processor, { connection, prefix });
-    await worker.waitUntilReady();
+    )
+    const worker = new Worker(queueName, processor, { connection, prefix })
+    await worker.waitUntilReady()
 
     const jobs = await queue.addBulk([
       { name, data: { idx: 0, foo: 'bar' }, opts: { jobId: 'test1' } },
       { name, data: { idx: 1, foo: 'baz' }, opts: { jobId: 'test2' } },
-    ]);
-    expect(jobs).to.have.length(2);
+    ])
+    expect(jobs).to.have.length(2)
 
-    expect(jobs[0].id).to.be.eql('test1');
-    expect(jobs[0].data.foo).to.be.eql('bar');
-    expect(jobs[1].id).to.be.eql('test2');
-    expect(jobs[1].data.foo).to.be.eql('baz');
+    expect(jobs[0].id).to.be.eql('test1')
+    expect(jobs[0].data.foo).to.be.eql('bar')
+    expect(jobs[1].id).to.be.eql('test2')
+    expect(jobs[1].data.foo).to.be.eql('baz')
 
-    await processing;
-    await worker.close();
-  });
-});
+    await processing
+    await worker.close()
+  })
+})

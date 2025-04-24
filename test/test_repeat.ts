@@ -178,7 +178,7 @@ describe('repeat', function () {
     const delayed = await queue.getDelayed();
 
     expect(delayed).to.have.length(0);
-    expect(processed).to.be.equal(10);
+    expect(processed).toBe(10);
 
     await worker.close();
     delayStub.restore();
@@ -510,7 +510,7 @@ describe('repeat', function () {
           counter++;
           if (counter == 5) {
             const counts = await queue2.getJobCounts('completed');
-            expect(counts.completed).to.be.equal(0);
+            expect(counts.completed).toBe(0);
             resolve();
           }
         });
@@ -762,7 +762,7 @@ describe('repeat', function () {
     const client = await worker.client;
 
     const jobsRedisKeys = await client.keys(`${keyPrefix}*`);
-    expect(jobsRedisKeys.length).to.be.equal(2);
+    expect(jobsRedisKeys.length).toBe(2);
 
     const actualHashedRepeatableJobKey =
       extractRepeatableJobChecksumFromRedisKey(
@@ -782,7 +782,7 @@ describe('repeat', function () {
       settings.repeatKeyHashAlgorithm,
     );
 
-    expect(actualHashedRepeatableJobKey).to.be.equal(
+    expect(actualHashedRepeatableJobKey).toBe(
       expectedRepeatJobIdCheckum,
     );
 
@@ -1187,7 +1187,7 @@ describe('repeat', function () {
 
       const count = await queue.count();
 
-      expect(count).to.be.equal(1);
+      expect(count).toBe(1);
       expect(configs).to.have.length(1);
       expect(jobs.length).to.be.eql(2);
       expect(jobs[0].id).to.be.eql(jobs[1].id);
@@ -1215,21 +1215,21 @@ describe('repeat', function () {
 
       const repeatableJob = await queue.add('test', { foo: 'bar' }, options);
       const delayedCount = await queue.getDelayedCount();
-      expect(delayedCount).to.be.equal(1);
+      expect(delayedCount).toBe(1);
 
       await repeatableJob.promote();
       await completing;
 
       const delayedCount2 = await queue.getDelayedCount();
-      expect(delayedCount2).to.be.equal(1);
+      expect(delayedCount2).toBe(1);
 
       const configs = await repeat.getRepeatableJobs(0, -1, true);
 
-      expect(delayedCount).to.be.equal(1);
+      expect(delayedCount).toBe(1);
 
       const count = await queue.count();
 
-      expect(count).to.be.equal(1);
+      expect(count).toBe(1);
       expect(configs).to.have.length(1);
       await worker.close();
     });
@@ -1289,21 +1289,21 @@ describe('repeat', function () {
 
     const createdJob = await queue.add('remove', { foo: 'bar' }, { repeat });
     const delayedCount1 = await queue.getJobCountByTypes('delayed');
-    expect(delayedCount1).to.be.equal(1);
+    expect(delayedCount1).toBe(1);
     const job = await queue.getJob(createdJob.id!);
     const repeatableJobs = await queue.getRepeatableJobs();
     expect(repeatableJobs).to.have.length(1);
     const existBeforeRemoval = await client.exists(
       `${prefix}:${queue.name}:repeat:${createdJob.repeatJobKey!}`,
     );
-    expect(existBeforeRemoval).to.be.equal(1);
+    expect(existBeforeRemoval).toBe(1);
     const removed = await queue.removeRepeatableByKey(createdJob.repeatJobKey!);
     const delayedCount = await queue.getJobCountByTypes('delayed');
-    expect(delayedCount).to.be.equal(0);
+    expect(delayedCount).toBe(0);
     const existAfterRemoval = await client.exists(
       `${prefix}:${queue.name}:repeat:${createdJob.repeatJobKey!}`,
     );
-    expect(existAfterRemoval).to.be.equal(0);
+    expect(existAfterRemoval).toBe(0);
     expect(job!.repeatJobKey).to.not.be.undefined;
     expect(removed).to.be.true;
     const repeatableJobsAfterRemove = await queue.getRepeatableJobs();
@@ -1346,7 +1346,7 @@ describe('repeat', function () {
       const removed = await queue.removeRepeatable('remove', repeat);
 
       const delayedCount = await queue.getJobCountByTypes('delayed');
-      expect(delayedCount).to.be.equal(0);
+      expect(delayedCount).toBe(0);
       expect(removed).to.be.true;
       const repeatableJobsAfterRemove = await queue.getRepeatableJobs();
       expect(repeatableJobsAfterRemove).to.have.length(0);
@@ -1385,7 +1385,7 @@ describe('repeat', function () {
       const removed = await queue.removeRepeatableByKey('remove::::* 1 * 1 *');
 
       const delayedCount = await queue.getJobCountByTypes('delayed');
-      expect(delayedCount).to.be.equal(0);
+      expect(delayedCount).toBe(0);
       expect(removed).to.be.true;
       const repeatableJobsAfterRemove = await queue.getRepeatableJobs();
       expect(repeatableJobsAfterRemove).to.have.length(0);
@@ -1425,11 +1425,11 @@ describe('repeat', function () {
 
         const repeatableJobs = await queue.getRepeatableJobs();
         expect(repeatableJobs).to.have.length(1);
-        expect(repeatableJobs[0].key).to.be.equal('remove::::* 1 * 1 *');
+        expect(repeatableJobs[0].key).toBe('remove::::* 1 * 1 *');
         const removed = await queue.removeRepeatable('remove', repeat);
 
         const delayedCount = await queue.getJobCountByTypes('delayed');
-        expect(delayedCount).to.be.equal(0);
+        expect(delayedCount).toBe(0);
         expect(removed).to.be.true;
         const repeatableJobsAfterRemove = await queue.getRepeatableJobs();
         expect(repeatableJobsAfterRemove).to.have.length(0);
@@ -1448,10 +1448,10 @@ describe('repeat', function () {
         await queue.add('remove', {}, { repeat: { pattern: '* 1 * 1 *' } });
         const repeatableJobs = await queue.getRepeatableJobs();
         expect(repeatableJobs).to.have.length(1);
-        expect(repeatableJobs[0].key).to.be.equal('remove::::* 1 * 1 *');
+        expect(repeatableJobs[0].key).toBe('remove::::* 1 * 1 *');
 
         const delayedCount = await queue.getJobCountByTypes('delayed');
-        expect(delayedCount).to.be.equal(1);
+        expect(delayedCount).toBe(1);
       });
     });
   });
@@ -1745,8 +1745,8 @@ describe('repeat', function () {
 
     await new Promise<void>(resolve => {
       queueEvents.on('removed', async ({ jobId, prev }) => {
-        expect(jobId).to.be.equal(delayed[0].id);
-        expect(prev).to.be.equal('delayed');
+        expect(jobId).toBe(delayed[0].id);
+        expect(prev).toBe('delayed');
         resolve();
       });
 
@@ -1923,7 +1923,7 @@ describe('repeat', function () {
     const waiting = new Promise<void>((resolve, reject) => {
       queueEvents.on('waiting', function ({ jobId }) {
         try {
-          expect(jobId).to.be.equal(
+          expect(jobId).toBe(
             `repeat:16db7a9b166154f5c636abf3c8fe3364:${
               date.getTime() + 1 * ONE_SECOND
             }`,

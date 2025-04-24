@@ -64,7 +64,7 @@ describe('queues', function () {
     const exQueueName = `test-${v4()}`;
     const queue = new Queue(exQueueName, { connection, skipMetasUpdate: true });
     const version = await queue.getVersion();
-    expect(version).to.be.equal(null);
+    expect(version).toBe(null);
     await queue.close();
     await removeAllQueueData(new IORedis(redisHost), exQueueName);
   });
@@ -489,7 +489,7 @@ describe('queues', function () {
       await failing;
 
       const failedCount = await queue.getJobCounts('failed');
-      expect(failedCount.failed).to.be.equal(jobCount);
+      expect(failedCount.failed).toBe(jobCount);
 
       order = 0;
       const completing = new Promise<void>(resolve => {
@@ -508,7 +508,7 @@ describe('queues', function () {
       await completing;
 
       const completedCount = await queue.getJobCounts('completed');
-      expect(completedCount.completed).to.be.equal(jobCount);
+      expect(completedCount.completed).toBe(jobCount);
 
       await worker.close();
     });
@@ -540,7 +540,7 @@ describe('queues', function () {
         await completing1;
 
         const completedCount1 = await queue.getJobCounts('completed');
-        expect(completedCount1.completed).to.be.equal(jobCount);
+        expect(completedCount1.completed).toBe(jobCount);
 
         const completing2 = new Promise(resolve => {
           worker.on('completed', after(jobCount, resolve));
@@ -549,12 +549,12 @@ describe('queues', function () {
         await queue.retryJobs({ count: 2, state: 'completed' });
 
         const completedCount2 = await queue.getJobCounts('completed');
-        expect(completedCount2.completed).to.be.equal(0);
+        expect(completedCount2.completed).toBe(0);
 
         await completing2;
 
         const completedCount = await queue.getJobCounts('completed');
-        expect(completedCount.completed).to.be.equal(jobCount);
+        expect(completedCount.completed).toBe(jobCount);
 
         await worker.close();
       });
@@ -600,7 +600,7 @@ describe('queues', function () {
         await failing;
 
         const failedCount = await queue.getJobCounts('failed');
-        expect(failedCount.failed).to.be.equal(jobCount);
+        expect(failedCount.failed).toBe(jobCount);
 
         order = 0;
         const completing = new Promise<void>(resolve => {
@@ -619,8 +619,8 @@ describe('queues', function () {
         await completing;
 
         const count = await queue.getJobCounts('completed', 'failed');
-        expect(count.completed).to.be.equal(jobCount / 2);
-        expect(count.failed).to.be.equal(jobCount / 2);
+        expect(count.completed).toBe(jobCount / 2);
+        expect(count.failed).toBe(jobCount / 2);
 
         await worker.close();
       });
@@ -662,7 +662,7 @@ describe('queues', function () {
         await failing;
 
         const failedCount = await queue.getJobCounts('failed');
-        expect(failedCount.failed).to.be.equal(jobCount);
+        expect(failedCount.failed).toBe(jobCount);
 
         order = 0;
 
@@ -671,7 +671,7 @@ describe('queues', function () {
         await queue.retryJobs({ count: 2 });
 
         const pausedCount = await queue.getJobCounts('paused');
-        expect(pausedCount.paused).to.be.equal(jobCount);
+        expect(pausedCount.paused).toBe(jobCount);
 
         await worker.close();
       });
@@ -688,12 +688,12 @@ describe('queues', function () {
       }
 
       const delayedCount = await queue.getJobCounts('delayed');
-      expect(delayedCount.delayed).to.be.equal(jobCount);
+      expect(delayedCount.delayed).toBe(jobCount);
 
       await queue.promoteJobs();
 
       const waitingCount = await queue.getJobCounts('waiting');
-      expect(waitingCount.waiting).to.be.equal(jobCount);
+      expect(waitingCount.waiting).toBe(jobCount);
 
       const worker = new Worker(
         queueName,
@@ -711,7 +711,7 @@ describe('queues', function () {
       await completing;
 
       const promotedCount = await queue.getJobCounts('delayed');
-      expect(promotedCount.delayed).to.be.equal(0);
+      expect(promotedCount.delayed).toBe(0);
 
       await worker.close();
     });

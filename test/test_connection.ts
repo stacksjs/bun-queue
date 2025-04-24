@@ -294,7 +294,7 @@ describe('connection', () => {
 
         const options = connection.options;
 
-        expect(options.maxRetriesPerRequest).to.be.equal(null);
+        expect(options.maxRetriesPerRequest).toBe(null);
 
         await queue.close();
       }
@@ -311,7 +311,7 @@ describe('connection', () => {
 
       const options = <RedisOptions>(await queue.client).options;
 
-      expect(options.maxRetriesPerRequest).to.be.equal(20);
+      expect(options.maxRetriesPerRequest).toBe(20);
 
       await queue.close();
       await connection2.quit();
@@ -381,7 +381,7 @@ describe('connection', () => {
 
     const processing = new Promise<void>(resolve => {
       processor = async (job: Job) => {
-        expect(job.data.foo).to.be.equal('bar');
+        expect(job.data.foo).toBe('bar');
         resolve();
       };
     });
@@ -421,7 +421,7 @@ describe('connection', () => {
       processor = async (job: Job) => {
         try {
           if (count == 0) {
-            expect(job.data.foo).to.be.equal('bar');
+            expect(job.data.foo).toBe('bar');
           } else {
             resolve();
           }

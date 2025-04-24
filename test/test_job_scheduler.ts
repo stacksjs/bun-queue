@@ -162,7 +162,7 @@ describe('Job Scheduler', function () {
     const delayed = await queue.getDelayed();
 
     expect(delayed).to.have.length(0);
-    expect(processed).to.be.equal(10);
+    expect(processed).toBe(10);
 
     await worker.close();
     delayStub.restore();
@@ -243,7 +243,7 @@ describe('Job Scheduler', function () {
       expect(repeatableJobs.length).to.be.eql(1);
       await this.clock.tickAsync(ONE_MINUTE);
       const count = await queue.getJobCountByTypes('delayed', 'waiting');
-      expect(count).to.be.equal(1);
+      expect(count).toBe(1);
 
       await worker.close();
     });
@@ -293,7 +293,7 @@ describe('Job Scheduler', function () {
 
       await this.clock.tickAsync(ONE_MINUTE);
       const count = await queue.getJobCountByTypes('delayed', 'waiting');
-      expect(count).to.be.equal(1);
+      expect(count).toBe(1);
 
       await worker.close();
     });
@@ -338,7 +338,7 @@ describe('Job Scheduler', function () {
         });
 
         const count = await queue.getJobCountByTypes('delayed');
-        expect(count).to.be.equal(1);
+        expect(count).toBe(1);
 
         await worker.close();
       });
@@ -411,7 +411,7 @@ describe('Job Scheduler', function () {
           });
 
           const count = await queue.getJobCountByTypes('delayed');
-          expect(count).to.be.equal(0);
+          expect(count).toBe(0);
 
           await worker.close();
         });
@@ -875,7 +875,7 @@ describe('Job Scheduler', function () {
           counter++;
           if (counter == 5) {
             const counts = await queue2.getJobCounts('completed');
-            expect(counts.completed).to.be.equal(0);
+            expect(counts.completed).toBe(0);
             resolve();
           }
         });
@@ -1733,7 +1733,7 @@ describe('Job Scheduler', function () {
 
       const count = await queue.count();
 
-      expect(count).to.be.equal(1);
+      expect(count).toBe(1);
       expect(configs).to.have.length(1);
       expect(jobs.length).to.be.eql(2);
       expect(jobs[0]!.id).to.be.eql(jobs[1]!.id);
@@ -1759,21 +1759,21 @@ describe('Job Scheduler', function () {
 
       const repeatableJob = await queue.upsertJobScheduler('test', repeatOpts);
       const delayedCount = await queue.getDelayedCount();
-      expect(delayedCount).to.be.equal(1);
+      expect(delayedCount).toBe(1);
 
       await repeatableJob!.promote();
       await completing;
 
       const delayedCount2 = await queue.getDelayedCount();
-      expect(delayedCount2).to.be.equal(1);
+      expect(delayedCount2).toBe(1);
 
       const configs = await repeat.getRepeatableJobs(0, -1, true);
 
-      expect(delayedCount).to.be.equal(1);
+      expect(delayedCount).toBe(1);
 
       const count = await queue.count();
 
-      expect(count).to.be.equal(1);
+      expect(count).toBe(1);
       expect(configs).to.have.length(1);
       await worker.close();
     });
@@ -1836,23 +1836,23 @@ describe('Job Scheduler', function () {
 
     const createdJob = await queue.upsertJobScheduler('remove', repeat);
     const delayedCount1 = await queue.getJobCountByTypes('delayed');
-    expect(delayedCount1).to.be.equal(1);
+    expect(delayedCount1).toBe(1);
     const job = await queue.getJob(createdJob!.id!);
     const repeatableJobs = await queue.getRepeatableJobs();
     expect(repeatableJobs).to.have.length(1);
     const existBeforeRemoval = await client.exists(
       `${prefix}:${queue.name}:repeat:${createdJob!.repeatJobKey!}`,
     );
-    expect(existBeforeRemoval).to.be.equal(1);
+    expect(existBeforeRemoval).toBe(1);
     const removed = await queue.removeRepeatableByKey(
       createdJob!.repeatJobKey!,
     );
     const delayedCount = await queue.getJobCountByTypes('delayed');
-    expect(delayedCount).to.be.equal(0);
+    expect(delayedCount).toBe(0);
     const existAfterRemoval = await client.exists(
       `${prefix}:${queue.name}:repeat:${createdJob!.repeatJobKey!}`,
     );
-    expect(existAfterRemoval).to.be.equal(0);
+    expect(existAfterRemoval).toBe(0);
     expect(job!.repeatJobKey).to.not.be.undefined;
     expect(removed).to.be.true;
     const repeatableJobsAfterRemove = await queue.getRepeatableJobs();
@@ -1906,27 +1906,27 @@ describe('Job Scheduler', function () {
         opts: { priority: 1 },
       });
       const delayedCount = await queue.getDelayedCount();
-      expect(delayedCount).to.be.equal(1);
+      expect(delayedCount).toBe(1);
 
       await repeatableJob!.promote();
 
       const priorityCount = await queue.getPrioritizedCount();
-      expect(priorityCount).to.be.equal(1);
+      expect(priorityCount).toBe(1);
 
       worker.run();
 
       await failing;
 
       const failedCount = await queue.getFailedCount();
-      expect(failedCount).to.be.equal(1);
+      expect(failedCount).toBe(1);
 
       const delayedCount2 = await queue.getDelayedCount();
-      expect(delayedCount2).to.be.equal(1);
+      expect(delayedCount2).toBe(1);
 
       const jobSchedulers = await queue.getJobSchedulers();
 
       const count = await queue.count();
-      expect(count).to.be.equal(1);
+      expect(count).toBe(1);
       expect(jobSchedulers).to.have.length(1);
 
       expect(jobSchedulers[0]).to.deep.equal({
@@ -1988,28 +1988,28 @@ describe('Job Scheduler', function () {
       await queue.upsertJobScheduler('test', repeatOpts);
 
       const delayedCountBeforeFailing = await queue.getDelayedCount();
-      expect(delayedCountBeforeFailing).to.be.equal(0);
+      expect(delayedCountBeforeFailing).toBe(0);
 
       worker.run();
 
       await failing;
 
       const failedCount = await queue.getFailedCount();
-      expect(failedCount).to.be.equal(1);
+      expect(failedCount).toBe(1);
 
       const delayedCountAfterFailing = await queue.getDelayedCount();
-      expect(delayedCountAfterFailing).to.be.equal(1);
+      expect(delayedCountAfterFailing).toBe(1);
 
       // Retry the failed job
       this.clock.tick(1143);
       await queue.retryJobs({ state: 'failed' });
       const failedCountAfterRetry = await queue.getFailedCount();
-      expect(failedCountAfterRetry).to.be.equal(0);
+      expect(failedCountAfterRetry).toBe(0);
 
       await processingAfterFailing;
 
       const failedCountAfterProcessing = await queue.getFailedCount();
-      expect(failedCountAfterProcessing).to.be.equal(0);
+      expect(failedCountAfterProcessing).toBe(0);
 
       await worker.close();
 
@@ -2018,7 +2018,7 @@ describe('Job Scheduler', function () {
 
       // Due to asynchronicities, the next job could be already in waiting state
       // We just check that both are 1, as it should only exist 1 job in either waiting or delayed state
-      expect(waitingCount + delayedCount2).to.be.equal(1);
+      expect(waitingCount + delayedCount2).toBe(1);
     });
 
     it('should not create a new delayed job if the failed job is retried with Job.retry()', async function () {
@@ -2040,7 +2040,7 @@ describe('Job Scheduler', function () {
 
           try {
             const delayedCount = await queue.getDelayedCount();
-            expect(delayedCount).to.be.equal(1);
+            expect(delayedCount).toBe(1);
           } catch (error) {
             expectError = error;
           }
@@ -2066,7 +2066,7 @@ describe('Job Scheduler', function () {
       await queue.upsertJobScheduler('test', repeatOpts);
 
       const delayedCount = await queue.getDelayedCount();
-      expect(delayedCount).to.be.equal(0);
+      expect(delayedCount).toBe(0);
 
       this.clock.tick(177);
 
@@ -2077,13 +2077,13 @@ describe('Job Scheduler', function () {
       this.clock.tick(177);
 
       const failedJobs = await queue.getFailed();
-      expect(failedJobs.length).to.be.equal(1);
+      expect(failedJobs.length).toBe(1);
 
       // Retry the failed job
       const failedJob = await queue.getJob(failedJobs[0].id);
       await failedJob!.retry();
       const failedCountAfterRetry = await queue.getFailedCount();
-      expect(failedCountAfterRetry).to.be.equal(0);
+      expect(failedCountAfterRetry).toBe(0);
 
       this.clock.tick(177);
 
@@ -2094,7 +2094,7 @@ describe('Job Scheduler', function () {
       }
 
       const delayedCount2 = await queue.getDelayedCount();
-      expect(delayedCount2).to.be.equal(1);
+      expect(delayedCount2).toBe(1);
     });
 
     it('should not create a new delayed job if the failed job is stalled and moved back to wait', async function () {
@@ -2111,7 +2111,7 @@ describe('Job Scheduler', function () {
       expect(repeatableJob).to.be.ok;
 
       const waitingCount = await queue.getWaitingCount();
-      expect(waitingCount).to.be.equal(1);
+      expect(waitingCount).toBe(1);
 
       let resolveCompleting: () => void;
       const complettingJob = new Promise<void>(resolve => {
@@ -2153,7 +2153,7 @@ describe('Job Scheduler', function () {
       [failed, stalled] = await scripts.moveStalledJobsToWait();
 
       const waitingJobs = await queue.getWaiting();
-      expect(waitingJobs.length).to.be.equal(1);
+      expect(waitingJobs.length).toBe(1);
 
       await this.clock.tick(500);
 
@@ -2163,10 +2163,10 @@ describe('Job Scheduler', function () {
       await this.clock.tick(500);
 
       const delayedCount2 = await queue.getDelayedCount();
-      expect(delayedCount2).to.be.equal(1);
+      expect(delayedCount2).toBe(1);
 
       let completedJobs = await queue.getCompleted();
-      expect(completedJobs.length).to.be.equal(0);
+      expect(completedJobs.length).toBe(0);
 
       const processing2 = new Promise<void>(resolve => {
         worker = new Worker(
@@ -2188,13 +2188,13 @@ describe('Job Scheduler', function () {
       await worker!.close();
 
       completedJobs = await queue.getCompleted();
-      expect(completedJobs.length).to.be.equal(1);
+      expect(completedJobs.length).toBe(1);
 
       const waitingJobs2 = await queue.getWaiting();
-      expect(waitingJobs2.length).to.be.equal(0);
+      expect(waitingJobs2.length).toBe(0);
 
       const delayedCount3 = await queue.getDelayedCount();
-      expect(delayedCount3).to.be.equal(1);
+      expect(delayedCount3).toBe(1);
     });
   });
 
@@ -2270,7 +2270,7 @@ describe('Job Scheduler', function () {
       delayedJobs = await queue.getDelayed();
       expect(delayedJobs).to.have.length(1);
 
-      expect(delayedJobs[0].name).to.be.equal('test2');
+      expect(delayedJobs[0].name).toBe('test2');
       expect(delayedJobs[0].data).to.deep.equal({
         foo: 'baz',
       });
@@ -2352,8 +2352,8 @@ describe('Job Scheduler', function () {
     await new Promise<void>(async (resolve, reject) => {
       queueEvents.on('removed', async ({ jobId, prev }) => {
         try {
-          expect(jobId).to.be.equal(delayed[0].id);
-          expect(prev).to.be.equal('delayed');
+          expect(jobId).toBe(delayed[0].id);
+          expect(prev).toBe('delayed');
           resolve();
         } catch (err) {
           reject(err);
@@ -2740,7 +2740,7 @@ describe('Job Scheduler', function () {
     const waiting = new Promise<void>((resolve, reject) => {
       queueEvents.on('waiting', function ({ jobId }) {
         try {
-          expect(jobId).to.be.equal(
+          expect(jobId).toBe(
             `repeat:${jobSchedulerId}:${date.getTime() + 1 * ONE_SECOND}`,
           );
           resolve();
