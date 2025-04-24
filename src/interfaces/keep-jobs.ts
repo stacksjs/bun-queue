@@ -9,10 +9,10 @@ export interface KeepJobs {
   /**
    * Maximum age in seconds for job to be kept.
    */
-  age?: number;
+  age?: number
 
   /**
    * Maximum count of jobs to be kept.
    */
-  count?: number;
+  count?: number
 }

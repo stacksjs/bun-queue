@@ -4,7 +4,7 @@ export enum MetricsTime {
   FIFTEEN_MINUTES = 15,
   THIRTY_MINUTES = 30,
   ONE_HOUR = 60,
-  ONE_WEEK = 60 * 24 * 7,
-  TWO_WEEKS = 60 * 24 * 7 * 2,
-  ONE_MONTH = 60 * 24 * 7 * 2 * 4,
+  ONE_WEEK = 10080, // 7 days
+  TWO_WEEKS = 20160, // 14 days
+  ONE_MONTH = 80640, // 28 days
 }

@@ -22,7 +22,7 @@ const nav = [
   { text: 'News', link: 'https://stacksjs.org/news' },
   {
     text: 'Changelog',
-    link: 'https://github.com/stacksjs/ts-starter/blob/main/CHANGELOG.md',
+    link: 'https://github.com/stacksjs/bun-starter/blob/main/CHANGELOG.md',
   },
   // { text: 'Blog', link: 'https://updates.ow3.org' },
   {
@@ -63,12 +63,12 @@ const sidebar = [
   { text: 'Showcase', link: '/Showcase' },
 ]
 const description = 'A TypeScript Starter Kit. For a better Development Experience.'
-const title = 'ts-starter | A TypeScript Starter Kit. For a better Development Experience.'
+const title = 'bun-starter | A TypeScript Starter Kit. For a better Development Experience.'
 
 export default withPwa(
   defineConfig({
     lang: 'en-US',
-    title: 'ts-starter',
+    title: 'bun-starter',
     description,
     metaChunk: true,
     cleanUrls: true,
@@ -83,7 +83,7 @@ export default withPwa(
       ['meta', { name: 'author', content: 'Stacks.js, Inc.' }],
       ['meta', {
         name: 'tags',
-        content: 'ts-starter, stacksjs, reverse proxy, modern, lightweight, zero-config, local development',
+        content: 'bun-starter, stacksjs, reverse proxy, modern, lightweight, zero-config, local development',
       }],
 
       ['meta', { property: 'og:type', content: 'website' }],
@@ -91,7 +91,7 @@ export default withPwa(
       ['meta', { property: 'og:title', content: title }],
       ['meta', { property: 'og:description', content: description }],
 
-      ['meta', { property: 'og:site_name', content: 'ts-starter' }],
+      ['meta', { property: 'og:site_name', content: 'bun-starter' }],
       ['meta', { property: 'og:image', content: './images/og-image.jpg' }],
       ['meta', { property: 'og:url', content: 'https://reverse-proxy.sh/' }],
       // ['script', { 'src': 'https://cdn.usefathom.com/script.js', 'data-site': '', 'data-spa': 'auto', 'defer': '' }],
@@ -123,7 +123,7 @@ export default withPwa(
       socialLinks: [
         { icon: 'twitter', link: 'https://twitter.com/stacksjs' },
         { icon: 'bluesky', link: 'https://bsky.app/profile/chrisbreuer.dev' },
-        { icon: 'github', link: 'https://github.com/stacksjs/ts-starter' },
+        { icon: 'github', link: 'https://github.com/stacksjs/bun-starter' },
         { icon: 'discord', link: 'https://discord.gg/stacksjs' },
       ],
 

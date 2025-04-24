@@ -1,18 +1,18 @@
-/*eslint-env node */
-'use strict';
+/* eslint-env node */
+'use strict'
 
-import { QueueBase } from './queue-base';
-import { Job } from './job';
-import { clientCommandMessageReg, QUEUE_EVENT_SUFFIX } from '../utils';
-import { JobState, JobType } from '../types';
-import { JobJsonRaw, Metrics } from '../interfaces';
+import type { JobJsonRaw, Metrics } from '../interfaces'
+import type { JobState, JobType } from '../types'
+import type { Job } from './job'
+import { clientCommandMessageReg, QUEUE_EVENT_SUFFIX } from '../utils'
+import { QueueBase } from './queue-base'
 
 /**
  * Provides different getters for different aspects of a queue.
  */
 export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
   getJob(jobId: string): Promise<JobBase | undefined> {
-    return this.Job.fromId(this, jobId) as Promise<JobBase>;
+    return this.Job.fromId(this, jobId) as Promise<JobBase>
   }
 
   private commandByType(
@@ -21,9 +21,9 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
     callback: (key: string, dataType: string) => void,
   ) {
     return types.map((type: string) => {
-      type = type === 'waiting' ? 'wait' : type; // alias
+      type = type === 'waiting' ? 'wait' : type // alias
 
-      const key = this.toKey(type);
+      const key = this.toKey(type)
 
       switch (type) {
         case 'completed':
@@ -32,26 +32,26 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
         case 'prioritized':
         case 'repeat':
         case 'waiting-children':
-          return callback(key, count ? 'zcard' : 'zrange');
+          return callback(key, count ? 'zcard' : 'zrange')
         case 'active':
         case 'wait':
         case 'paused':
-          return callback(key, count ? 'llen' : 'lrange');
+          return callback(key, count ? 'llen' : 'lrange')
       }
-    });
+    })
   }
 
   private sanitizeJobTypes(types: JobType[] | JobType | undefined): JobType[] {
-    const currentTypes = typeof types === 'string' ? [types] : types;
+    const currentTypes = typeof types === 'string' ? [types] : types
 
     if (Array.isArray(currentTypes) && currentTypes.length > 0) {
-      const sanitizedTypes = [...currentTypes];
+      const sanitizedTypes = [...currentTypes]
 
-      if (sanitizedTypes.indexOf('waiting') !== -1) {
-        sanitizedTypes.push('paused');
+      if (sanitizedTypes.includes('waiting')) {
+        sanitizedTypes.push('paused')
       }
 
-      return [...new Set(sanitizedTypes)];
+      return [...new Set(sanitizedTypes)]
     }
 
     return [
@@ -63,13 +63,13 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
       'prioritized',
       'waiting',
       'waiting-children',
-    ];
+    ]
   }
 
   /**
     Returns the number of jobs waiting to be processed. This includes jobs that are
     "waiting" or "delayed" or "prioritized" or "waiting-children".
-  */
+   */
   async count(): Promise<number> {
     const count = await this.getJobCountByTypes(
       'waiting',
@@ -77,9 +77,9 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
       'delayed',
       'prioritized',
       'waiting-children',
-    );
+    )
 
-    return count;
+    return count
   }
 
   /**
@@ -91,7 +91,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @see {@link https://redis.io/commands/pttl/}
    */
   async getRateLimitTtl(maxJobs?: number): Promise<number> {
-    return this.scripts.getRateLimitTtl(maxJobs);
+    return this.scripts.getRateLimitTtl(maxJobs)
   }
 
   /**
@@ -101,9 +101,9 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param id - debounce identifier
    */
   async getDebounceJobId(id: string): Promise<string | null> {
-    const client = await this.client;
+    const client = await this.client
 
-    return client.get(`${this.keys.de}:${id}`);
+    return client.get(`${this.keys.de}:${id}`)
   }
 
   /**
@@ -112,9 +112,9 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param id - deduplication identifier
    */
   async getDeduplicationJobId(id: string): Promise<string | null> {
-    const client = await this.client;
+    const client = await this.client
 
-    return client.get(`${this.keys.de}:${id}`);
+    return client.get(`${this.keys.de}:${id}`)
   }
 
   /**
@@ -126,8 +126,8 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * Queue#getJobCountByTypes('completed', 'waiting', 'failed') =\> completed + waiting + failed count
    */
   async getJobCountByTypes(...types: JobType[]): Promise<number> {
-    const result = await this.getJobCounts(...types);
-    return Object.values(result).reduce((sum, count) => sum + count, 0);
+    const result = await this.getJobCounts(...types)
+    return Object.values(result).reduce((sum, count) => sum + count, 0)
   }
 
   /**
@@ -136,18 +136,18 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @returns An object, key (type) and value (count)
    */
   async getJobCounts(...types: JobType[]): Promise<{
-    [index: string]: number;
+    [index: string]: number
   }> {
-    const currentTypes = this.sanitizeJobTypes(types);
+    const currentTypes = this.sanitizeJobTypes(types)
 
-    const responses = await this.scripts.getCounts(currentTypes);
+    const responses = await this.scripts.getCounts(currentTypes)
 
-    const counts: { [index: string]: number } = {};
+    const counts: { [index: string]: number } = {}
     responses.forEach((res, index) => {
-      counts[currentTypes[index]] = res || 0;
-    });
+      counts[currentTypes[index]] = res || 0
+    })
 
-    return counts;
+    return counts
   }
 
   /**
@@ -158,73 +158,73 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * 'completed', 'failed', 'delayed', 'active', 'waiting', 'waiting-children', 'unknown'.
    */
   getJobState(jobId: string): Promise<JobState | 'unknown'> {
-    return this.scripts.getState(jobId);
+    return this.scripts.getState(jobId)
   }
 
   /**
    * Returns the number of jobs in completed status.
    */
   getCompletedCount(): Promise<number> {
-    return this.getJobCountByTypes('completed');
+    return this.getJobCountByTypes('completed')
   }
 
   /**
    * Returns the number of jobs in failed status.
    */
   getFailedCount(): Promise<number> {
-    return this.getJobCountByTypes('failed');
+    return this.getJobCountByTypes('failed')
   }
 
   /**
    * Returns the number of jobs in delayed status.
    */
   getDelayedCount(): Promise<number> {
-    return this.getJobCountByTypes('delayed');
+    return this.getJobCountByTypes('delayed')
   }
 
   /**
    * Returns the number of jobs in active status.
    */
   getActiveCount(): Promise<number> {
-    return this.getJobCountByTypes('active');
+    return this.getJobCountByTypes('active')
   }
 
   /**
    * Returns the number of jobs in prioritized status.
    */
   getPrioritizedCount(): Promise<number> {
-    return this.getJobCountByTypes('prioritized');
+    return this.getJobCountByTypes('prioritized')
   }
 
   /**
    * Returns the number of jobs per priority.
    */
   async getCountsPerPriority(priorities: number[]): Promise<{
-    [index: string]: number;
+    [index: string]: number
   }> {
-    const uniquePriorities = [...new Set(priorities)];
-    const responses = await this.scripts.getCountsPerPriority(uniquePriorities);
+    const uniquePriorities = [...new Set(priorities)]
+    const responses = await this.scripts.getCountsPerPriority(uniquePriorities)
 
-    const counts: { [index: string]: number } = {};
+    const counts: { [index: string]: number } = {}
     responses.forEach((res, index) => {
-      counts[`${uniquePriorities[index]}`] = res || 0;
-    });
+      counts[`${uniquePriorities[index]}`] = res || 0
+    })
 
-    return counts;
+    return counts
   }
 
   /**
    * Returns the number of jobs in waiting or paused statuses.
    */
   getWaitingCount(): Promise<number> {
-    return this.getJobCountByTypes('waiting');
+    return this.getJobCountByTypes('waiting')
   }
 
   /**
    * Returns the number of jobs in waiting-children status.
    */
   getWaitingChildrenCount(): Promise<number> {
-    return this.getJobCountByTypes('waiting-children');
+    return this.getJobCountByTypes('waiting-children')
   }
 
   /**
@@ -233,7 +233,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param end - zero based index where to stop returning jobs.
    */
   getWaiting(start = 0, end = -1): Promise<JobBase[]> {
-    return this.getJobs(['waiting'], start, end, true);
+    return this.getJobs(['waiting'], start, end, true)
   }
 
   /**
@@ -243,7 +243,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param end - zero based index where to stop returning jobs.
    */
   getWaitingChildren(start = 0, end = -1): Promise<JobBase[]> {
-    return this.getJobs(['waiting-children'], start, end, true);
+    return this.getJobs(['waiting-children'], start, end, true)
   }
 
   /**
@@ -252,7 +252,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param end - zero based index where to stop returning jobs.
    */
   getActive(start = 0, end = -1): Promise<JobBase[]> {
-    return this.getJobs(['active'], start, end, true);
+    return this.getJobs(['active'], start, end, true)
   }
 
   /**
@@ -261,7 +261,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param end - zero based index where to stop returning jobs.
    */
   getDelayed(start = 0, end = -1): Promise<JobBase[]> {
-    return this.getJobs(['delayed'], start, end, true);
+    return this.getJobs(['delayed'], start, end, true)
   }
 
   /**
@@ -270,7 +270,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param end - zero based index where to stop returning jobs.
    */
   getPrioritized(start = 0, end = -1): Promise<JobBase[]> {
-    return this.getJobs(['prioritized'], start, end, true);
+    return this.getJobs(['prioritized'], start, end, true)
   }
 
   /**
@@ -279,7 +279,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param end - zero based index where to stop returning jobs.
    */
   getCompleted(start = 0, end = -1): Promise<JobBase[]> {
-    return this.getJobs(['completed'], start, end, false);
+    return this.getJobs(['completed'], start, end, false)
   }
 
   /**
@@ -288,7 +288,7 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    * @param end - zero based index where to stop returning jobs.
    */
   getFailed(start = 0, end = -1): Promise<JobBase[]> {
-    return this.getJobs(['failed'], start, end, false);
+    return this.getJobs(['failed'], start, end, false)
   }
 
   /**
@@ -314,25 +314,25 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
     start: number,
     end: number,
   ): Promise<{
-    items: { id: string; v?: any; err?: string }[];
-    jobs: JobJsonRaw[];
-    total: number;
-  }> {
+      items: { id: string, v?: any, err?: string }[]
+      jobs: JobJsonRaw[]
+      total: number
+    }> {
     const key = this.toKey(
       type == 'processed'
         ? `${parentId}:processed`
         : `${parentId}:dependencies`,
-    );
+    )
     const { items, total, jobs } = await this.scripts.paginate(key, {
       start,
       end,
       fetchJobs: true,
-    });
+    })
     return {
       items,
       jobs,
       total,
-    };
+    }
   }
 
   async getRanges(
@@ -341,34 +341,35 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
     end = 1,
     asc = false,
   ): Promise<string[]> {
-    const multiCommands: string[] = [];
+    const multiCommands: string[] = []
 
     this.commandByType(types, false, (key, command) => {
       switch (command) {
         case 'lrange':
-          multiCommands.push('lrange');
-          break;
+          multiCommands.push('lrange')
+          break
         case 'zrange':
-          multiCommands.push('zrange');
-          break;
+          multiCommands.push('zrange')
+          break
       }
-    });
+    })
 
-    const responses = await this.scripts.getRanges(types, start, end, asc);
+    const responses = await this.scripts.getRanges(types, start, end, asc)
 
-    let results: string[] = [];
+    let results: string[] = []
 
     responses.forEach((response: string[], index: number) => {
-      const result = response || [];
+      const result = response || []
 
       if (asc && multiCommands[index] === 'lrange') {
-        results = results.concat(result.reverse());
-      } else {
-        results = results.concat(result);
+        results = results.concat(result.reverse())
       }
-    });
+      else {
+        results = results.concat(result)
+      }
+    })
 
-    return [...new Set(results)];
+    return [...new Set(results)]
   }
 
   /**
@@ -384,13 +385,13 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
     end = -1,
     asc = false,
   ): Promise<JobBase[]> {
-    const currentTypes = this.sanitizeJobTypes(types);
+    const currentTypes = this.sanitizeJobTypes(types)
 
-    const jobIds = await this.getRanges(currentTypes, start, end, asc);
+    const jobIds = await this.getRanges(currentTypes, start, end, asc)
 
     return Promise.all(
       jobIds.map(jobId => this.Job.fromId(this, jobId) as Promise<JobBase>),
-    );
+    )
   }
 
   /**
@@ -405,43 +406,45 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
     start = 0,
     end = -1,
     asc = true,
-  ): Promise<{ logs: string[]; count: number }> {
-    const client = await this.client;
-    const multi = client.multi();
+  ): Promise<{ logs: string[], count: number }> {
+    const client = await this.client
+    const multi = client.multi()
 
-    const logsKey = this.toKey(jobId + ':logs');
+    const logsKey = this.toKey(`${jobId}:logs`)
     if (asc) {
-      multi.lrange(logsKey, start, end);
-    } else {
-      multi.lrange(logsKey, -(end + 1), -(start + 1));
+      multi.lrange(logsKey, start, end)
     }
-    multi.llen(logsKey);
-    const result = (await multi.exec()) as [[Error, [string]], [Error, number]];
+    else {
+      multi.lrange(logsKey, -(end + 1), -(start + 1))
+    }
+    multi.llen(logsKey)
+    const result = (await multi.exec()) as [[Error, [string]], [Error, number]]
     if (!asc) {
-      result[0][1].reverse();
+      result[0][1].reverse()
     }
     return {
       logs: result[0][1],
       count: result[1][1],
-    };
+    }
   }
 
   private async baseGetClients(matcher: (name: string) => boolean): Promise<
     {
-      [index: string]: string;
+      [index: string]: string
     }[]
   > {
-    const client = await this.client;
+    const client = await this.client
     try {
-      const clients = (await client.client('LIST')) as string;
-      const list = this.parseClientList(clients, matcher);
-      return list;
-    } catch (err) {
+      const clients = (await client.client('LIST')) as string
+      const list = this.parseClientList(clients, matcher)
+      return list
+    }
+    catch (err) {
       if (!clientCommandMessageReg.test((<Error>err).message)) {
-        throw err;
+        throw err
       }
 
-      return [{ name: 'GCP does not support client list' }];
+      return [{ name: 'GCP does not support client list' }]
     }
   }
 
@@ -454,18 +457,18 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    */
   getWorkers(): Promise<
     {
-      [index: string]: string;
+      [index: string]: string
     }[]
   > {
-    const unnamedWorkerClientName = `${this.clientName()}`;
-    const namedWorkerClientName = `${this.clientName()}:w:`;
+    const unnamedWorkerClientName = `${this.clientName()}`
+    const namedWorkerClientName = `${this.clientName()}:w:`
 
     const matcher = (name: string) =>
-      name &&
-      (name === unnamedWorkerClientName ||
-        name.startsWith(namedWorkerClientName));
+      name
+      && (name === unnamedWorkerClientName
+        || name.startsWith(namedWorkerClientName))
 
-    return this.baseGetClients(matcher);
+    return this.baseGetClients(matcher)
   }
 
   /**
@@ -475,8 +478,8 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    *
    */
   async getWorkersCount(): Promise<number> {
-    const workers = await this.getWorkers();
-    return workers.length;
+    const workers = await this.getWorkers()
+    return workers.length
   }
 
   /**
@@ -489,11 +492,11 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    */
   async getQueueEvents(): Promise<
     {
-      [index: string]: string;
+      [index: string]: string
     }[]
   > {
-    const clientName = `${this.clientName()}${QUEUE_EVENT_SUFFIX}`;
-    return this.baseGetClients((name: string) => name === clientName);
+    const clientName = `${this.clientName()}${QUEUE_EVENT_SUFFIX}`
+    return this.baseGetClients((name: string) => name === clientName)
   }
 
   /**
@@ -515,59 +518,59 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
     start = 0,
     end = -1,
   ): Promise<Metrics> {
-    const client = await this.client;
-    const metricsKey = this.toKey(`metrics:${type}`);
-    const dataKey = `${metricsKey}:data`;
+    const client = await this.client
+    const metricsKey = this.toKey(`metrics:${type}`)
+    const dataKey = `${metricsKey}:data`
 
-    const multi = client.multi();
-    multi.hmget(metricsKey, 'count', 'prevTS', 'prevCount');
-    multi.lrange(dataKey, start, end);
-    multi.llen(dataKey);
+    const multi = client.multi()
+    multi.hmget(metricsKey, 'count', 'prevTS', 'prevCount')
+    multi.lrange(dataKey, start, end)
+    multi.llen(dataKey)
 
     const [hmget, range, len] = (await multi.exec()) as [
       [Error, [string, string, string]],
       [Error, []],
       [Error, number],
-    ];
-    const [err, [count, prevTS, prevCount]] = hmget;
-    const [err2, data] = range;
-    const [err3, numPoints] = len;
+    ]
+    const [err, [count, prevTS, prevCount]] = hmget
+    const [err2, data] = range
+    const [err3, numPoints] = len
     if (err || err2) {
-      throw err || err2 || err3;
+      throw err || err2 || err3
     }
 
     return {
       meta: {
-        count: parseInt(count || '0', 10),
-        prevTS: parseInt(prevTS || '0', 10),
-        prevCount: parseInt(prevCount || '0', 10),
+        count: Number.parseInt(count || '0', 10),
+        prevTS: Number.parseInt(prevTS || '0', 10),
+        prevCount: Number.parseInt(prevCount || '0', 10),
       },
       data,
       count: numPoints,
-    };
+    }
   }
 
   private parseClientList(list: string, matcher: (name: string) => boolean) {
-    const lines = list.split(/\r?\n/);
-    const clients: { [index: string]: string }[] = [];
+    const lines = list.split(/\r?\n/)
+    const clients: { [index: string]: string }[] = []
 
     lines.forEach((line: string) => {
-      const client: { [index: string]: string } = {};
-      const keyValues = line.split(' ');
-      keyValues.forEach(function (keyValue) {
-        const index = keyValue.indexOf('=');
-        const key = keyValue.substring(0, index);
-        const value = keyValue.substring(index + 1);
-        client[key] = value;
-      });
-      const name = client['name'];
+      const client: { [index: string]: string } = {}
+      const keyValues = line.split(' ')
+      keyValues.forEach((keyValue) => {
+        const index = keyValue.indexOf('=')
+        const key = keyValue.substring(0, index)
+        const value = keyValue.substring(index + 1)
+        client[key] = value
+      })
+      const name = client.name
       if (matcher(name)) {
-        client['name'] = this.name;
-        client['rawname'] = name;
-        clients.push(client);
+        client.name = this.name
+        client.rawname = name
+        clients.push(client)
       }
-    });
-    return clients;
+    })
+    return clients
   }
 
   /**
@@ -578,32 +581,32 @@ export class QueueGetters<JobBase extends Job = Job> extends QueueBase {
    *
    * @see {@link https://prometheus.io/docs/instrumenting/exposition_formats/}
    *
-   **/
+   */
   async exportPrometheusMetrics(
     globalVariables?: Record<string, string>,
   ): Promise<string> {
-    const counts = await this.getJobCounts();
-    const metrics: string[] = [];
+    const counts = await this.getJobCounts()
+    const metrics: string[] = []
 
     // Match the test's expected HELP text
     metrics.push(
       '# HELP bullmq_job_count Number of jobs in the queue by state',
-    );
-    metrics.push('# TYPE bullmq_job_count gauge');
+    )
+    metrics.push('# TYPE bullmq_job_count gauge')
 
     const variables = !globalVariables
       ? ''
       : Object.keys(globalVariables).reduce(
           (acc, curr) => `${acc}, ${curr}="${globalVariables[curr]}"`,
           '',
-        );
+        )
 
     for (const [state, count] of Object.entries(counts)) {
       metrics.push(
         `bullmq_job_count{queue="${this.name}", state="${state}"${variables}} ${count}`,
-      );
+      )
     }
 
-    return metrics.join('\n');
+    return metrics.join('\n')
   }
 }

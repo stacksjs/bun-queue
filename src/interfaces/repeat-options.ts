@@ -1,4 +1,4 @@
-import { ParserOptions } from 'cron-parser';
+import type { ParserOptions } from 'cron-parser'
 
 /**
  * Settings for repeatable jobs
@@ -9,7 +9,7 @@ export interface RepeatOptions extends Omit<ParserOptions, 'iterator'> {
   /**
    * A repeat pattern
    */
-  pattern?: string;
+  pattern?: string
 
   /**
    * Custom repeatable key. This is the key that holds the "metadata"
@@ -17,44 +17,44 @@ export interface RepeatOptions extends Omit<ParserOptions, 'iterator'> {
    * it is sometimes useful to specify a custom key for easier retrieval
    * of repeatable jobs.
    */
-  key?: string;
+  key?: string
 
   /**
    * Number of times the job should repeat at max.
    */
-  limit?: number;
+  limit?: number
 
   /**
    * Repeat after this amount of milliseconds
    * (`pattern` setting cannot be used together with this setting.)
    */
-  every?: number;
+  every?: number
 
   /**
    * Repeated job should start right now
    * ( work only with cron settings)
    */
-  immediately?: boolean;
+  immediately?: boolean
 
   /**
    * The start value for the repeat iteration count.
    */
-  count?: number;
+  count?: number
 
   /**
    * Offset in milliseconds to affect the next iteration time
    *
-   * */
-  offset?: number;
+   */
+  offset?: number
 
   /**
    * Internal property to store the previous time the job was executed.
    */
-  prevMillis?: number;
+  prevMillis?: number
 
   /**
    * Internal property to store de job id
    * @deprecated not in use anymore
    */
-  jobId?: string;
+  jobId?: string
 }

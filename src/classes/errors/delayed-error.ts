@@ -1,4 +1,4 @@
-export const DELAYED_ERROR = 'bullmq:movedToDelayed';
+export const DELAYED_ERROR = 'bullmq:movedToDelayed'
 
 /**
  * DelayedError
@@ -9,8 +9,8 @@ export const DELAYED_ERROR = 'bullmq:movedToDelayed';
  */
 export class DelayedError extends Error {
   constructor(message: string = DELAYED_ERROR) {
-    super(message);
-    this.name = this.constructor.name;
-    Object.setPrototypeOf(this, new.target.prototype);
+    super(message)
+    this.name = this.constructor.name
+    Object.setPrototypeOf(this, new.target.prototype)
   }
 }

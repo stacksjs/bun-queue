@@ -1,6 +1,6 @@
 # Configuration
 
-_This is just an example of the ts-starter docs._
+_This is just an example of the bun-starter docs._
 
 The Reverse Proxy can be configured using a `reverse-proxy.config.ts` _(or `reverse-proxy.config.js`)_ file and it will be automatically loaded when running the `reverse-proxy` command.
 

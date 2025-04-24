@@ -1,6 +1,6 @@
-import { QueueBaseOptions } from '../interfaces';
-import { QueueBase } from './queue-base';
-import { RedisConnection } from './redis-connection';
+import type { QueueBaseOptions } from '../interfaces'
+import type { RedisConnection } from './redis-connection'
+import { QueueBase } from './queue-base'
 
 /**
  * The QueueEventsProducer class is used for publishing custom events.
@@ -20,9 +20,9 @@ export class QueueEventsProducer extends QueueBase {
         ...opts,
       },
       Connection,
-    );
+    )
 
-    this.opts = opts;
+    this.opts = opts
   }
 
   /**
@@ -34,16 +34,16 @@ export class QueueEventsProducer extends QueueBase {
     argsObj: T,
     maxEvents = 1000,
   ): Promise<void> {
-    const client = await this.client;
-    const key = this.keys.events;
-    const { eventName, ...restArgs } = argsObj;
-    const args: any[] = ['MAXLEN', '~', maxEvents, '*', 'event', eventName];
+    const client = await this.client
+    const key = this.keys.events
+    const { eventName, ...restArgs } = argsObj
+    const args: any[] = ['MAXLEN', '~', maxEvents, '*', 'event', eventName]
 
     for (const [key, value] of Object.entries(restArgs)) {
-      args.push(key, value);
+      args.push(key, value)
     }
 
-    await client.xadd(key, ...args);
+    await client.xadd(key, ...args)
   }
 
   /**
@@ -51,8 +51,8 @@ export class QueueEventsProducer extends QueueBase {
    */
   async close(): Promise<void> {
     if (!this.closing) {
-      this.closing = this.connection.close();
+      this.closing = this.connection.close()
     }
-    await this.closing;
+    await this.closing
   }
 }

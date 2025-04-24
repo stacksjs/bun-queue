@@ -1,24 +1,24 @@
-import { BackoffOptions, MinimalJob } from '../interfaces';
-import { BackoffStrategy } from '../types';
+import type { BackoffOptions, MinimalJob } from '../interfaces'
+import type { BackoffStrategy } from '../types'
 
 export interface BuiltInStrategies {
-  [index: string]: (delay: number) => BackoffStrategy;
+  [index: string]: (delay: number) => BackoffStrategy
 }
 
 export class Backoffs {
   static builtinStrategies: BuiltInStrategies = {
-    fixed: function (delay: number) {
+    fixed(delay: number) {
       return function (): number {
-        return delay;
-      };
+        return delay
+      }
     },
 
-    exponential: function (delay: number) {
+    exponential(delay: number) {
       return function (attemptsMade: number): number {
-        return Math.round(Math.pow(2, attemptsMade - 1) * delay);
-      };
+        return Math.round(2 ** (attemptsMade - 1) * delay)
+      }
     },
-  };
+  }
 
   static normalize(
     backoff: number | BackoffOptions,
@@ -27,9 +27,10 @@ export class Backoffs {
       return {
         type: 'fixed',
         delay: <number>backoff,
-      };
-    } else if (backoff) {
-      return <BackoffOptions>backoff;
+      }
+    }
+    else if (backoff) {
+      return <BackoffOptions>backoff
     }
   }
 
@@ -41,9 +42,9 @@ export class Backoffs {
     customStrategy?: BackoffStrategy,
   ): Promise<number> | number | undefined {
     if (backoff) {
-      const strategy = lookupStrategy(backoff, customStrategy);
+      const strategy = lookupStrategy(backoff, customStrategy)
 
-      return strategy(attemptsMade, backoff.type, err, job);
+      return strategy(attemptsMade, backoff.type, err, job)
     }
   }
 }
@@ -53,13 +54,15 @@ function lookupStrategy(
   customStrategy?: BackoffStrategy,
 ): BackoffStrategy {
   if (backoff.type in Backoffs.builtinStrategies) {
-    return Backoffs.builtinStrategies[backoff.type](backoff.delay!);
-  } else if (customStrategy) {
-    return customStrategy;
-  } else {
+    return Backoffs.builtinStrategies[backoff.type](backoff.delay!)
+  }
+  else if (customStrategy) {
+    return customStrategy
+  }
+  else {
     throw new Error(
       `Unknown backoff strategy ${backoff.type}.
       If a custom backoff strategy is used, specify it when the queue is created.`,
-    );
+    )
   }
 }

@@ -1,4 +1,4 @@
-export const UNRECOVERABLE_ERROR = 'bullmq:unrecoverable';
+export const UNRECOVERABLE_ERROR = 'bullmq:unrecoverable'
 
 /**
  * UnrecoverableError
@@ -9,8 +9,8 @@ export const UNRECOVERABLE_ERROR = 'bullmq:unrecoverable';
  */
 export class UnrecoverableError extends Error {
   constructor(message: string = UNRECOVERABLE_ERROR) {
-    super(message);
-    this.name = this.constructor.name;
-    Object.setPrototypeOf(this, new.target.prototype);
+    super(message)
+    this.name = this.constructor.name
+    Object.setPrototypeOf(this, new.target.prototype)
   }
 }

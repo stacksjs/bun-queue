@@ -1,27 +1,27 @@
-import { JobsOptions } from '../types';
-import { QueueOptions } from './queue-options';
+import type { JobsOptions } from '../types'
+import type { QueueOptions } from './queue-options'
 
 export interface FlowJobBase<T> {
-  name: string;
-  queueName: string;
-  data?: any;
-  prefix?: string;
-  opts?: Omit<T, 'repeat'>;
-  children?: FlowChildJob[];
+  name: string
+  queueName: string
+  data?: any
+  prefix?: string
+  opts?: Omit<T, 'repeat'>
+  children?: FlowChildJob[]
 }
 
-export type FlowChildJob = FlowJobBase<Omit<JobsOptions, 'parent'>>;
+export type FlowChildJob = FlowJobBase<Omit<JobsOptions, 'parent'>>
 
-export type FlowJob = FlowJobBase<JobsOptions>;
+export type FlowJob = FlowJobBase<JobsOptions>
 
 export type FlowQueuesOpts = Record<
   string,
   Omit<QueueOptions, 'connection' | 'prefix'>
->;
+>
 
 export interface FlowOpts {
   /**
    * Map of options for Queue classes.
    */
-  queuesOptions: FlowQueuesOpts;
+  queuesOptions: FlowQueuesOpts
 }

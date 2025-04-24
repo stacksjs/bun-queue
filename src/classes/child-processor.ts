@@ -1,7 +1,7 @@
-import { ParentCommand } from '../enums';
-import { SandboxedJob, Receiver } from '../interfaces';
-import { JobJsonSandbox, JobProgress } from '../types';
-import { errorToJSON } from '../utils';
+import type { Receiver, SandboxedJob } from '../interfaces'
+import type { JobJsonSandbox, JobProgress } from '../types'
+import { ParentCommand } from '../enums'
+import { errorToJSON } from '../utils'
 
 enum ChildStatus {
   Idle,
@@ -10,7 +10,7 @@ enum ChildStatus {
   Errored,
 }
 
-const RESPONSE_TIMEOUT = process.env.NODE_ENV === 'test' ? 500 : 5_000;
+const RESPONSE_TIMEOUT = process.env.NODE_ENV === 'test' ? 500 : 5_000
 
 /**
  * ChildProcessor
@@ -20,9 +20,9 @@ const RESPONSE_TIMEOUT = process.env.NODE_ENV === 'test' ? 500 : 5_000;
  *
  */
 export class ChildProcessor {
-  public status?: ChildStatus;
-  public processor: any;
-  public currentJobPromise: Promise<unknown> | undefined;
+  public status?: ChildStatus
+  public processor: any
+  public currentJobPromise: Promise<unknown> | undefined
 
   constructor(
     private send: (msg: any) => Promise<void>,
@@ -30,41 +30,43 @@ export class ChildProcessor {
   ) {}
 
   public async init(processorFile: string): Promise<void> {
-    let processor;
+    let processor
     try {
-      const { default: processorFn } = await import(processorFile);
-      processor = processorFn;
+      const { default: processorFn } = await import(processorFile)
+      processor = processorFn
 
       if (processor.default) {
         // support es2015 module.
-        processor = processor.default;
+        processor = processor.default
       }
 
       if (typeof processor !== 'function') {
-        throw new Error('No function is exported in processor file');
+        throw new TypeError('No function is exported in processor file')
       }
-    } catch (err) {
-      this.status = ChildStatus.Errored;
+    }
+    catch (err) {
+      this.status = ChildStatus.Errored
       return this.send({
         cmd: ParentCommand.InitFailed,
         err: errorToJSON(err),
-      });
+      })
     }
 
-    const origProcessor = processor;
+    const origProcessor = processor
     processor = function (job: SandboxedJob, token?: string) {
       try {
-        return Promise.resolve(origProcessor(job, token));
-      } catch (err) {
-        return Promise.reject(err);
+        return Promise.resolve(origProcessor(job, token))
       }
-    };
+      catch (err) {
+        return Promise.reject(err)
+      }
+    }
 
-    this.processor = processor;
-    this.status = ChildStatus.Idle;
+    this.processor = processor
+    this.status = ChildStatus.Idle
     await this.send({
       cmd: ParentCommand.InitCompleted,
-    });
+    })
   }
 
   public async start(jobJson: JobJsonSandbox, token?: string): Promise<void> {
@@ -72,37 +74,40 @@ export class ChildProcessor {
       return this.send({
         cmd: ParentCommand.Error,
         err: errorToJSON(new Error('cannot start a not idling child process')),
-      });
+      })
     }
-    this.status = ChildStatus.Started;
+    this.status = ChildStatus.Started
     this.currentJobPromise = (async () => {
       try {
-        const job = this.wrapJob(jobJson, this.send);
-        const result = await this.processor(job, token);
+        const job = this.wrapJob(jobJson, this.send)
+        const result = await this.processor(job, token)
         await this.send({
           cmd: ParentCommand.Completed,
           value: typeof result === 'undefined' ? null : result,
-        });
-      } catch (err) {
+        })
+      }
+      catch (err) {
         await this.send({
           cmd: ParentCommand.Failed,
           value: errorToJSON(!(<Error>err).message ? new Error(<any>err) : err),
-        });
-      } finally {
-        this.status = ChildStatus.Idle;
-        this.currentJobPromise = undefined;
+        })
       }
-    })();
+      finally {
+        this.status = ChildStatus.Idle
+        this.currentJobPromise = undefined
+      }
+    })()
   }
 
   public async stop(): Promise<void> {}
 
   async waitForCurrentJobAndExit(): Promise<void> {
-    this.status = ChildStatus.Terminating;
+    this.status = ChildStatus.Terminating
     try {
-      await this.currentJobPromise;
-    } finally {
-      process.exit(process.exitCode || 0);
+      await this.currentJobPromise
+    }
+    finally {
+      process.exit(process.exitCode || 0)
     }
   }
 
@@ -130,12 +135,12 @@ export class ChildProcessor {
       async updateProgress(progress: JobProgress) {
         // Locally store reference to new progress value
         // so that we can return it from this process synchronously.
-        this.progress = progress;
+        this.progress = progress
         // Send message to update job progress.
         await send({
           cmd: ParentCommand.Progress,
           value: progress,
-        });
+        })
       },
       /*
        * Proxy job `log` function.
@@ -144,7 +149,7 @@ export class ChildProcessor {
         await send({
           cmd: ParentCommand.Log,
           value: row,
-        });
+        })
       },
       /*
        * Proxy `moveToDelayed` function.
@@ -153,7 +158,7 @@ export class ChildProcessor {
         await send({
           cmd: ParentCommand.MoveToDelayed,
           value: { timestamp, token },
-        });
+        })
       },
       /*
        * Proxy `updateData` function.
@@ -162,52 +167,47 @@ export class ChildProcessor {
         await send({
           cmd: ParentCommand.Update,
           value: data,
-        });
-        wrappedJob.data = data;
+        })
+        wrappedJob.data = data
       },
 
       /**
        * Proxy `getChildrenValues` function.
        */
       getChildrenValues: async () => {
-        const requestId = Math.random().toString(36).substring(2, 15);
+        const requestId = Math.random().toString(36).substring(2, 15)
         await send({
           requestId,
           cmd: ParentCommand.GetChildrenValues,
-        });
+        })
 
         return waitResponse(
           requestId,
           this.receiver,
           RESPONSE_TIMEOUT,
           'getChildrenValues',
-        );
+        )
       },
-    };
+    }
 
-    return wrappedJob;
+    return wrappedJob
   }
 }
 
-const waitResponse = async (
-  requestId: string,
-  receiver: Receiver,
-  timeout: number,
-  cmd: string,
-) => {
+async function waitResponse(requestId: string, receiver: Receiver, timeout: number, cmd: string) {
   return new Promise((resolve, reject) => {
-    const listener = (msg: { requestId: string; value: any }) => {
+    const listener = (msg: { requestId: string, value: any }) => {
       if (msg.requestId === requestId) {
-        resolve(msg.value);
-        receiver.off('message', listener);
+        resolve(msg.value)
+        receiver.off('message', listener)
       }
-    };
-    receiver.on('message', listener);
+    }
+    receiver.on('message', listener)
 
     setTimeout(() => {
-      receiver.off('message', listener);
+      receiver.off('message', listener)
 
-      reject(new Error(`TimeoutError: ${cmd} timed out in (${timeout}ms)`));
-    }, timeout);
-  });
-};
+      reject(new Error(`TimeoutError: ${cmd} timed out in (${timeout}ms)`))
+    }, timeout)
+  })
+}

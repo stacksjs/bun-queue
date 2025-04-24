@@ -5,10 +5,10 @@ export interface DebounceOptions {
   /**
    * ttl in milliseconds
    */
-  ttl?: number;
+  ttl?: number
 
   /**
    * Identifier
    */
-  id: string;
+  id: string
 }

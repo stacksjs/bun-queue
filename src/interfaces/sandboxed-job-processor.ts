@@ -1,4 +1,4 @@
-import { SandboxedJob } from './sandboxed-job';
+import type { SandboxedJob } from './sandboxed-job'
 
 /**
  * @see {@link https://docs.bullmq.io/guide/workers/sandboxed-processors}
@@ -6,6 +6,6 @@ import { SandboxedJob } from './sandboxed-job';
 export type SandboxedJobProcessor<T = any, R = any> =
   | ((job: SandboxedJob<T, R>) => R | PromiseLike<R>)
   | ((
-      job: SandboxedJob<T, R>,
-      callback: (error: unknown, result: R) => void,
-    ) => void);
+    job: SandboxedJob<T, R>,
+    callback: (error: unknown, result: R) => void,
+  ) => void)

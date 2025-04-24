@@ -1,17 +1,14 @@
-import { ChildCommand, ParentCommand } from '../enums';
-import { ChildMessage } from '../interfaces';
-import { Child } from './child';
-import { ChildPool } from './child-pool';
-import { Job } from './job';
+import type { ChildMessage } from '../interfaces'
+import type { Child } from './child'
+import type { ChildPool } from './child-pool'
+import type { Job } from './job'
+import { ChildCommand, ParentCommand } from '../enums'
 
-const sandbox = <T, R, N extends string>(
-  processFile: any,
-  childPool: ChildPool,
-) => {
+function sandbox<T, R, N extends string>(processFile: any, childPool: ChildPool) {
   return async function process(job: Job<T, R, N>, token?: string): Promise<R> {
-    let child: Child;
-    let msgHandler: any;
-    let exitHandler: any;
+    let child: Child
+    let msgHandler: any
+    let exitHandler: any
     try {
       const done: Promise<R> = new Promise((resolve, reject) => {
         const initChild = async () => {
@@ -19,84 +16,87 @@ const sandbox = <T, R, N extends string>(
             exitHandler = (exitCode: any, signal: any) => {
               reject(
                 new Error(
-                  'Unexpected exit code: ' + exitCode + ' signal: ' + signal,
+                  `Unexpected exit code: ${exitCode} signal: ${signal}`,
                 ),
-              );
-            };
+              )
+            }
 
-            child = await childPool.retain(processFile);
-            child.on('exit', exitHandler);
+            child = await childPool.retain(processFile)
+            child.on('exit', exitHandler)
 
             msgHandler = async (msg: ChildMessage) => {
               try {
                 switch (msg.cmd) {
                   case ParentCommand.Completed:
-                    resolve(msg.value);
-                    break;
+                    resolve(msg.value)
+                    break
                   case ParentCommand.Failed:
                   case ParentCommand.Error: {
-                    const err = new Error();
-                    Object.assign(err, msg.value);
-                    reject(err);
-                    break;
+                    const err = new Error()
+                    Object.assign(err, msg.value)
+                    reject(err)
+                    break
                   }
                   case ParentCommand.Progress:
-                    await job.updateProgress(msg.value);
-                    break;
+                    await job.updateProgress(msg.value)
+                    break
                   case ParentCommand.Log:
-                    await job.log(msg.value);
-                    break;
+                    await job.log(msg.value)
+                    break
                   case ParentCommand.MoveToDelayed:
                     await job.moveToDelayed(
                       msg.value?.timestamp,
                       msg.value?.token,
-                    );
-                    break;
+                    )
+                    break
                   case ParentCommand.Update:
-                    await job.updateData(msg.value);
-                    break;
+                    await job.updateData(msg.value)
+                    break
                   case ParentCommand.GetChildrenValues:
                     {
-                      const value = await job.getChildrenValues();
+                      const value = await job.getChildrenValues()
                       child.send({
                         requestId: msg.requestId,
                         cmd: ChildCommand.GetChildrenValuesResponse,
                         value,
-                      });
+                      })
                     }
-                    break;
+                    break
                 }
-              } catch (err) {
-                reject(err);
               }
-            };
+              catch (err) {
+                reject(err)
+              }
+            }
 
-            child.on('message', msgHandler);
+            child.on('message', msgHandler)
 
             child.send({
               cmd: ChildCommand.Start,
               job: job.asJSONSandbox(),
               token,
-            });
-          } catch (error) {
-            reject(error);
+            })
           }
-        };
-        initChild();
-      });
+          catch (error) {
+            reject(error)
+          }
+        }
+        initChild()
+      })
 
-      await done;
-      return done;
-    } finally {
+      await done
+      return done
+    }
+    finally {
       if (child) {
-        child.off('message', msgHandler);
-        child.off('exit', exitHandler);
+        child.off('message', msgHandler)
+        child.off('exit', exitHandler)
         if (child.exitCode === null && child.signalCode === null) {
-          childPool.release(child);
+          childPool.release(child)
         }
       }
     }
-  };
-};
+  }
+}
 
-export default sandbox;
+export default sandbox

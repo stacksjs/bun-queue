@@ -1,4 +1,4 @@
-import { SpanKind } from '../enums';
+import type { SpanKind } from '../enums'
 
 /**
  * Telemetry interface
@@ -15,7 +15,7 @@ export interface Telemetry<Context = any> {
    * The tracer is responsible for creating spans and propagating the context
    * across the application.
    */
-  tracer: Tracer<Context>;
+  tracer: Tracer<Context>
 
   /**
    * Context manager instance
@@ -23,7 +23,7 @@ export interface Telemetry<Context = any> {
    * The context manager is responsible for managing the context and propagating
    * it across the application.
    */
-  contextManager: ContextManager;
+  contextManager: ContextManager
 }
 
 /**
@@ -39,15 +39,15 @@ export interface ContextManager<Context = any> {
    * @param context - the context to set as active
    * @param fn - the function to execute with the context
    */
-  with<A extends (...args: any[]) => any>(
+  with: <A extends (...args: any[]) => any>(
     context: Context,
     fn: A,
-  ): ReturnType<A>;
+  ) => ReturnType<A>
 
   /**
    * Returns the active context
    */
-  active(): Context;
+  active: () => Context
 
   /**
    * Returns a serialized version of the current context. The metadata
@@ -56,7 +56,7 @@ export interface ContextManager<Context = any> {
    *
    * @param context - the current context
    */
-  getMetadata(context: Context): string;
+  getMetadata: (context: Context) => string
 
   /**
    * Creates a new context from a serialized version effectively
@@ -65,7 +65,7 @@ export interface ContextManager<Context = any> {
    * @param activeContext - the current active context
    * @param metadata - the serialized version of the context
    */
-  fromMetadata(activeContext: Context, metadata: string): Context;
+  fromMetadata: (activeContext: Context, metadata: string) => Context
 }
 
 /**
@@ -83,11 +83,11 @@ export interface Tracer<Context = any> {
    * @param context - optional context
    * @returns - the created span
    */
-  startSpan(name: string, options?: SpanOptions, context?: Context): Span;
+  startSpan: (name: string, options?: SpanOptions, context?: Context) => Span
 }
 
 export interface SpanOptions {
-  kind: SpanKind;
+  kind: SpanKind
 }
 
 /**
@@ -101,7 +101,7 @@ export interface Span<Context = any> {
    * @param ctx - context to set the span on
    * @returns - the context with the span set on it
    */
-  setSpanOnContext(ctx: Context): Context;
+  setSpanOnContext: (ctx: Context) => Context
 
   /**
    * setAttribute sets an attribute on the span.
@@ -109,14 +109,14 @@ export interface Span<Context = any> {
    * @param key - attribute key
    * @param value - attribute value
    */
-  setAttribute(key: string, value: AttributeValue): void;
+  setAttribute: (key: string, value: AttributeValue) => void
 
   /**
    * setAttributes sets multiple attributes on the span.
    *
    * @param attributes - attributes to set
    */
-  setAttributes(attributes: Attributes): void;
+  setAttributes: (attributes: Attributes) => void
 
   /**
    * addEvent adds an event to the span.
@@ -124,7 +124,7 @@ export interface Span<Context = any> {
    * @param name - event name
    * @param attributes - event attributes
    */
-  addEvent(name: string, attributes?: Attributes): void;
+  addEvent: (name: string, attributes?: Attributes) => void
 
   /**
    * recordException records an exception on the span.
@@ -132,18 +132,18 @@ export interface Span<Context = any> {
    * @param exception - exception to record
    * @param time - time to record the exception
    */
-  recordException(exception: Exception, time?: Time): void;
+  recordException: (exception: Exception, time?: Time) => void
 
   /**
    * end ends the span.
    *
    * Note: spans must be ended so that they can be exported.
    */
-  end(): void;
+  end: () => void
 }
 
 export interface Attributes {
-  [attribute: string]: AttributeValue | undefined;
+  [attribute: string]: AttributeValue | undefined
 }
 
 export type AttributeValue =
@@ -152,33 +152,33 @@ export type AttributeValue =
   | boolean
   | Array<null | undefined | string>
   | Array<null | undefined | number>
-  | Array<null | undefined | boolean>;
+  | Array<null | undefined | boolean>
 
-export type Exception = string | ExceptionType;
+export type Exception = string | ExceptionType
 
-export type ExceptionType = CodeException | MessageException | NameException;
+export type ExceptionType = CodeException | MessageException | NameException
 
 interface CodeException {
-  code: string | number;
-  name?: string;
-  message?: string;
-  stack?: string;
+  code: string | number
+  name?: string
+  message?: string
+  stack?: string
 }
 
 interface MessageException {
-  code?: string | number;
-  name?: string;
-  message: string;
-  stack?: string;
+  code?: string | number
+  name?: string
+  message: string
+  stack?: string
 }
 
 interface NameException {
-  code?: string | number;
-  name: string;
-  message?: string;
-  stack?: string;
+  code?: string | number
+  name: string
+  message?: string
+  stack?: string
 }
 
-export type Time = HighResolutionTime | number | Date;
+export type Time = HighResolutionTime | number | Date
 
-type HighResolutionTime = [number, number];
+type HighResolutionTime = [number, number]

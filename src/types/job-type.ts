@@ -1,4 +1,4 @@
-import { FinishedStatus } from './finished-status';
+import type { FinishedStatus } from './finished-status'
 
 export type JobState =
   | FinishedStatus
@@ -6,6 +6,6 @@ export type JobState =
   | 'delayed'
   | 'prioritized'
   | 'waiting'
-  | 'waiting-children';
+  | 'waiting-children'
 
-export type JobType = JobState | 'paused' | 'repeat' | 'wait';
+export type JobType = JobState | 'paused' | 'repeat' | 'wait'

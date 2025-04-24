@@ -1,18 +1,18 @@
-import { JobProgress } from '../types';
-import {
+import type {
   IoredisListener,
   QueueEventsOptions,
   RedisClient,
   StreamReadRaw,
-} from '../interfaces';
+} from '../interfaces'
+import type { JobProgress } from '../types'
+import type { RedisConnection } from './redis-connection'
 import {
   array2obj,
   clientCommandMessageReg,
   isRedisInstance,
   QUEUE_EVENT_SUFFIX,
-} from '../utils';
-import { QueueBase } from './queue-base';
-import { RedisConnection } from './redis-connection';
+} from '../utils'
+import { QueueBase } from './queue-base'
 
 export interface QueueEventsListener extends IoredisListener {
   /**
@@ -27,7 +27,7 @@ export interface QueueEventsListener extends IoredisListener {
    * @param id - The identifier of the event.
    */
 
-  active: (args: { jobId: string; prev?: string }, id: string) => void;
+  'active': (args: { jobId: string, prev?: string }, id: string) => void
 
   /**
    * Listen to 'added' event.
@@ -39,7 +39,7 @@ export interface QueueEventsListener extends IoredisListener {
    *   - `name` - The name of the job, typically indicating its type or purpose.
    * @param id - The identifier of the event.
    */
-  added: (args: { jobId: string; name: string }, id: string) => void;
+  'added': (args: { jobId: string, name: string }, id: string) => void
 
   /**
    * Listen to 'cleaned' event.
@@ -50,7 +50,7 @@ export interface QueueEventsListener extends IoredisListener {
    *   - `count` - The number of jobs that were cleaned, represented as a string due to Redis serialization.
    * @param id - The identifier of the event.
    */
-  cleaned: (args: { count: string }, id: string) => void;
+  'cleaned': (args: { count: string }, id: string) => void
 
   /**
    * Listen to 'completed' event.
@@ -63,10 +63,10 @@ export interface QueueEventsListener extends IoredisListener {
    *   - `prev` - The previous state of the job before completion (e.g., 'active'), if applicable.
    * @param id - The identifier of the event.
    */
-  completed: (
-    args: { jobId: string; returnvalue: string; prev?: string },
+  'completed': (
+    args: { jobId: string, returnvalue: string, prev?: string },
     id: string,
-  ) => void;
+  ) => void
 
   /**
    * Listen to 'debounced' event.
@@ -80,7 +80,7 @@ export interface QueueEventsListener extends IoredisListener {
    *   - `debounceId` - The identifier used to debounce the job, preventing duplicate processing.
    * @param id - The identifier of the event.
    */
-  debounced: (args: { jobId: string; debounceId: string }, id: string) => void;
+  'debounced': (args: { jobId: string, debounceId: string }, id: string) => void
 
   /**
    * Listen to 'deduplicated' event.
@@ -94,10 +94,10 @@ export interface QueueEventsListener extends IoredisListener {
    *  - `deduplicatedJobId` - The unique identifier of the existing job that caused the deduplication.
    * @param id - The identifier of the event.
    */
-  deduplicated: (
-    args: { jobId: string; deduplicationId: string; deduplicatedJobId: string },
+  'deduplicated': (
+    args: { jobId: string, deduplicationId: string, deduplicatedJobId: string },
     id: string,
-  ) => void;
+  ) => void
 
   /**
    * Listen to 'delayed' event.
@@ -109,7 +109,7 @@ export interface QueueEventsListener extends IoredisListener {
    *  - `delay` - The delay duration in milliseconds before the job becomes active.
    * @param id - The identifier of the event.
    */
-  delayed: (args: { jobId: string; delay: number }, id: string) => void;
+  'delayed': (args: { jobId: string, delay: number }, id: string) => void
 
   /**
    * Listen to 'drained' event.
@@ -121,7 +121,7 @@ export interface QueueEventsListener extends IoredisListener {
    *
    * @param id - The identifier of the event.
    */
-  drained: (id: string) => void;
+  'drained': (id: string) => void
 
   /**
    * Listen to 'duplicated' event.
@@ -132,14 +132,14 @@ export interface QueueEventsListener extends IoredisListener {
    *  - `jobId` - The unique identifier of the job that was attempted to be added.
    * @param id - The identifier of the event.
    */
-  duplicated: (args: { jobId: string }, id: string) => void;
+  'duplicated': (args: { jobId: string }, id: string) => void
 
   /**
    * Listen to 'error' event.
    *
    * This event is triggered when an error in the Redis backend is thrown.
    */
-  error: (args: Error) => void;
+  'error': (args: Error) => void
 
   /**
    * Listen to 'failed' event.
@@ -152,10 +152,10 @@ export interface QueueEventsListener extends IoredisListener {
    *  - `prev` - The previous state of the job before failure (e.g., 'active'), if applicable.
    * @param id - The identifier of the event.
    */
-  failed: (
-    args: { jobId: string; failedReason: string; prev?: string },
+  'failed': (
+    args: { jobId: string, failedReason: string, prev?: string },
     id: string,
-  ) => void;
+  ) => void
 
   /**
    * Listen to 'paused' event.
@@ -165,7 +165,7 @@ export interface QueueEventsListener extends IoredisListener {
    * @param args - An empty object (no additional data provided).
    * @param id - The identifier of the event.
    */
-  paused: (args: object, id: string) => void;
+  'paused': (args: object, id: string) => void
 
   /**
    * Listen to 'progress' event.
@@ -178,7 +178,7 @@ export interface QueueEventsListener extends IoredisListener {
    *  - `data` - The progress data, which can be a number (e.g., percentage) or an object with custom data.
    * @param id - The identifier of the event.
    */
-  progress: (args: { jobId: string; data: JobProgress }, id: string) => void;
+  'progress': (args: { jobId: string, data: JobProgress }, id: string) => void
 
   /**
    * Listen to 'removed' event.
@@ -190,7 +190,7 @@ export interface QueueEventsListener extends IoredisListener {
    *  - `prev` - The previous state of the job before removal (e.g., 'active' or 'waiting').
    * @param id - The identifier of the event.
    */
-  removed: (args: { jobId: string; prev: string }, id: string) => void;
+  'removed': (args: { jobId: string, prev: string }, id: string) => void
 
   /**
    * Listen to 'resumed' event.
@@ -200,7 +200,7 @@ export interface QueueEventsListener extends IoredisListener {
    * @param args - An empty object (no additional data provided).
    * @param id - The identifier of the event.
    */
-  resumed: (args: object, id: string) => void;
+  'resumed': (args: object, id: string) => void
 
   /**
    * Listen to 'retries-exhausted' event.
@@ -214,9 +214,9 @@ export interface QueueEventsListener extends IoredisListener {
    * @param id - The identifier of the event.
    */
   'retries-exhausted': (
-    args: { jobId: string; attemptsMade: string },
+    args: { jobId: string, attemptsMade: string },
     id: string,
-  ) => void;
+  ) => void
 
   /**
    * Listen to 'stalled' event.
@@ -229,7 +229,7 @@ export interface QueueEventsListener extends IoredisListener {
    *  - `jobId` - The unique identifier of the job that stalled.
    * @param id - The identifier of the event.
    */
-  stalled: (args: { jobId: string }, id: string) => void;
+  'stalled': (args: { jobId: string }, id: string) => void
 
   /**
    * Listen to 'waiting' event.
@@ -244,7 +244,7 @@ export interface QueueEventsListener extends IoredisListener {
    * @param id - The identifier of the event.
    */
 
-  waiting: (args: { jobId: string; prev?: string }, id: string) => void;
+  'waiting': (args: { jobId: string, prev?: string }, id: string) => void
 
   /**
    * Listen to 'waiting-children' event.
@@ -256,14 +256,14 @@ export interface QueueEventsListener extends IoredisListener {
    *  - `jobId` - The unique identifier of the job waiting for its children.
    * @param id - The identifier of the event.
    */
-  'waiting-children': (args: { jobId: string }, id: string) => void;
+  'waiting-children': (args: { jobId: string }, id: string) => void
 }
 
 type CustomParameters<T> = T extends (...args: infer Args) => void
   ? Args
-  : never;
+  : never
 
-type KeyOf<T extends object> = Extract<keyof T, string>;
+type KeyOf<T extends object> = Extract<keyof T, string>
 
 /**
  * The QueueEvents class is used for listening to the global events
@@ -273,7 +273,7 @@ type KeyOf<T extends object> = Extract<keyof T, string>;
  *
  */
 export class QueueEvents extends QueueBase {
-  private running = false;
+  private running = false
 
   constructor(
     name: string,
@@ -292,49 +292,57 @@ export class QueueEvents extends QueueBase {
       },
       Connection,
       true,
-    );
+    )
 
     this.opts = Object.assign(
       {
         blockingTimeout: 10000,
       },
       this.opts,
-    );
+    )
 
     if (autorun) {
-      this.run().catch(error => this.emit('error', error));
+      this.run().catch(error => this.emit('error', error))
     }
   }
 
   emit<
     QEL extends QueueEventsListener = QueueEventsListener,
     U extends KeyOf<QEL> = KeyOf<QEL>,
-  >(event: U, ...args: CustomParameters<QEL[U]>): boolean {
-    return super.emit(event, ...args);
+  >(event: U,
+    ...args: CustomParameters<QEL[U]>
+  ): boolean {
+    return super.emit(event, ...args)
   }
 
   off<
     QEL extends QueueEventsListener = QueueEventsListener,
     U extends KeyOf<QEL> = KeyOf<QEL>,
-  >(eventName: U, listener: QEL[U]): this {
-    super.off(eventName, listener as (...args: any[]) => void);
-    return this;
+  >(eventName: U,
+    listener: QEL[U],
+  ): this {
+    super.off(eventName, listener as (...args: any[]) => void)
+    return this
   }
 
   on<
     QEL extends QueueEventsListener = QueueEventsListener,
     U extends KeyOf<QEL> = KeyOf<QEL>,
-  >(event: U, listener: QEL[U]): this {
-    super.on(event, listener as (...args: any[]) => void);
-    return this;
+  >(event: U,
+    listener: QEL[U],
+  ): this {
+    super.on(event, listener as (...args: any[]) => void)
+    return this
   }
 
   once<
     QEL extends QueueEventsListener = QueueEventsListener,
     U extends KeyOf<QEL> = KeyOf<QEL>,
-  >(event: U, listener: QEL[U]): this {
-    super.once(event, listener as (...args: any[]) => void);
-    return this;
+  >(event: U,
+    listener: QEL[U],
+  ): this {
+    super.once(event, listener as (...args: any[]) => void)
+    return this
   }
 
   /**
@@ -344,67 +352,71 @@ export class QueueEvents extends QueueBase {
   async run(): Promise<void> {
     if (!this.running) {
       try {
-        this.running = true;
-        const client = await this.client;
+        this.running = true
+        const client = await this.client
 
         // TODO: Planed for deprecation as it has no really a use case
         try {
-          await client.client('SETNAME', this.clientName(QUEUE_EVENT_SUFFIX));
-        } catch (err) {
+          await client.client('SETNAME', this.clientName(QUEUE_EVENT_SUFFIX))
+        }
+        catch (err) {
           if (!clientCommandMessageReg.test((<Error>err).message)) {
-            throw err;
+            throw err
           }
         }
 
-        await this.consumeEvents(client);
-      } catch (error) {
-        this.running = false;
-        throw error;
+        await this.consumeEvents(client)
       }
-    } else {
-      throw new Error('Queue Events is already running.');
+      catch (error) {
+        this.running = false
+        throw error
+      }
+    }
+    else {
+      throw new Error('Queue Events is already running.')
     }
   }
 
   private async consumeEvents(client: RedisClient): Promise<void> {
-    const opts: QueueEventsOptions = this.opts;
+    const opts: QueueEventsOptions = this.opts
 
-    const key = this.keys.events;
-    let id = opts.lastEventId || '$';
+    const key = this.keys.events
+    let id = opts.lastEventId || '$'
 
     while (!this.closing) {
       // Cast to actual return type, see: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/44301
       const data: StreamReadRaw = await this.checkConnectionError(() =>
         client.xread('BLOCK', opts.blockingTimeout!, 'STREAMS', key, id),
-      );
+      )
       if (data) {
-        const stream = data[0];
-        const events = stream[1];
+        const stream = data[0]
+        const events = stream[1]
 
         for (let i = 0; i < events.length; i++) {
-          id = events[i][0];
-          const args = array2obj(events[i][1]);
+          id = events[i][0]
+          const args = array2obj(events[i][1])
 
           //
           // TODO: we may need to have a separate xtream for progress data
           // to avoid this hack.
           switch (args.event) {
             case 'progress':
-              args.data = JSON.parse(args.data);
-              break;
+              args.data = JSON.parse(args.data)
+              break
             case 'completed':
-              args.returnvalue = JSON.parse(args.returnvalue);
-              break;
+              args.returnvalue = JSON.parse(args.returnvalue)
+              break
           }
 
-          const { event, ...restArgs } = args;
+          const { event, ...restArgs } = args
 
           if (event === 'drained') {
-            this.emit(event, id);
-          } else {
-            this.emit(event as any, restArgs, id);
+            this.emit(event, id)
+          }
+          else {
+            this.emit(event as any, restArgs, id)
             if (restArgs.jobId) {
-              this.emit(`${event}:${restArgs.jobId}` as any, restArgs, id);
+              this.emit(`${event}:${restArgs.jobId}` as any, restArgs, id)
             }
           }
         }
@@ -419,8 +431,8 @@ export class QueueEvents extends QueueBase {
    */
   close(): Promise<void> {
     if (!this.closing) {
-      this.closing = this.disconnect();
+      this.closing = this.disconnect()
     }
-    return this.closing;
+    return this.closing
   }
 }

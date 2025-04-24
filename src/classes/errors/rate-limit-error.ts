@@ -1,4 +1,4 @@
-export const RATE_LIMIT_ERROR = 'bullmq:rateLimitExceeded';
+export const RATE_LIMIT_ERROR = 'bullmq:rateLimitExceeded'
 
 /**
  * RateLimitError
@@ -8,8 +8,8 @@ export const RATE_LIMIT_ERROR = 'bullmq:rateLimitExceeded';
  */
 export class RateLimitError extends Error {
   constructor(message: string = RATE_LIMIT_ERROR) {
-    super(message);
-    this.name = this.constructor.name;
-    Object.setPrototypeOf(this, new.target.prototype);
+    super(message)
+    this.name = this.constructor.name
+    Object.setPrototypeOf(this, new.target.prototype)
   }
 }

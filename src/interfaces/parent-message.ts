@@ -1,9 +1,9 @@
-import { ChildCommand } from '../enums/child-command';
-import { JobJson } from './job-json';
+import type { ChildCommand } from '../enums/child-command'
+import type { JobJson } from './job-json'
 
 export interface ParentMessage {
-  cmd: ChildCommand;
-  value?: any;
-  err?: Error;
-  job?: JobJson;
+  cmd: ChildCommand
+  value?: any
+  err?: Error
+  job?: JobJson
 }

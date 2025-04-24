@@ -1,1 +1,1 @@
-export type JobProgress = string | boolean | number | object;
+export type JobProgress = string | boolean | number | object

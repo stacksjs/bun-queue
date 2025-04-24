@@ -1,34 +1,34 @@
-import { JobsOptions, JobJsonSandbox, JobProgress } from '../types';
-import { JobJson } from './job-json';
-import { ParentKeys } from './parent';
+import type { JobJsonSandbox, JobProgress, JobsOptions } from '../types'
+import type { JobJson } from './job-json'
+import type { ParentKeys } from './parent'
 
-export type BulkJobOptions = Omit<JobsOptions, 'repeat'>;
+export type BulkJobOptions = Omit<JobsOptions, 'repeat'>
 
 export interface MoveToDelayedOpts {
-  skipAttempt?: boolean;
-  fieldsToUpdate?: Record<string, any>;
+  skipAttempt?: boolean
+  fieldsToUpdate?: Record<string, any>
 }
 
 export interface RetryJobOpts {
-  fieldsToUpdate?: Record<string, any>;
+  fieldsToUpdate?: Record<string, any>
 }
 
 export interface MoveToWaitingChildrenOpts {
   child?: {
-    id: string;
-    queue: string;
-  };
+    id: string
+    queue: string
+  }
 }
 
 export interface DependenciesOpts {
   processed?: {
-    cursor?: number;
-    count?: number;
-  };
+    cursor?: number
+    count?: number
+  }
   unprocessed?: {
-    cursor?: number;
-    count?: number;
-  };
+    cursor?: number
+    count?: number
+  }
 }
 
 /**
@@ -42,105 +42,105 @@ export interface MinimalJob<
   /**
    * The name of the Job
    */
-  name: NameType;
+  name: NameType
   /**
    * The payload for this job.
    */
-  data: DataType;
+  data: DataType
   /**
    * The options object for this job.
    */
-  opts: JobsOptions;
-  id?: string;
+  opts: JobsOptions
+  id?: string
   /**
    * The progress a job has performed so far.
    * @defaultValue 0
    */
-  progress: JobProgress;
+  progress: JobProgress
   /**
    * The value returned by the processor when processing this job.
    * @defaultValue null
    */
-  returnvalue: ReturnType;
+  returnvalue: ReturnType
   /**
    * Stacktrace for the error (for failed jobs).
    * @defaultValue null
    */
-  stacktrace: string[];
+  stacktrace: string[]
   /**
    * An amount of milliseconds to wait until this job can be processed.
    * @defaultValue 0
    */
-  delay: number;
+  delay: number
   /**
    * Timestamp when the job was created (unless overridden with job options).
    */
-  timestamp: number;
+  timestamp: number
   /**
    * Number of attempts after the job has failed.
    * @defaultValue 0
    */
-  attemptsMade: number;
+  attemptsMade: number
   /**
    * Reason for failing.
    */
-  failedReason: string;
+  failedReason: string
   /**
    * Timestamp for when the job finished (completed or failed).
    */
-  finishedOn?: number;
+  finishedOn?: number
   /**
    * Timestamp for when the job was processed.
    */
-  processedOn?: number;
+  processedOn?: number
   /**
    * Fully qualified key (including the queue prefix) pointing to the parent of this job.
    */
-  parentKey?: string;
+  parentKey?: string
   /**
    * Object that contains parentId (id) and parent queueKey.
    */
-  parent?: ParentKeys;
+  parent?: ParentKeys
   /**
    * Base repeat job key.
    */
-  repeatJobKey?: string;
+  repeatJobKey?: string
   /**
    * Prepares a job to be serialized for storage in Redis.
    * @returns
    */
-  asJSON(): JobJson;
+  asJSON: () => JobJson
   /**
    * Prepares a job to be passed to Sandbox.
    * @returns
    */
-  asJSONSandbox(): JobJsonSandbox;
+  asJSONSandbox: () => JobJsonSandbox
   /**
    * Updates a job's data
    *
    * @param data - the data that will replace the current jobs data.
    */
-  updateData(data: DataType): Promise<void>;
+  updateData: (data: DataType) => Promise<void>
   /**
    * Updates a job's progress
    *
    * @param progress - number or object to be saved as progress.
    */
-  updateProgress(progress: JobProgress): Promise<void>;
+  updateProgress: (progress: JobProgress) => Promise<void>
   /**
    * Logs one row of log data.
    *
    * @param logRow - string with log data to be logged.
    */
-  log(logRow: string): Promise<number>;
-  get queueName(): string;
+  log: (logRow: string) => Promise<number>
+  get queueName(): string
   /**
    * @returns the prefix that is used.
    */
-  get prefix(): string;
+  get prefix(): string
   /**
    * @returns it includes the prefix, the namespace separator :, and queue name.
    * @see https://www.gnu.org/software/gawk/manual/html_node/Qualified-Names.html
    */
-  get queueQualifiedName(): string;
+  get queueQualifiedName(): string
 }

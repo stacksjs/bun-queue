@@ -1,23 +1,23 @@
-import { JobsOptions } from '../types';
+import type { JobsOptions } from '../types'
 
 /**
  * Describes the parent for a Job.
  */
 export interface Parent<T> {
-  name: string;
-  prefix?: string;
-  queue?: string;
-  data?: T;
-  opts?: JobsOptions;
+  name: string
+  prefix?: string
+  queue?: string
+  data?: T
+  opts?: JobsOptions
 }
 
 export interface ParentKeys {
-  id: string;
-  queueKey: string;
+  id: string
+  queueKey: string
 }
 
-export type ParentOpts = {
-  waitChildrenKey?: string;
-  parentDependenciesKey?: string;
-  parentKey?: string;
-};
+export interface ParentOpts {
+  waitChildrenKey?: string
+  parentDependenciesKey?: string
+  parentKey?: string
+}

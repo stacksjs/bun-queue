@@ -1,11 +1,11 @@
-import { Job } from '../classes/job';
-import { AdvancedOptions } from './advanced-options';
-import { QueueBaseOptions } from './queue-options';
-import { RateLimiterOptions } from './rate-limiter-options';
-import { MetricsOptions } from './metrics-options';
-import { KeepJobs } from './keep-jobs';
-import { Telemetry } from './telemetry';
-import { SandboxedOptions } from './sandboxed-options';
+import type { Job } from '../classes/job'
+import type { AdvancedOptions } from './advanced-options'
+import type { KeepJobs } from './keep-jobs'
+import type { MetricsOptions } from './metrics-options'
+import type { QueueBaseOptions } from './queue-options'
+import type { RateLimiterOptions } from './rate-limiter-options'
+import type { SandboxedOptions } from './sandboxed-options'
+import type { Telemetry } from './telemetry'
 
 /**
  * An async function that receives `Job`s and handles them.
@@ -13,7 +13,7 @@ import { SandboxedOptions } from './sandboxed-options';
 export type Processor<T = any, R = any, N extends string = string> = (
   job: Job<T, R, N>,
   token?: string,
-) => Promise<R>;
+) => Promise<R>
 
 export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
   /**
@@ -21,14 +21,14 @@ export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
    * processed by this worker instance, and can be used to monitor
    * which worker is processing or has processed a given job.
    */
-  name?: string;
+  name?: string
 
   /**
    * Condition to start processor at instance creation.
    *
    * @defaultValue true
    */
-  autorun?: boolean;
+  autorun?: boolean
 
   /**
    * Amount of jobs that a single worker is allowed to work on
@@ -37,19 +37,19 @@ export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
    * @defaultValue 1
    * @see {@link https://docs.bullmq.io/guide/workers/concurrency}
    */
-  concurrency?: number;
+  concurrency?: number
 
   /**
    * Enable rate limiter
    * @see {@link https://docs.bullmq.io/guide/rate-limiting}
    */
-  limiter?: RateLimiterOptions;
+  limiter?: RateLimiterOptions
 
   /**
    * Enable collect metrics.
    * @see {@link https://docs.bullmq.io/guide/metrics}
    */
-  metrics?: MetricsOptions;
+  metrics?: MetricsOptions
 
   /**
    * Amount of times a job can be recovered from a stalled state
@@ -58,28 +58,28 @@ export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
    *
    * @defaultValue 1
    */
-  maxStalledCount?: number;
+  maxStalledCount?: number
 
   /**
    * Number of milliseconds between stallness checks.
    *
    * @defaultValue 30000
    */
-  stalledInterval?: number;
+  stalledInterval?: number
 
   /**
    * You can provide an object specifying max
    * age and/or count to keep.
    * Default behavior is to keep the job in the completed set.
    */
-  removeOnComplete?: KeepJobs;
+  removeOnComplete?: KeepJobs
 
   /**
    * You can provide an object specifying max
    * age and/or count to keep.
    * Default behavior is to keep the job in the failed set.
    */
-  removeOnFail?: KeepJobs;
+  removeOnFail?: KeepJobs
 
   /**
    *  Skip stalled check for this worker. Note that other workers could still
@@ -88,7 +88,7 @@ export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
    *
    *  @defaultValue false
    */
-  skipStalledCheck?: boolean;
+  skipStalledCheck?: boolean
 
   /**
    *  Skip lock renewal for this worker. If set to true, the lock will expire
@@ -97,14 +97,14 @@ export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
    *
    *  @defaultValue false
    */
-  skipLockRenewal?: boolean;
+  skipLockRenewal?: boolean
 
   /**
    * Number of seconds to long poll for jobs when the queue is empty.
    *
    * @defaultValue 5
    */
-  drainDelay?: number;
+  drainDelay?: number
 
   /**
    * Duration of the lock for the job in milliseconds. The lock represents that
@@ -114,7 +114,7 @@ export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
    *
    * @defaultValue 30000
    */
-  lockDuration?: number;
+  lockDuration?: number
 
   /**
    * The time in milliseconds before the lock is automatically renewed.
@@ -122,19 +122,19 @@ export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
    * It is not recommended to modify this value, which is by default set to
    * halv the lockDuration value, which is optimal for most use cases.
    */
-  lockRenewTime?: number;
+  lockRenewTime?: number
 
   /**
    * This is an internal option that should not be modified.
    *
    * @defaultValue 15000
    */
-  runRetryDelay?: number;
+  runRetryDelay?: number
 
   /**
    * More advanced options.
    */
-  settings?: AdvancedOptions;
+  settings?: AdvancedOptions
 
   /**
    * Use Worker Threads instead of Child Processes.
@@ -143,14 +143,14 @@ export interface WorkerOptions extends QueueBaseOptions, SandboxedOptions {
    *
    * @defaultValue false
    */
-  useWorkerThreads?: boolean;
+  useWorkerThreads?: boolean
 
   /**
    * Telemetry Addon
    */
-  telemetry?: Telemetry;
+  telemetry?: Telemetry
 }
 
 export interface GetNextJobOptions {
-  block?: boolean;
+  block?: boolean
 }

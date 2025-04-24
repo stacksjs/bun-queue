@@ -8,5 +8,5 @@ export interface MetricsOptions {
    * Output refers to all finished jobs, completed or
    * failed.
    */
-  maxDataPoints?: number;
+  maxDataPoints?: number
 }

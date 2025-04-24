@@ -4,5 +4,5 @@ export interface IoredisListener {
    *
    * This event is triggered when ioredis is closed.
    */
-  'ioredis:close': () => void;
+  'ioredis:close': () => void
 }

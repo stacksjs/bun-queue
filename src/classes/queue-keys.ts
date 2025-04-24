@@ -1,4 +1,4 @@
-export type KeysMap = { [index in string]: string };
+export type KeysMap = { [index in string]: string }
 
 export class QueueKeys {
   constructor(public readonly prefix = 'bull') {}
@@ -25,18 +25,18 @@ export class QueueKeys {
       'pc', // priority counter key
       'marker', // marker key
       'de', // deduplication key
-    ].forEach(key => {
-      keys[key] = this.toKey(name, key);
-    });
+    ].forEach((key) => {
+      keys[key] = this.toKey(name, key)
+    })
 
-    return keys;
+    return keys
   }
 
   toKey(name: string, type: string): string {
-    return `${this.getQueueQualifiedName(name)}:${type}`;
+    return `${this.getQueueQualifiedName(name)}:${type}`
   }
 
   getQueueQualifiedName(name: string): string {
-    return `${this.prefix}:${name}`;
+    return `${this.prefix}:${name}`
   }
 }

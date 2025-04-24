@@ -1,5 +1,4 @@
-import { v4 } from 'uuid';
-import {
+import type {
   BaseJobOptions,
   BulkJobOptions,
   IoredisListener,
@@ -7,33 +6,34 @@ import {
   QueueOptions,
   RepeatableJob,
   RepeatOptions,
-} from '../interfaces';
-import {
+} from '../interfaces'
+import type {
   FinishedStatus,
-  JobsOptions,
-  JobSchedulerTemplateOptions,
-  MinimalQueue,
   JobProgress,
-} from '../types';
-import { Job } from './job';
-import { QueueGetters } from './queue-getters';
-import { Repeat } from './repeat';
-import { RedisConnection } from './redis-connection';
-import { SpanKind, TelemetryAttributes } from '../enums';
-import { JobScheduler } from './job-scheduler';
-import { version } from '../version';
+  JobSchedulerTemplateOptions,
+  JobsOptions,
+  MinimalQueue,
+} from '../types'
+import type { RedisConnection } from './redis-connection'
+import { v4 } from 'uuid'
+import { SpanKind, TelemetryAttributes } from '../enums'
+import { version } from '../version'
+import { Job } from './job'
+import { JobScheduler } from './job-scheduler'
+import { QueueGetters } from './queue-getters'
+import { Repeat } from './repeat'
 
 export interface ObliterateOpts {
   /**
    * Use force = true to force obliteration even with active jobs in the queue
    * @defaultValue false
    */
-  force?: boolean;
+  force?: boolean
   /**
    * Use count with the maximum number of deleted keys per iteration
    * @defaultValue 1000
    */
-  count?: number;
+  count?: number
 }
 
 export interface QueueListener<JobBase extends Job = Job>
@@ -43,49 +43,49 @@ export interface QueueListener<JobBase extends Job = Job>
    *
    * This event is triggered when the queue calls clean method.
    */
-  cleaned: (jobs: string[], type: string) => void;
+  cleaned: (jobs: string[], type: string) => void
 
   /**
    * Listen to 'error' event.
    *
    * This event is triggered when an error is thrown.
    */
-  error: (err: Error) => void;
+  error: (err: Error) => void
 
   /**
    * Listen to 'paused' event.
    *
    * This event is triggered when the queue is paused.
    */
-  paused: () => void;
+  paused: () => void
 
   /**
    * Listen to 'progress' event.
    *
    * This event is triggered when the job updates its progress.
    */
-  progress: (job: JobBase, progress: number | object) => void;
+  progress: (job: JobBase, progress: number | object) => void
 
   /**
    * Listen to 'removed' event.
    *
    * This event is triggered when a job is removed.
    */
-  removed: (job: JobBase) => void;
+  removed: (job: JobBase) => void
 
   /**
    * Listen to 'resumed' event.
    *
    * This event is triggered when the queue is resumed.
    */
-  resumed: () => void;
+  resumed: () => void
 
   /**
    * Listen to 'waiting' event.
    *
    * This event is triggered when the queue creates a new job.
    */
-  waiting: (job: JobBase) => void;
+  waiting: (job: JobBase) => void
 }
 
 // Helper for JobBase type
@@ -95,7 +95,7 @@ type JobBase<T, ResultType, NameType extends string> = T extends Job<
   any
 >
   ? T
-  : Job<T, ResultType, NameType>;
+  : Job<T, ResultType, NameType>
 
 // Helper types to extract DataType, ResultType, and NameType
 type ExtractDataType<DataTypeOrJob, Default> = DataTypeOrJob extends Job<
@@ -104,7 +104,7 @@ type ExtractDataType<DataTypeOrJob, Default> = DataTypeOrJob extends Job<
   any
 >
   ? D
-  : Default;
+  : Default
 
 type ExtractResultType<DataTypeOrJob, Default> = DataTypeOrJob extends Job<
   any,
@@ -112,12 +112,12 @@ type ExtractResultType<DataTypeOrJob, Default> = DataTypeOrJob extends Job<
   any
 >
   ? R
-  : Default;
+  : Default
 
 type ExtractNameType<
   DataTypeOrJob,
   Default extends string,
-> = DataTypeOrJob extends Job<any, any, infer N> ? N : Default;
+> = DataTypeOrJob extends Job<any, any, infer N> ? N : Default
 
 /**
  * Queue
@@ -153,14 +153,14 @@ export class Queue<
   ResultType = ExtractResultType<DataTypeOrJob, DefaultResultType>,
   NameType extends string = ExtractNameType<DataTypeOrJob, DefaultNameType>,
 > extends QueueGetters<JobBase<DataTypeOrJob, ResultType, NameType>> {
-  token = v4();
-  jobsOpts: BaseJobOptions;
-  opts: QueueOptions;
+  token = v4()
+  jobsOpts: BaseJobOptions
+  opts: QueueOptions
 
-  protected libName = 'bullmq';
+  protected libName = 'bullmq'
 
-  protected _repeat?: Repeat; // To be deprecated in v6 in favor of JobScheduler
-  protected _jobScheduler?: JobScheduler;
+  protected _repeat?: Repeat // To be deprecated in v6 in favor of JobScheduler
+  protected _jobScheduler?: JobScheduler
 
   constructor(
     name: string,
@@ -173,20 +173,20 @@ export class Queue<
         ...opts,
       },
       Connection,
-    );
+    )
 
-    this.jobsOpts = opts?.defaultJobOptions ?? {};
+    this.jobsOpts = opts?.defaultJobOptions ?? {}
 
     this.waitUntilReady()
-      .then(client => {
+      .then((client) => {
         if (!this.closing && !opts?.skipMetasUpdate) {
-          return client.hmset(this.keys.meta, this.metaValues);
+          return client.hmset(this.keys.meta, this.metaValues)
         }
       })
-      .catch(err => {
+      .catch((err) => {
         // We ignore this error to avoid warnings. The error can still
         // be received by listening to event 'error'
-      });
+      })
   }
 
   emit<U extends keyof QueueListener<JobBase<DataType, ResultType, NameType>>>(
@@ -195,45 +195,45 @@ export class Queue<
       QueueListener<JobBase<DataType, ResultType, NameType>>[U]
     >
   ): boolean {
-    return super.emit(event, ...args);
+    return super.emit(event, ...args)
   }
 
   off<U extends keyof QueueListener<JobBase<DataType, ResultType, NameType>>>(
     eventName: U,
     listener: QueueListener<JobBase<DataType, ResultType, NameType>>[U],
   ): this {
-    super.off(eventName, listener);
-    return this;
+    super.off(eventName, listener)
+    return this
   }
 
   on<U extends keyof QueueListener<JobBase<DataType, ResultType, NameType>>>(
     event: U,
     listener: QueueListener<JobBase<DataType, ResultType, NameType>>[U],
   ): this {
-    super.on(event, listener);
-    return this;
+    super.on(event, listener)
+    return this
   }
 
   once<U extends keyof QueueListener<JobBase<DataType, ResultType, NameType>>>(
     event: U,
     listener: QueueListener<JobBase<DataType, ResultType, NameType>>[U],
   ): this {
-    super.once(event, listener);
-    return this;
+    super.once(event, listener)
+    return this
   }
 
   /**
    * Returns this instance current default job options.
    */
   get defaultJobOptions(): JobsOptions {
-    return { ...this.jobsOpts };
+    return { ...this.jobsOpts }
   }
 
   get metaValues(): Record<string, string | number> {
     return {
       'opts.maxLenEvents': this.opts?.streams?.events?.maxLen ?? 10000,
-      version: `${this.libName}:${version}`,
-    };
+      'version': `${this.libName}:${version}`,
+    }
   }
 
   /**
@@ -242,34 +242,34 @@ export class Queue<
    * @returns the content of the meta.library field.
    */
   async getVersion(): Promise<string> {
-    const client = await this.client;
-    return await client.hget(this.keys.meta, 'version');
+    const client = await this.client
+    return await client.hget(this.keys.meta, 'version')
   }
 
   get repeat(): Promise<Repeat> {
-    return new Promise<Repeat>(async resolve => {
+    return new Promise<Repeat>(async (resolve) => {
       if (!this._repeat) {
         this._repeat = new Repeat(this.name, {
           ...this.opts,
           connection: await this.client,
-        });
-        this._repeat.on('error', e => this.emit.bind(this, e));
+        })
+        this._repeat.on('error', e => this.emit.bind(this, e))
       }
-      resolve(this._repeat);
-    });
+      resolve(this._repeat)
+    })
   }
 
   get jobScheduler(): Promise<JobScheduler> {
-    return new Promise<JobScheduler>(async resolve => {
+    return new Promise<JobScheduler>(async (resolve) => {
       if (!this._jobScheduler) {
         this._jobScheduler = new JobScheduler(this.name, {
           ...this.opts,
           connection: await this.client,
-        });
-        this._jobScheduler.on('error', e => this.emit.bind(this, e));
+        })
+        this._jobScheduler.on('error', e => this.emit.bind(this, e))
       }
-      resolve(this._jobScheduler);
-    });
+      resolve(this._jobScheduler)
+    })
   }
 
   /**
@@ -277,12 +277,12 @@ export class Queue<
    * Returns null in case no value is set.
    */
   async getGlobalConcurrency(): Promise<number | null> {
-    const client = await this.client;
-    const concurrency = await client.hget(this.keys.meta, 'concurrency');
+    const client = await this.client
+    const concurrency = await client.hget(this.keys.meta, 'concurrency')
     if (concurrency) {
-      return Number(concurrency);
+      return Number(concurrency)
     }
-    return null;
+    return null
   }
 
   /**
@@ -293,16 +293,16 @@ export class Queue<
    * restriction on the number of concurrent jobs.
    */
   async setGlobalConcurrency(concurrency: number) {
-    const client = await this.client;
-    return client.hset(this.keys.meta, 'concurrency', concurrency);
+    const client = await this.client
+    return client.hset(this.keys.meta, 'concurrency', concurrency)
   }
 
   /**
    * Remove global concurrency value.
    */
   async removeGlobalConcurrency() {
-    const client = await this.client;
-    return client.hdel(this.keys.meta, 'concurrency');
+    const client = await this.client
+    return client.hdel(this.keys.meta, 'concurrency')
   }
 
   /**
@@ -325,20 +325,20 @@ export class Queue<
         if (srcPropagationMedatada && !opts?.telemetry?.omitContext) {
           const telemetry = {
             metadata: srcPropagationMedatada,
-          };
-          opts = { ...opts, telemetry };
+          }
+          opts = { ...opts, telemetry }
         }
 
-        const job = await this.addJob(name, data, opts);
+        const job = await this.addJob(name, data, opts)
 
         span?.setAttributes({
           [TelemetryAttributes.JobName]: name,
           [TelemetryAttributes.JobId]: job.id,
-        });
+        })
 
-        return job;
+        return job
       },
-    );
+    )
   }
 
   /**
@@ -359,7 +359,7 @@ export class Queue<
     if (opts && opts.repeat) {
       if (opts.repeat.endDate) {
         if (+new Date(opts.repeat.endDate) < Date.now()) {
-          throw new Error('End date must be greater than current timestamp');
+          throw new Error('End date must be greater than current timestamp')
         }
       }
 
@@ -367,12 +367,13 @@ export class Queue<
         DataType,
         ResultType,
         NameType
-      >(name, data, { ...this.jobsOpts, ...opts }, { override: true });
-    } else {
-      const jobId = opts?.jobId;
+      >(name, data, { ...this.jobsOpts, ...opts }, { override: true })
+    }
+    else {
+      const jobId = opts?.jobId
 
       if (jobId == '0' || jobId?.startsWith('0:')) {
-        throw new Error("JobId cannot be '0' or start with 0:");
+        throw new Error('JobId cannot be \'0\' or start with 0:')
       }
 
       const job = await this.Job.create<DataType, ResultType, NameType>(
@@ -384,10 +385,10 @@ export class Queue<
           ...opts,
           jobId,
         },
-      );
-      this.emit('waiting', job as JobBase<DataType, ResultType, NameType>);
+      )
+      this.emit('waiting', job as JobBase<DataType, ResultType, NameType>)
 
-      return job;
+      return job
     }
   }
 
@@ -399,7 +400,7 @@ export class Queue<
    * properties, 'name', 'data' and 'opts'. They follow the same signature as 'Queue.add'.
    */
   async addBulk(
-    jobs: { name: NameType; data: DataType; opts?: BulkJobOptions }[],
+    jobs: { name: NameType, data: DataType, opts?: BulkJobOptions }[],
   ): Promise<Job<DataType, ResultType, NameType>[]> {
     return this.trace<Job<DataType, ResultType, NameType>[]>(
       SpanKind.PRODUCER,
@@ -410,24 +411,24 @@ export class Queue<
           span.setAttributes({
             [TelemetryAttributes.BulkNames]: jobs.map(job => job.name),
             [TelemetryAttributes.BulkCount]: jobs.length,
-          });
+          })
         }
 
         return await this.Job.createBulk<DataType, ResultType, NameType>(
           this as MinimalQueue,
-          jobs.map(job => {
-            let telemetry = job.opts?.telemetry;
+          jobs.map((job) => {
+            let telemetry = job.opts?.telemetry
             if (srcPropagationMedatada) {
-              const omitContext = job.opts?.telemetry?.omitContext;
-              const telemetryMetadata =
-                job.opts?.telemetry?.metadata ||
-                (!omitContext && srcPropagationMedatada);
+              const omitContext = job.opts?.telemetry?.omitContext
+              const telemetryMetadata
+                = job.opts?.telemetry?.metadata
+                  || (!omitContext && srcPropagationMedatada)
 
               if (telemetryMetadata || omitContext) {
                 telemetry = {
                   metadata: telemetryMetadata,
                   omitContext,
-                };
+                }
               }
             }
 
@@ -440,11 +441,11 @@ export class Queue<
                 jobId: job.opts?.jobId,
                 telemetry,
               },
-            };
+            }
           }),
-        );
+        )
       },
-    );
+    )
   }
 
   /**
@@ -465,14 +466,14 @@ export class Queue<
     jobSchedulerId: NameType,
     repeatOpts: Omit<RepeatOptions, 'key'>,
     jobTemplate?: {
-      name?: NameType;
-      data?: DataType;
-      opts?: JobSchedulerTemplateOptions;
+      name?: NameType
+      data?: DataType
+      opts?: JobSchedulerTemplateOptions
     },
   ) {
     if (repeatOpts.endDate) {
       if (+new Date(repeatOpts.endDate) < Date.now()) {
-        throw new Error('End date must be greater than current timestamp');
+        throw new Error('End date must be greater than current timestamp')
       }
     }
 
@@ -487,7 +488,7 @@ export class Queue<
       jobTemplate?.data ?? <DataType>{},
       { ...this.jobsOpts, ...jobTemplate?.opts },
       { override: true },
-    );
+    )
   }
 
   /**
@@ -503,10 +504,10 @@ export class Queue<
    */
   async pause(): Promise<void> {
     await this.trace<void>(SpanKind.INTERNAL, 'pause', this.name, async () => {
-      await this.scripts.pause(true);
+      await this.scripts.pause(true)
 
-      this.emit('paused');
-    });
+      this.emit('paused')
+    })
   }
 
   /**
@@ -517,12 +518,12 @@ export class Queue<
     await this.trace<void>(SpanKind.INTERNAL, 'close', this.name, async () => {
       if (!this.closing) {
         if (this._repeat) {
-          await this._repeat.close();
+          await this._repeat.close()
         }
       }
 
-      await super.close();
-    });
+      await super.close()
+    })
   }
 
   /**
@@ -535,10 +536,10 @@ export class Queue<
       SpanKind.INTERNAL,
       'rateLimit',
       this.name,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.QueueRateLimit]: expireTimeMs,
-        });
+        })
 
         await this.client.then(client =>
           client.set(
@@ -547,9 +548,9 @@ export class Queue<
             'PX',
             expireTimeMs,
           ),
-        );
+        )
       },
-    );
+    )
   }
 
   /**
@@ -560,26 +561,26 @@ export class Queue<
    */
   async resume(): Promise<void> {
     await this.trace<void>(SpanKind.INTERNAL, 'resume', this.name, async () => {
-      await this.scripts.pause(false);
+      await this.scripts.pause(false)
 
-      this.emit('resumed');
-    });
+      this.emit('resumed')
+    })
   }
 
   /**
    * Returns true if the queue is currently paused.
    */
   async isPaused(): Promise<boolean> {
-    const client = await this.client;
-    const pausedKeyExists = await client.hexists(this.keys.meta, 'paused');
-    return pausedKeyExists === 1;
+    const client = await this.client
+    const pausedKeyExists = await client.hexists(this.keys.meta, 'paused')
+    return pausedKeyExists === 1
   }
 
   /**
    * Returns true if the queue is currently maxed.
    */
   isMaxed(): Promise<boolean> {
-    return this.scripts.isMaxed();
+    return this.scripts.isMaxed()
   }
 
   /**
@@ -598,7 +599,7 @@ export class Queue<
     end?: number,
     asc?: boolean,
   ): Promise<RepeatableJob[]> {
-    return (await this.repeat).getRepeatableJobs(start, end, asc);
+    return (await this.repeat).getRepeatableJobs(start, end, asc)
   }
 
   /**
@@ -607,7 +608,7 @@ export class Queue<
    * @param id - identifier of scheduler.
    */
   async getJobScheduler(id: string): Promise<JobSchedulerJson<DataType>> {
-    return (await this.jobScheduler).getScheduler<DataType>(id);
+    return (await this.jobScheduler).getScheduler<DataType>(id)
   }
 
   /**
@@ -627,7 +628,7 @@ export class Queue<
       start,
       end,
       asc,
-    );
+    )
   }
 
   /**
@@ -637,7 +638,7 @@ export class Queue<
    * @returns The number of job schedulers.
    */
   async getJobSchedulersCount(): Promise<number> {
-    return (await this.jobScheduler).getSchedulersCount();
+    return (await this.jobScheduler).getSchedulersCount()
   }
 
   /**
@@ -664,18 +665,18 @@ export class Queue<
       SpanKind.INTERNAL,
       'removeRepeatable',
       `${this.name}.${name}`,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.JobName]: name,
           [TelemetryAttributes.JobId]: jobId,
-        });
+        })
 
-        const repeat = await this.repeat;
-        const removed = await repeat.removeRepeatable(name, repeatOpts, jobId);
+        const repeat = await this.repeat
+        const removed = await repeat.removeRepeatable(name, repeatOpts, jobId)
 
-        return !removed;
+        return !removed
       },
-    );
+    )
   }
 
   /**
@@ -687,10 +688,10 @@ export class Queue<
    * @returns
    */
   async removeJobScheduler(jobSchedulerId: string): Promise<boolean> {
-    const jobScheduler = await this.jobScheduler;
-    const removed = await jobScheduler.removeJobScheduler(jobSchedulerId);
+    const jobScheduler = await this.jobScheduler
+    const removed = await jobScheduler.removeJobScheduler(jobSchedulerId)
 
-    return !removed;
+    return !removed
   }
 
   /**
@@ -704,16 +705,16 @@ export class Queue<
       SpanKind.INTERNAL,
       'removeDebounceKey',
       `${this.name}`,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.JobKey]: id,
-        });
+        })
 
-        const client = await this.client;
+        const client = await this.client
 
-        return await client.del(`${this.keys.de}:${id}`);
+        return await client.del(`${this.keys.de}:${id}`)
       },
-    );
+    )
   }
 
   /**
@@ -726,24 +727,24 @@ export class Queue<
       SpanKind.INTERNAL,
       'removeDeduplicationKey',
       `${this.name}`,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.DeduplicationKey]: id,
-        });
+        })
 
-        const client = await this.client;
-        return client.del(`${this.keys.de}:${id}`);
+        const client = await this.client
+        return client.del(`${this.keys.de}:${id}`)
       },
-    );
+    )
   }
 
   /**
    * Removes rate limit key.
    */
   async removeRateLimitKey(): Promise<number> {
-    const client = await this.client;
+    const client = await this.client
 
-    return client.del(this.keys.limiter);
+    return client.del(this.keys.limiter)
   }
 
   /**
@@ -763,17 +764,17 @@ export class Queue<
       SpanKind.INTERNAL,
       'removeRepeatableByKey',
       `${this.name}`,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.JobKey]: key,
-        });
+        })
 
-        const repeat = await this.repeat;
-        const removed = await repeat.removeRepeatableByKey(key);
+        const repeat = await this.repeat
+        const removed = await repeat.removeRepeatableByKey(key)
 
-        return !removed;
+        return !removed
       },
-    );
+    )
   }
 
   /**
@@ -790,17 +791,17 @@ export class Queue<
       SpanKind.INTERNAL,
       'remove',
       this.name,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.JobId]: jobId,
           [TelemetryAttributes.JobOptions]: JSON.stringify({
             removeChildren,
           }),
-        });
+        })
 
-        return await this.scripts.remove(jobId, removeChildren);
+        return await this.scripts.remove(jobId, removeChildren)
       },
-    );
+    )
   }
 
   /**
@@ -814,15 +815,15 @@ export class Queue<
       SpanKind.INTERNAL,
       'updateJobProgress',
       this.name,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.JobId]: jobId,
           [TelemetryAttributes.JobProgress]: JSON.stringify(progress),
-        });
+        })
 
-        await this.scripts.updateProgress(jobId, progress);
+        await this.scripts.updateProgress(jobId, progress)
       },
-    );
+    )
   }
 
   /**
@@ -839,7 +840,7 @@ export class Queue<
     logRow: string,
     keepLogs?: number,
   ): Promise<number> {
-    return Job.addJobLog(this, jobId, logRow, keepLogs);
+    return Job.addJobLog(this, jobId, logRow, keepLogs)
   }
 
   /**
@@ -854,14 +855,14 @@ export class Queue<
       SpanKind.INTERNAL,
       'drain',
       this.name,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.QueueDrainDelay]: delayed,
-        });
+        })
 
-        await this.scripts.drain(delayed);
+        await this.scripts.drain(delayed)
       },
-    );
+    )
   }
 
   /**
@@ -890,26 +891,26 @@ export class Queue<
       SpanKind.INTERNAL,
       'clean',
       this.name,
-      async span => {
-        const maxCount = limit || Infinity;
-        const maxCountPerCall = Math.min(10000, maxCount);
-        const timestamp = Date.now() - grace;
-        let deletedCount = 0;
-        const deletedJobsIds: string[] = [];
+      async (span) => {
+        const maxCount = limit || Infinity
+        const maxCountPerCall = Math.min(10000, maxCount)
+        const timestamp = Date.now() - grace
+        let deletedCount = 0
+        const deletedJobsIds: string[] = []
 
         while (deletedCount < maxCount) {
           const jobsIds = await this.scripts.cleanJobsInSet(
             type,
             timestamp,
             maxCountPerCall,
-          );
+          )
 
-          this.emit('cleaned', jobsIds, type);
-          deletedCount += jobsIds.length;
-          deletedJobsIds.push(...jobsIds);
+          this.emit('cleaned', jobsIds, type)
+          deletedCount += jobsIds.length
+          deletedJobsIds.push(...jobsIds)
 
           if (jobsIds.length < maxCountPerCall) {
-            break;
+            break
           }
         }
 
@@ -918,11 +919,11 @@ export class Queue<
           [TelemetryAttributes.JobType]: type,
           [TelemetryAttributes.QueueCleanLimit]: maxCount,
           [TelemetryAttributes.JobIds]: deletedJobsIds,
-        });
+        })
 
-        return deletedJobsIds;
+        return deletedJobsIds
       },
-    );
+    )
   }
 
   /**
@@ -942,18 +943,18 @@ export class Queue<
       'obliterate',
       this.name,
       async () => {
-        await this.pause();
+        await this.pause()
 
-        let cursor = 0;
+        let cursor = 0
         do {
           cursor = await this.scripts.obliterate({
             force: false,
             count: 1000,
             ...opts,
-          });
-        } while (cursor);
+          })
+        } while (cursor)
       },
-    );
+    )
   }
 
   /**
@@ -967,27 +968,27 @@ export class Queue<
    * @returns
    */
   async retryJobs(
-    opts: { count?: number; state?: FinishedStatus; timestamp?: number } = {},
+    opts: { count?: number, state?: FinishedStatus, timestamp?: number } = {},
   ): Promise<void> {
     await this.trace<void>(
       SpanKind.PRODUCER,
       'retryJobs',
       this.name,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.QueueOptions]: JSON.stringify(opts),
-        });
+        })
 
-        let cursor = 0;
+        let cursor = 0
         do {
           cursor = await this.scripts.retryJobs(
             opts.state,
             opts.count,
             opts.timestamp,
-          );
-        } while (cursor);
+          )
+        } while (cursor)
       },
-    );
+    )
   }
 
   /**
@@ -1003,17 +1004,17 @@ export class Queue<
       SpanKind.INTERNAL,
       'promoteJobs',
       this.name,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.QueueOptions]: JSON.stringify(opts),
-        });
+        })
 
-        let cursor = 0;
+        let cursor = 0
         do {
-          cursor = await this.scripts.promoteJobs(opts.count);
-        } while (cursor);
+          cursor = await this.scripts.promoteJobs(opts.count)
+        } while (cursor)
       },
-    );
+    )
   }
 
   /**
@@ -1026,22 +1027,22 @@ export class Queue<
       SpanKind.INTERNAL,
       'trimEvents',
       this.name,
-      async span => {
+      async (span) => {
         span?.setAttributes({
           [TelemetryAttributes.QueueEventMaxLength]: maxLength,
-        });
+        })
 
-        const client = await this.client;
-        return await client.xtrim(this.keys.events, 'MAXLEN', '~', maxLength);
+        const client = await this.client
+        return await client.xtrim(this.keys.events, 'MAXLEN', '~', maxLength)
       },
-    );
+    )
   }
 
   /**
    * Delete old priority helper key.
    */
   async removeDeprecatedPriorityKey(): Promise<number> {
-    const client = await this.client;
-    return client.del(this.toKey('priority'));
+    const client = await this.client
+    return client.del(this.toKey('priority'))
   }
 }

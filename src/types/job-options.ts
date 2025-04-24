@@ -1,42 +1,42 @@
-import { BaseJobOptions, DebounceOptions } from '../interfaces';
+import type { BaseJobOptions, DebounceOptions } from '../interfaces'
 
 /**
  * These options will be stored in Redis with smaller
  * keys for compactness.
  */
-export type CompressableJobOptions = {
+export interface CompressableJobOptions {
   /**
    * Debounce options.
    * @deprecated use deduplication option
    */
-  debounce?: DebounceOptions;
+  debounce?: DebounceOptions
 
   /**
    * Deduplication options.
    */
-  deduplication?: DebounceOptions;
+  deduplication?: DebounceOptions
 
   /**
    * If true, moves parent to failed if any of its children fail.
    */
-  failParentOnFailure?: boolean;
+  failParentOnFailure?: boolean
 
   /**
    * If true, starts processing parent job as soon as any
    * of its children fail.
    *
    */
-  continueParentOnFailure?: boolean;
+  continueParentOnFailure?: boolean
 
   /**
    * If true, moves the jobId from its parent dependencies to failed dependencies when it fails after all attempts.
    */
-  ignoreDependencyOnFailure?: boolean;
+  ignoreDependencyOnFailure?: boolean
 
   /**
    * If true, removes the job from its parent dependencies when it fails after all attempts.
    */
-  removeDependencyOnFailure?: boolean;
+  removeDependencyOnFailure?: boolean
 
   /**
    * Telemetry options
@@ -45,17 +45,17 @@ export type CompressableJobOptions = {
     /**
      * Metadata, used for context propagation.
      */
-    metadata?: string;
+    metadata?: string
 
     /**
      * If `true` telemetry will omit the context propagation
      * @defaultValue false
      */
-    omitContext?: boolean;
-  };
-};
+    omitContext?: boolean
+  }
+}
 
-export type JobsOptions = BaseJobOptions & CompressableJobOptions;
+export type JobsOptions = BaseJobOptions & CompressableJobOptions
 
 /**
  * These fields are the ones stored in Redis with smaller keys for compactness.
@@ -64,47 +64,47 @@ export type RedisJobOptions = BaseJobOptions & {
   /**
    * Debounce identifier.
    */
-  deid?: string;
+  deid?: string
 
   /**
    * If true, moves parent to failed.
    */
-  fpof?: boolean;
+  fpof?: boolean
 
   /**
    * If true, starts processing parent job as soon as any
    * of its children fail.
    */
-  cpof?: boolean;
+  cpof?: boolean
 
   /**
    * If true, moves the jobId from its parent dependencies to failed dependencies when it fails after all attempts.
    */
-  idof?: boolean;
+  idof?: boolean
 
   /**
    * Maximum amount of log entries that will be preserved
    */
-  kl?: number;
+  kl?: number
 
   /**
    * If true, removes the job from its parent dependencies when it fails after all attempts.
    */
-  rdof?: boolean;
+  rdof?: boolean
 
   /**
    * TelemetryMetadata, provide for context propagation.
    */
-  tm?: string;
+  tm?: string
 
   /**
    * Omit Context Propagation
    */
-  omc?: boolean;
+  omc?: boolean
 
   /**
    * Deduplication identifier.
    * @deprecated use deid
    */
-  de?: string;
-};
+  de?: string
+}

@@ -6,7 +6,7 @@
 <!-- [![npm downloads][npm-downloads-src]][npm-downloads-href] -->
 <!-- [![Codecov][codecov-src]][codecov-href] -->
 
-# bun-ts-starter
+# bun-bull
 
 This is an opinionated TypeScript Starter kit to help kick-start development of your next Bun package.
 
@@ -30,7 +30,7 @@ It's rather simple to get your package development started:
 
 ```bash
 # you may use this GitHub template or the following command:
-bunx degit stacksjs/ts-starter my-pkg
+bunx degit stacksjs/bun-starter my-pkg
 cd my-pkg
 
 bun i # install all deps
@@ -50,7 +50,7 @@ bun test
 
 ## Changelog
 
-Please see our [releases](https://github.com/stackjs/bun-ts-starter/releases) page for more information on what has changed recently.
+Please see our [releases](https://github.com/stackjs/bun-bull/releases) page for more information on what has changed recently.
 
 ## Contributing
 
@@ -60,7 +60,7 @@ Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 
 For help, discussion about best practices, or any other conversation that would benefit from being searchable:
 
-[Discussions on GitHub](https://github.com/stacksjs/ts-starter/discussions)
+[Discussions on GitHub](https://github.com/stacksjs/bun-starter/discussions)
 
 For casual chit-chat with others using this package:
 
@@ -86,10 +86,10 @@ The MIT License (MIT). Please see [LICENSE](LICENSE.md) for more information.
 Made with 💙
 
 <!-- Badges -->
-[npm-version-src]: https://img.shields.io/npm/v/bun-ts-starter?style=flat-square
-[npm-version-href]: https://npmjs.com/package/bun-ts-starter
-[github-actions-src]: https://img.shields.io/github/actions/workflow/status/stacksjs/ts-starter/ci.yml?style=flat-square&branch=main
-[github-actions-href]: https://github.com/stacksjs/ts-starter/actions?query=workflow%3Aci
+[npm-version-src]: https://img.shields.io/npm/v/bun-bull?style=flat-square
+[npm-version-href]: https://npmjs.com/package/bun-bull
+[github-actions-src]: https://img.shields.io/github/actions/workflow/status/stacksjs/bun-starter/ci.yml?style=flat-square&branch=main
+[github-actions-href]: https://github.com/stacksjs/bun-starter/actions?query=workflow%3Aci
 
-<!-- [codecov-src]: https://img.shields.io/codecov/c/gh/stacksjs/ts-starter/main?style=flat-square
-[codecov-href]: https://codecov.io/gh/stacksjs/ts-starter -->
+<!-- [codecov-src]: https://img.shields.io/codecov/c/gh/stacksjs/bun-starter/main?style=flat-square
+[codecov-href]: https://codecov.io/gh/stacksjs/bun-starter -->

@@ -1,5 +1,5 @@
-import { ForkOptions } from 'child_process';
-import { WorkerOptions as WorkerThreadsOptions } from 'worker_threads';
+import type { ForkOptions } from 'node:child_process'
+import type { WorkerOptions as WorkerThreadsOptions } from 'node:worker_threads'
 
 export interface SandboxedOptions {
   /**
@@ -9,7 +9,7 @@ export interface SandboxedOptions {
    *
    * @defaultValue false
    */
-  useWorkerThreads?: boolean;
+  useWorkerThreads?: boolean
 
   /**
    * Support passing Worker Fork Options.
@@ -17,7 +17,7 @@ export interface SandboxedOptions {
    * a file for the processor argument and useWorkerThreads is passed as false (default value).
    * @see {@link https://nodejs.org/api/child_process.html#child_processforkmodulepath-args-options}
    */
-  workerForkOptions?: ForkOptions;
+  workerForkOptions?: ForkOptions
 
   /**
    * Support passing Worker Threads Options.
@@ -25,5 +25,5 @@ export interface SandboxedOptions {
    * a file for the processor argument and useWorkerThreads is passed as true.
    * @see {@link https://nodejs.org/api/worker_threads.html#new-workerfilename-options}
    */
-  workerThreadsOptions?: WorkerThreadsOptions;
+  workerThreadsOptions?: WorkerThreadsOptions
 }

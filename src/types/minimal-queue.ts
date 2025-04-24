@@ -1,4 +1,4 @@
-import { QueueBase } from '../classes/queue-base';
+import type { QueueBase } from '../classes/queue-base'
 
 export type MinimalQueue = Pick<
   QueueBase,
@@ -15,4 +15,4 @@ export type MinimalQueue = Pick<
   | 'on'
   | 'redisVersion'
   | 'trace'
->;
+>
