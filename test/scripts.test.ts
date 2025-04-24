@@ -1,49 +1,49 @@
-import { expect } from 'chai';
-import { default as IORedis } from 'ioredis';
-import { describe, beforeEach, it, before, after as afterAll } from 'mocha';
-import { v4 } from 'uuid';
-import { Queue } from '../src/classes';
-import { removeAllQueueData } from '../src/utils';
+import { expect } from 'chai'
+import { default as IORedis } from 'ioredis'
+import { after as afterAll, before, beforeEach, describe, it } from 'mocha'
+import { v4 } from 'uuid'
+import { Queue } from '../src/classes'
+import { removeAllQueueData } from '../src/utils'
 
-describe('scripts', function () {
-  const redisHost = process.env.REDIS_HOST || 'localhost';
-  const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull';
+describe('scripts', () => {
+  const redisHost = process.env.REDIS_HOST || 'localhost'
+  const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull'
 
-  let queue: Queue;
-  let queueName: string;
+  let queue: Queue
+  let queueName: string
 
-  let connection;
-  before(async function () {
-    connection = new IORedis(redisHost, { maxRetriesPerRequest: null });
-  });
+  let connection
+  before(async () => {
+    connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
+  })
 
-  beforeEach(async function () {
-    queueName = `test-${v4()}`;
-    queue = new Queue(queueName, { connection, prefix });
-    await queue.waitUntilReady();
-  });
+  beforeEach(async () => {
+    queueName = `test-${v4()}`
+    queue = new Queue(queueName, { connection, prefix })
+    await queue.waitUntilReady()
+  })
 
-  afterEach(async function () {
-    await queue.close();
-    await removeAllQueueData(new IORedis(redisHost), queueName);
-  });
+  afterEach(async () => {
+    await queue.close()
+    await removeAllQueueData(new IORedis(redisHost), queueName)
+  })
 
-  afterAll(async function () {
-    await connection.quit();
-  });
+  afterAll(async () => {
+    await connection.quit()
+  })
 
   describe('.paginateSet', () => {
-    const testSet = 'test-set';
+    const testSet = 'test-set'
 
     beforeEach(async () => {
-      const client = await queue.client;
-      await client.del(testSet);
-    });
+      const client = await queue.client
+      await client.del(testSet)
+    })
 
     it('should paginate a small set same size as set', async () => {
-      const scripts = queue['scripts'];
+      const scripts = queue.scripts
 
-      const client = await queue.client;
+      const client = await queue.client
       await client.sadd(
         testSet,
         'a',
@@ -56,11 +56,11 @@ describe('scripts', function () {
         'h',
         'i',
         'j',
-      );
+      )
 
-      const page = await scripts.paginate(testSet, { start: 0, end: 9 });
+      const page = await scripts.paginate(testSet, { start: 0, end: 9 })
 
-      page.items = page.items.sort((a, b) => a.id.localeCompare(b.id));
+      page.items = page.items.sort((a, b) => a.id.localeCompare(b.id))
 
       expect(page).toBe({
         items: [
@@ -78,70 +78,70 @@ describe('scripts', function () {
         jobs: [],
         cursor: '0',
         total: 10,
-      });
-    });
+      })
+    })
 
     it('should paginate a small set different size as set', async () => {
-      const scripts = queue['scripts'];
+      const scripts = queue.scripts
 
-      const members = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+      const members = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j']
 
-      const client = await queue.client;
-      await client.sadd(testSet, ...members);
+      const client = await queue.client
+      await client.sadd(testSet, ...members)
 
-      const page = await scripts.paginate(testSet, { start: 3, end: 7 });
+      const page = await scripts.paginate(testSet, { start: 3, end: 7 })
 
-      expect(page.items).to.have.lengthOf(5);
-      expect(page.cursor).toBe('0');
-      expect(page.total).toBe(members.length);
-    });
+      expect(page.items).to.have.lengthOf(5)
+      expect(page.cursor).toBe('0')
+      expect(page.total).toBe(members.length)
+    })
 
     it('should paginate a large set in pages of given size', async () => {
-      const scripts = queue['scripts'];
+      const scripts = queue.scripts
 
-      const client = await queue.client;
+      const client = await queue.client
 
-      const pageSize = 13;
-      const numPages = 1;
+      const pageSize = 13
+      const numPages = 1
 
-      const totalItems = pageSize * numPages;
+      const totalItems = pageSize * numPages
 
-      const items = Array(totalItems)
+      const items = Array.from({ length: totalItems })
         .fill(0)
-        .map((_, i) => i);
+        .map((_, i) => i)
 
-      await client.sadd(testSet, ...items);
+      await client.sadd(testSet, ...items)
 
-      const pagedItems: { id: string }[] = [];
+      const pagedItems: { id: string }[] = []
       for (let i = 0; i < numPages; i++) {
-        const start = i * pageSize;
-        const end = start + pageSize - 1;
-        const page = await scripts.paginate(testSet, { start, end });
-        expect(page.items).to.have.lengthOf(pageSize);
-        expect(page.total).toBe(totalItems);
-        pagedItems.push(...page.items);
+        const start = i * pageSize
+        const end = start + pageSize - 1
+        const page = await scripts.paginate(testSet, { start, end })
+        expect(page.items).to.have.lengthOf(pageSize)
+        expect(page.total).toBe(totalItems)
+        pagedItems.push(...page.items)
       }
 
       const sortedItems = pagedItems
-        .map(i => ({ id: parseInt(i.id) }))
-        .sort((a, b) => a.id - b.id);
+        .map(i => ({ id: Number.parseInt(i.id) }))
+        .sort((a, b) => a.id - b.id)
 
-      expect(sortedItems).toBe(items.map(i => ({ id: i })));
-    });
-  });
+      expect(sortedItems).toBe(items.map(i => ({ id: i })))
+    })
+  })
 
   describe('.paginateHash', () => {
-    const testHash = 'test-hash';
+    const testHash = 'test-hash'
 
     beforeEach(async () => {
-      const client = await queue.client;
-      await client.del(testHash);
-    });
+      const client = await queue.client
+      await client.del(testHash)
+    })
 
     it('should paginate a small hash same size as hash', async () => {
-      const scripts = queue['scripts'];
+      const scripts = queue.scripts
 
-      const client = await queue.client;
+      const client = await queue.client
       await client.hmset(testHash, {
         a: JSON.stringify('a'),
         b: JSON.stringify('b'),
@@ -153,9 +153,9 @@ describe('scripts', function () {
         h: JSON.stringify('h'),
         i: JSON.stringify('i'),
         j: JSON.stringify('j'),
-      });
+      })
 
-      const page = await scripts.paginate(testHash, { start: 0, end: 9 });
+      const page = await scripts.paginate(testHash, { start: 0, end: 9 })
 
       expect(page).toBe({
         items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'].map(key => ({
@@ -165,13 +165,13 @@ describe('scripts', function () {
         jobs: [],
         cursor: '0',
         total: 10,
-      });
-    });
+      })
+    })
 
     it('should paginate a small hash different size as hash', async () => {
-      const scripts = queue['scripts'];
+      const scripts = queue.scripts
 
-      const client = await queue.client;
+      const client = await queue.client
       await client.hmset(testHash, {
         a: JSON.stringify('a'),
         b: JSON.stringify('b'),
@@ -183,66 +183,66 @@ describe('scripts', function () {
         h: JSON.stringify('h'),
         i: JSON.stringify('i'),
         j: JSON.stringify('j'),
-      });
+      })
 
-      const page = await scripts.paginate(testHash, { start: 3, end: 7 });
+      const page = await scripts.paginate(testHash, { start: 3, end: 7 })
 
-      expect(page.items).to.have.lengthOf(5);
+      expect(page.items).to.have.lengthOf(5)
 
       expect(page.items).toBe(
         ['d', 'e', 'f', 'g', 'h'].map(key => ({ id: key, v: key })),
-      );
+      )
 
       expect(page).toBe({
         items: ['d', 'e', 'f', 'g', 'h'].map(key => ({ id: key, v: key })),
         jobs: [],
         cursor: '0',
         total: 10,
-      });
-    });
+      })
+    })
 
     it('should paginate a large hash in pages of given size', async () => {
-      const scripts = queue['scripts'];
+      const scripts = queue.scripts
 
-      const client = await queue.client;
+      const client = await queue.client
 
-      const pageSize = 13;
-      const numPages = 137;
+      const pageSize = 13
+      const numPages = 137
 
-      const totalItems = pageSize * numPages;
+      const totalItems = pageSize * numPages
 
-      const items = Array(totalItems)
+      const items = Array.from({ length: totalItems })
         .fill(0)
         .map((_, i) => ({ [i]: i }))
         .reduce((acc, item) => {
-          const key = Object.keys(item)[0];
-          acc[key] = item[key];
-          return acc;
-        });
+          const key = Object.keys(item)[0]
+          acc[key] = item[key]
+          return acc
+        })
 
-      await client.hmset(testHash, items);
+      await client.hmset(testHash, items)
 
-      const pagedItems: any[] = [];
+      const pagedItems: any[] = []
       for (let i = 0; i < numPages; i++) {
-        const start = i * pageSize;
-        const end = start + pageSize - 1;
+        const start = i * pageSize
+        const end = start + pageSize - 1
 
-        const page = await scripts.paginate(testHash, { start, end });
-        expect(page.items).to.have.lengthOf(pageSize);
-        expect(page.total).toBe(totalItems);
-        pagedItems.push(...page.items);
+        const page = await scripts.paginate(testHash, { start, end })
+        expect(page.items).to.have.lengthOf(pageSize)
+        expect(page.total).toBe(totalItems)
+        pagedItems.push(...page.items)
       }
 
       const itemsObject = pagedItems.reduce((acc, item) => {
-        acc = { ...acc, [item.id]: item.v };
-        return acc;
-      }, {});
+        acc = { ...acc, [item.id]: item.v }
+        return acc
+      }, {})
 
       for (const key of Object.keys(itemsObject)) {
-        itemsObject[key] = parseInt(itemsObject[key]);
+        itemsObject[key] = Number.parseInt(itemsObject[key])
       }
 
-      expect(itemsObject).toBe(items);
-    });
-  });
-});
+      expect(itemsObject).toBe(items)
+    })
+  })
+})

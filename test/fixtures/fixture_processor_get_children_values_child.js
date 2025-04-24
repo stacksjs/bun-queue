@@ -2,8 +2,8 @@
  * A processor file to be used in tests.
  *
  */
-'use strict';
+'use strict'
 
 module.exports = function (job) {
-  return { childResult: 'bar' };
-};
+  return { childResult: 'bar' }
+}

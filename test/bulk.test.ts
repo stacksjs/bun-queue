@@ -1,7 +1,7 @@
 import type { Job } from '../src/classes'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test'
 import process from 'node:process'
-import { default as IORedis } from 'ioredis'
+import IORedis from 'ioredis'
 import { v4 } from 'uuid'
 import { Queue, QueueEvents, Worker } from '../src/classes'
 import { delay, removeAllQueueData } from '../src/utils'
@@ -13,7 +13,7 @@ describe('bulk jobs', () => {
   let queue: Queue
   let queueName: string
 
-  let connection
+  let connection: IORedis
   beforeAll(async () => {
     connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
   })
@@ -28,7 +28,7 @@ describe('bulk jobs', () => {
     await removeAllQueueData(new IORedis(redisHost), queueName)
   })
 
-  after(async () => {
+  afterAll(async () => {
     await connection.quit()
   })
 
@@ -55,11 +55,11 @@ describe('bulk jobs', () => {
       { name, data: { idx: 0, foo: 'bar' } },
       { name, data: { idx: 1, foo: 'baz' } },
     ])
-    expect(jobs).to.have.length(2)
+    expect(jobs).toHaveLength(2)
 
-    expect(jobs[0].id).to.be.ok
+    expect(jobs[0].id).toBeTruthy()
     expect(jobs[0].data.foo).toBe('bar')
-    expect(jobs[1].id).to.be.ok
+    expect(jobs[1].id).toBeTruthy()
     expect(jobs[1].data.foo).toBe('baz')
 
     await processing
@@ -102,11 +102,11 @@ describe('bulk jobs', () => {
         },
       },
     ])
-    expect(jobs).to.have.length(2)
+    expect(jobs).toHaveLength(2)
 
-    expect(jobs[0].id).to.be.ok
+    expect(jobs[0].id).toBeTruthy()
     expect(jobs[0].data.foo).toBe('bar')
-    expect(jobs[1].id).to.be.ok
+    expect(jobs[1].id).toBeTruthy()
     expect(jobs[1].data.foo).toBe('baz')
 
     const { unprocessed } = await parent.getDependenciesCount({
@@ -164,7 +164,7 @@ describe('bulk jobs', () => {
     await worker.close()
     await worker2.close()
     await queueEvents.close()
-  }).timeout(10_000)
+  }, 10_000)
 
   it('should process jobs with custom ids', async () => {
     const name = 'test'
@@ -189,7 +189,7 @@ describe('bulk jobs', () => {
       { name, data: { idx: 0, foo: 'bar' }, opts: { jobId: 'test1' } },
       { name, data: { idx: 1, foo: 'baz' }, opts: { jobId: 'test2' } },
     ])
-    expect(jobs).to.have.length(2)
+    expect(jobs).toHaveLength(2)
 
     expect(jobs[0].id).toBe('test1')
     expect(jobs[0].data.foo).toBe('bar')

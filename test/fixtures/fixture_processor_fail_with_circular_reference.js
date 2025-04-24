@@ -2,18 +2,18 @@
  * A processor file to be used in tests.
  *
  */
-'use strict';
+'use strict'
 
-const delay = require('./delay');
+const delay = require('./delay')
 
-module.exports = function (/*job*/) {
+module.exports = function (/* job */) {
   return delay(500).then(() => {
-    const error = new Error('error');
-    const value = {};
-    value.ref = value;
-    error.custom = value;
-    error.reference = error;
+    const error = new Error('error')
+    const value = {}
+    value.ref = value
+    error.custom = value
+    error.reference = error
 
-    throw error;
-  });
-};
+    throw error
+  })
+}

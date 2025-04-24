@@ -1,1 +1,1 @@
-throw new Error('Broken file processor');
+throw new Error('Broken file processor')

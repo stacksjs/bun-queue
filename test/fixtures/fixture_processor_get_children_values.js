@@ -2,9 +2,9 @@
  * A processor file to be used in tests.
  *
  */
-'use strict';
+'use strict'
 
 module.exports = async function (job) {
-  const values = await job.getChildrenValues();
-  return values;
-};
+  const values = await job.getChildrenValues()
+  return values
+}

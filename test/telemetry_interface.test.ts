@@ -1,219 +1,221 @@
-import { expect, assert } from 'chai';
-import { default as IORedis } from 'ioredis';
-import { after, beforeEach, describe, it, before } from 'mocha';
-import { v4 } from 'uuid';
-import { FlowProducer, Job, JobScheduler, Queue, Worker } from '../src/classes';
-import { removeAllQueueData } from '../src/utils';
-import {
-  Telemetry,
+import type {
+  Attributes,
   ContextManager,
-  Tracer,
+  Exception,
   Span,
   SpanOptions,
-  Attributes,
-  Exception,
+  Telemetry,
   Time,
-} from '../src/interfaces';
-import * as sinon from 'sinon';
-import { SpanKind, TelemetryAttributes } from '../src/enums';
+  Tracer,
+} from '../src/interfaces'
+import { assert, expect } from 'chai'
+import { default as IORedis } from 'ioredis'
+import { after, before, beforeEach, describe, it } from 'mocha'
+import * as sinon from 'sinon'
+import { v4 } from 'uuid'
+import { FlowProducer, Job, JobScheduler, Queue, Worker } from '../src/classes'
+import { SpanKind, TelemetryAttributes } from '../src/enums'
+import { removeAllQueueData } from '../src/utils'
 
 describe('Telemetry', () => {
   type ExtendedException = Exception & {
-    message: string;
-  };
+    message: string
+  }
 
-  const redisHost = process.env.REDIS_HOST || 'localhost';
-  const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull';
+  const redisHost = process.env.REDIS_HOST || 'localhost'
+  const prefix = process.env.BULLMQ_TEST_PREFIX || 'bull'
 
   class MockTelemetry<Context = any> implements Telemetry<Context> {
-    public tracer: Tracer<Context>;
-    public contextManager: ContextManager<Context>;
+    public tracer: Tracer<Context>
+    public contextManager: ContextManager<Context>
 
     constructor(name: string) {
-      this.tracer = new MockTracer();
-      this.contextManager = new MockContextManager();
+      this.tracer = new MockTracer()
+      this.contextManager = new MockContextManager()
     }
   }
 
   class MockTracer implements Tracer {
     startSpan(name: string, options?: SpanOptions): Span {
-      return new MockSpan(name, options);
+      return new MockSpan(name, options)
     }
   }
 
   class MockContextManager<Context = any> implements ContextManager<Context> {
-    private activeContext: Context = {} as Context;
+    private activeContext: Context = {} as Context
 
     with<A extends(...args: any[]) => any>(
       context: Context,
       fn: A,
     ): ReturnType<A> {
-      this.activeContext = context;
-      return fn();
+      this.activeContext = context
+      return fn()
     }
 
     active(): Context {
-      return this.activeContext;
+      return this.activeContext
     }
 
     getMetadata(context: Context): string {
       if (!context) {
-        return '';
+        return ''
       }
-      const metadata: Record<string, string> = {};
-      Object.keys(context as object).forEach(key => {
+      const metadata: Record<string, string> = {}
+      Object.keys(context as object).forEach((key) => {
         if (key.startsWith('getMetadata_')) {
-          const value = context[key];
-          metadata[key] = value;
+          const value = context[key]
+          metadata[key] = value
         }
-      });
-      return JSON.stringify(metadata);
+      })
+      return JSON.stringify(metadata)
     }
 
     fromMetadata(activeContext: Context, metadataString: string): Context {
-      const newContext = { ...activeContext };
+      const newContext = { ...activeContext }
       if (metadataString) {
-        const metadata = JSON.parse(metadataString);
-        Object.keys(metadata).forEach(key => {
-          newContext[key] = () => metadata[key];
-        });
+        const metadata = JSON.parse(metadataString)
+        Object.keys(metadata).forEach((key) => {
+          newContext[key] = () => metadata[key]
+        })
       }
-      return newContext;
+      return newContext
     }
   }
 
   class MockSpan implements Span {
-    attributes: Attributes = {};
-    name: string;
-    options: SpanOptions | undefined;
-    exception: ExtendedException | undefined;
+    attributes: Attributes = {}
+    name: string
+    options: SpanOptions | undefined
+    exception: ExtendedException | undefined
 
     constructor(name: string, options?: SpanOptions) {
-      this.name = name;
-      this.options = options;
+      this.name = name
+      this.options = options
     }
 
     setSpanOnContext(ctx: any, omitContext?: boolean): any {
-      context['getSpan'] = () => this;
-      return { ...context, getMetadata_span: this['name'] };
+      context.getSpan = () => this
+      return { ...context, getMetadata_span: this.name }
     }
 
     addEvent(name: string, attributes?: Attributes): void {}
 
     setAttribute(key: string, value: any): void {
-      this.attributes[key] = value;
+      this.attributes[key] = value
     }
 
     setAttributes(attributes: Attributes): void {
-      this.attributes = { ...this.attributes, ...attributes };
+      this.attributes = { ...this.attributes, ...attributes }
     }
 
     recordException(exception: ExtendedException, time?: Time): void {
-      this.exception = exception;
+      this.exception = exception
     }
 
     end(): void {}
   }
 
-  let telemetryClient;
+  let telemetryClient
 
-  let queue: Queue;
-  let queueName: string;
+  let queue: Queue
+  let queueName: string
 
-  let connection;
-  before(async function () {
-    connection = new IORedis(redisHost, { maxRetriesPerRequest: null });
-  });
+  let connection
+  before(async () => {
+    connection = new IORedis(redisHost, { maxRetriesPerRequest: null })
+  })
 
-  beforeEach(async function () {
-    queueName = `test-${v4()}`;
-    telemetryClient = new MockTelemetry('mockTracer');
+  beforeEach(async () => {
+    queueName = `test-${v4()}`
+    telemetryClient = new MockTelemetry('mockTracer')
 
     queue = new Queue(queueName, {
       connection,
       prefix,
       telemetry: telemetryClient,
-    });
-  });
+    })
+  })
 
-  afterEach(async function () {
-    await queue.close();
-    await removeAllQueueData(new IORedis(redisHost), queueName);
-  });
+  afterEach(async () => {
+    await queue.close()
+    await removeAllQueueData(new IORedis(redisHost), queueName)
+  })
 
-  after(async function () {
-    await connection.quit();
-  });
+  after(async () => {
+    await connection.quit()
+  })
 
   describe('Queue.add', () => {
     it('should correctly interact with telemetry when adding a job', async () => {
-      await queue.add('testJob', { foo: 'bar' });
+      await queue.add('testJob', { foo: 'bar' })
 
-      const activeContext = telemetryClient.contextManager.active();
+      const activeContext = telemetryClient.contextManager.active()
 
-      const span = activeContext.getSpan?.() as MockSpan;
-      expect(span).to.be.an.instanceOf(MockSpan);
-      expect(span.name).to.equal(`add ${queueName}.testJob`);
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER);
+      const span = activeContext.getSpan?.() as MockSpan
+      expect(span).to.be.an.instanceOf(MockSpan)
+      expect(span.name).to.equal(`add ${queueName}.testJob`)
+      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
       expect(span.attributes[TelemetryAttributes.QueueName]).to.equal(
         queueName,
-      );
-    });
+      )
+    })
 
     it('should correctly handle errors and record them in telemetry', async () => {
       const opts = {
         repeat: {
           endDate: 1,
         },
-      };
+      }
 
       const recordExceptionSpy = sinon.spy(
         MockSpan.prototype,
         'recordException',
-      );
+      )
 
       try {
-        await queue.add('testJob', { someData: 'testData' }, opts);
-      } catch (e) {
-        assert(recordExceptionSpy.calledOnce);
-        const recordedError = recordExceptionSpy.firstCall.args[0];
+        await queue.add('testJob', { someData: 'testData' }, opts)
+      }
+      catch (e) {
+        assert(recordExceptionSpy.calledOnce)
+        const recordedError = recordExceptionSpy.firstCall.args[0]
         assert.equal(
           recordedError.message,
           'End date must be greater than current timestamp',
-        );
-      } finally {
-        recordExceptionSpy.restore();
+        )
       }
-    });
-  });
+      finally {
+        recordExceptionSpy.restore()
+      }
+    })
+  })
 
   describe('Queue.addBulk', () => {
     it('should correctly interact with telemetry when adding multiple jobs', async () => {
       const jobs = [
         { name: 'job1', data: { foo: 'bar' } },
         { name: 'job2', data: { baz: 'qux' } },
-      ];
+      ]
 
-      await queue.addBulk(jobs);
+      await queue.addBulk(jobs)
 
-      const activeContext = telemetryClient.contextManager.active();
-      const span = activeContext.getSpan?.() as MockSpan;
-      expect(span).to.be.an.instanceOf(MockSpan);
-      expect(span.name).to.equal(`addBulk ${queueName}`);
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER);
+      const activeContext = telemetryClient.contextManager.active()
+      const span = activeContext.getSpan?.() as MockSpan
+      expect(span).to.be.an.instanceOf(MockSpan)
+      expect(span.name).to.equal(`addBulk ${queueName}`)
+      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
       expect(span.attributes[TelemetryAttributes.BulkNames]).to.deep.equal(
         jobs.map(job => job.name),
-      );
+      )
       expect(span.attributes[TelemetryAttributes.BulkCount]).to.equal(
         jobs.length,
-      );
-    });
+      )
+    })
 
     it('should correctly handle errors and record them in telemetry for addBulk', async () => {
       const recordExceptionSpy = sinon.spy(
         MockSpan.prototype,
         'recordException',
-      );
+      )
 
       try {
         await queue.addBulk([
@@ -223,130 +225,134 @@ describe('Telemetry', () => {
             data: { someData: 'testData2' },
             opts: { jobId: '0' },
           },
-        ]);
-      } catch (e) {
-        assert(recordExceptionSpy.calledOnce);
-        const recordedError = recordExceptionSpy.firstCall.args[0];
-        assert.equal(recordedError.message, 'Custom Ids cannot be integers');
-      } finally {
-        recordExceptionSpy.restore();
+        ])
       }
-    });
-  });
+      catch (e) {
+        assert(recordExceptionSpy.calledOnce)
+        const recordedError = recordExceptionSpy.firstCall.args[0]
+        assert.equal(recordedError.message, 'Custom Ids cannot be integers')
+      }
+      finally {
+        recordExceptionSpy.restore()
+      }
+    })
+  })
 
   describe('Queue.upsertJobScheduler', async () => {
     it('should correctly interact with telemetry when adding a job scheduler', async () => {
-      const jobSchedulerId = 'testJobScheduler';
-      const data = { foo: 'bar' };
+      const jobSchedulerId = 'testJobScheduler'
+      const data = { foo: 'bar' }
 
       await queue.upsertJobScheduler(
         jobSchedulerId,
         { every: 1000, endDate: Date.now() + 1000 },
         { name: 'repeatable-job', data },
-      );
+      )
 
-      const activeContext = telemetryClient.contextManager.active();
-      const span = activeContext.getSpan?.() as MockSpan;
-      expect(span).to.be.an.instanceOf(MockSpan);
-      expect(span.name).to.equal(`add ${queueName}.repeatable-job`);
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER);
+      const activeContext = telemetryClient.contextManager.active()
+      const span = activeContext.getSpan?.() as MockSpan
+      expect(span).to.be.an.instanceOf(MockSpan)
+      expect(span.name).to.equal(`add ${queueName}.repeatable-job`)
+      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
       expect(span.attributes[TelemetryAttributes.JobSchedulerId]).to.equal(
         jobSchedulerId,
-      );
-      expect(span.attributes[TelemetryAttributes.JobId]).to.be.a('string');
+      )
+      expect(span.attributes[TelemetryAttributes.JobId]).to.be.a('string')
       expect(span.attributes[TelemetryAttributes.JobId]).to.include(
         `repeat:${jobSchedulerId}:`,
-      );
-    });
+      )
+    })
 
     it('should correctly handle errors and record them in telemetry for upsertJobScheduler', async () => {
-      const originalCreateNextJob = JobScheduler.prototype.createNextJob;
+      const originalCreateNextJob = JobScheduler.prototype.createNextJob
       const recordExceptionSpy = sinon.spy(
         MockSpan.prototype,
         'recordException',
-      );
+      )
 
       const errMessage = 'Error creating job';
 
       // Force an exception on the job schedulers private method createNextJob
       (<any>JobScheduler).prototype.createNextJob = () => {
-        throw new Error(errMessage);
-      };
+        throw new Error(errMessage)
+      }
 
       try {
         await queue.upsertJobScheduler(
           'testJobScheduler',
           { every: 1000 },
           { data: { foo: 'bar' } },
-        );
-      } catch (e) {
-        assert(recordExceptionSpy.calledOnce);
-        const recordedError = recordExceptionSpy.firstCall.args[0];
-        assert.equal(recordedError.message, errMessage);
-      } finally {
-        JobScheduler.prototype.createNextJob = originalCreateNextJob;
-        recordExceptionSpy.restore();
+        )
       }
-    });
-  });
+      catch (e) {
+        assert(recordExceptionSpy.calledOnce)
+        const recordedError = recordExceptionSpy.firstCall.args[0]
+        assert.equal(recordedError.message, errMessage)
+      }
+      finally {
+        JobScheduler.prototype.createNextJob = originalCreateNextJob
+        recordExceptionSpy.restore()
+      }
+    })
+  })
 
   describe('Worker.processJob', async () => {
     it('should correctly interact with telemetry when processing a job', async () => {
-      const job = await queue.add('testJob', { foo: 'bar' });
+      const job = await queue.add('testJob', { foo: 'bar' })
 
       const worker = new Worker(queueName, async () => 'some result', {
         connection,
         telemetry: telemetryClient,
         name: 'testWorker',
         prefix,
-      });
+      })
 
-      await worker.waitUntilReady();
-      const moveToCompletedStub = sinon.stub(job, 'moveToCompleted').resolves();
+      await worker.waitUntilReady()
+      const moveToCompletedStub = sinon.stub(job, 'moveToCompleted').resolves()
 
-      const startSpanSpy = sinon.spy(telemetryClient.tracer, 'startSpan');
+      const startSpanSpy = sinon.spy(telemetryClient.tracer, 'startSpan')
 
-      const token = 'some-token';
+      const token = 'some-token'
 
-      await worker.processJob(job, token, () => false, new Set());
+      await worker.processJob(job, token, () => false, new Set())
 
-      const span = startSpanSpy.returnValues[0] as MockSpan;
+      const span = startSpanSpy.returnValues[0] as MockSpan
 
-      expect(span).to.be.an.instanceOf(MockSpan);
-      expect(span.name).to.equal(`process ${queueName}`);
-      expect(span.options?.kind).to.equal(SpanKind.CONSUMER);
-      expect(span.attributes[TelemetryAttributes.WorkerId]).to.equal(worker.id);
+      expect(span).to.be.an.instanceOf(MockSpan)
+      expect(span.name).to.equal(`process ${queueName}`)
+      expect(span.options?.kind).to.equal(SpanKind.CONSUMER)
+      expect(span.attributes[TelemetryAttributes.WorkerId]).to.equal(worker.id)
       expect(span.attributes[TelemetryAttributes.WorkerName]).to.equal(
         'testWorker',
-      );
-      expect(span.attributes[TelemetryAttributes.JobId]).to.equal(job.id);
+      )
+      expect(span.attributes[TelemetryAttributes.JobId]).to.equal(job.id)
 
-      moveToCompletedStub.restore();
-      await worker.close();
-    });
+      moveToCompletedStub.restore()
+      await worker.close()
+    })
 
     it('should propagate context correctly between queue and worker using telemetry', async () => {
-      const job = await queue.add('testJob', { foo: 'bar' });
+      const job = await queue.add('testJob', { foo: 'bar' })
 
       const worker = new Worker(queueName, async () => 'some result', {
         connection,
         telemetry: telemetryClient,
         prefix,
-      });
-      await worker.waitUntilReady();
+      })
+      await worker.waitUntilReady()
 
-      const moveToCompletedStub = sinon.stub(job, 'moveToCompleted').resolves();
+      const moveToCompletedStub = sinon.stub(job, 'moveToCompleted').resolves()
 
-      await worker.processJob(job, 'some-token', () => false, new Set());
+      await worker.processJob(job, 'some-token', () => false, new Set())
 
-      const workerActiveContext = telemetryClient.contextManager.active();
-      const queueActiveContext = telemetryClient.contextManager.active();
-      expect(workerActiveContext).to.equal(queueActiveContext);
+      const workerActiveContext = telemetryClient.contextManager.active()
+      const queueActiveContext = telemetryClient.contextManager.active()
+      expect(workerActiveContext).to.equal(queueActiveContext)
 
-      moveToCompletedStub.restore();
-      await worker.close();
-    });
-  });
+      moveToCompletedStub.restore()
+      await worker.close()
+    })
+  })
 
   describe('Flows', () => {
     it('should correctly interact with telemetry when adding a flow', async () => {
@@ -354,9 +360,9 @@ describe('Telemetry', () => {
         connection,
         telemetry: telemetryClient,
         prefix,
-      });
+      })
 
-      const traceSpy = sinon.spy(telemetryClient.tracer, 'startSpan');
+      const traceSpy = sinon.spy(telemetryClient.tracer, 'startSpan')
       const testFlow = {
         name: 'parentJob',
         queueName,
@@ -370,36 +376,36 @@ describe('Telemetry', () => {
             data: { baz: 'qux' },
           },
         ],
-      };
+      }
 
-      const jobNode = await flowProducer.add(testFlow);
-      const parentJob = jobNode.job;
+      const jobNode = await flowProducer.add(testFlow)
+      const parentJob = jobNode.job
 
-      const span = traceSpy.returnValues[0] as MockSpan;
+      const span = traceSpy.returnValues[0] as MockSpan
 
-      expect(span).to.be.an.instanceOf(MockSpan);
-      expect(span.name).to.equal(`addFlow ${queueName}`);
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER);
+      expect(span).to.be.an.instanceOf(MockSpan)
+      expect(span.name).to.equal(`addFlow ${queueName}`)
+      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
       expect(span.attributes[TelemetryAttributes.FlowName]).to.equal(
         testFlow.name,
-      );
+      )
 
-      traceSpy.restore();
-      await flowProducer.close();
-    });
+      traceSpy.restore()
+      await flowProducer.close()
+    })
 
     it('should correctly handle errors and record them in telemetry for flows', async () => {
       const flowProducer = new FlowProducer({
         connection,
         telemetry: telemetryClient,
         prefix,
-      });
+      })
 
-      const traceSpy = sinon.spy(telemetryClient.tracer, 'startSpan');
+      const traceSpy = sinon.spy(telemetryClient.tracer, 'startSpan')
       const recordExceptionSpy = sinon.spy(
         MockSpan.prototype,
         'recordException',
-      );
+      )
 
       try {
         await flowProducer.add({
@@ -407,21 +413,23 @@ describe('Telemetry', () => {
           queueName,
           data: { foo: 'bar' },
           opts: { parent: { id: 'invalidParentId', queue: 'invalidQueue' } },
-        });
-      } catch (e) {
-        assert(recordExceptionSpy.calledOnce);
-        const recordedError = recordExceptionSpy.firstCall.args[0];
+        })
+      }
+      catch (e) {
+        assert(recordExceptionSpy.calledOnce)
+        const recordedError = recordExceptionSpy.firstCall.args[0]
         assert.equal(
           recordedError.message,
           'Failed to add flow due to invalid parent configuration',
-        );
-      } finally {
-        traceSpy.restore();
-        recordExceptionSpy.restore();
-        await flowProducer.close();
+        )
       }
-    });
-  });
+      finally {
+        traceSpy.restore()
+        recordExceptionSpy.restore()
+        await flowProducer.close()
+      }
+    })
+  })
 
   describe('Flows - addBulk', () => {
     it('should correctly interact with telemetry when adding multiple flows', async () => {
@@ -429,9 +437,9 @@ describe('Telemetry', () => {
         connection,
         telemetry: telemetryClient,
         prefix,
-      });
+      })
 
-      const traceSpy = sinon.spy(telemetryClient.tracer, 'startSpan');
+      const traceSpy = sinon.spy(telemetryClient.tracer, 'startSpan')
       const testFlows = [
         {
           name: 'parentJob1',
@@ -457,38 +465,38 @@ describe('Telemetry', () => {
             },
           ],
         },
-      ];
+      ]
 
-      const jobNodes = await flowProducer.addBulk(testFlows);
+      const jobNodes = await flowProducer.addBulk(testFlows)
 
-      const span = traceSpy.returnValues[0] as MockSpan;
+      const span = traceSpy.returnValues[0] as MockSpan
 
-      expect(span).to.be.an.instanceOf(MockSpan);
-      expect(span.name).to.equal('addBulkFlows');
-      expect(span.options?.kind).to.equal(SpanKind.PRODUCER);
+      expect(span).to.be.an.instanceOf(MockSpan)
+      expect(span.name).to.equal('addBulkFlows')
+      expect(span.options?.kind).to.equal(SpanKind.PRODUCER)
       expect(span.attributes[TelemetryAttributes.BulkNames]).to.equal(
         testFlows.map(flow => flow.name).join(','),
-      );
+      )
       expect(span.attributes[TelemetryAttributes.BulkCount]).to.equal(
         testFlows.length,
-      );
+      )
 
-      traceSpy.restore();
-      await flowProducer.close();
-    });
+      traceSpy.restore()
+      await flowProducer.close()
+    })
 
     it('should correctly handle errors and record them in telemetry for addBulk', async () => {
       const flowProducer = new FlowProducer({
         connection,
         telemetry: telemetryClient,
         prefix,
-      });
+      })
 
-      const traceSpy = sinon.spy(telemetryClient.tracer, 'startSpan');
+      const traceSpy = sinon.spy(telemetryClient.tracer, 'startSpan')
       const recordExceptionSpy = sinon.spy(
         MockSpan.prototype,
         'recordException',
-      );
+      )
 
       const invalidFlows = [
         {
@@ -503,68 +511,70 @@ describe('Telemetry', () => {
           data: { foo: 'bar2' },
           opts: { parent: { id: 'invalidParentId', queue: 'invalidQueue' } },
         },
-      ];
+      ]
 
       try {
-        await flowProducer.addBulk(invalidFlows);
-      } catch (e) {
-        assert(recordExceptionSpy.calledOnce);
-        const recordedError = recordExceptionSpy.firstCall.args[0];
+        await flowProducer.addBulk(invalidFlows)
+      }
+      catch (e) {
+        assert(recordExceptionSpy.calledOnce)
+        const recordedError = recordExceptionSpy.firstCall.args[0]
         assert.equal(
           recordedError.message,
           'Failed to add bulk flows due to invalid parent configuration',
-        );
-      } finally {
-        traceSpy.restore();
-        recordExceptionSpy.restore();
-        await flowProducer.close();
+        )
       }
-    });
-  });
+      finally {
+        traceSpy.restore()
+        recordExceptionSpy.restore()
+        await flowProducer.close()
+      }
+    })
+  })
 
   describe('Omit Propagation', () => {
-    let fromMetadataSpy;
+    let fromMetadataSpy
 
     beforeEach(() => {
       fromMetadataSpy = sinon.spy(
         telemetryClient.contextManager,
         'fromMetadata',
-      );
-    });
+      )
+    })
 
-    afterEach(() => fromMetadataSpy.restore());
+    afterEach(() => fromMetadataSpy.restore())
 
     it('should omit propagation on queue add', async () => {
-      let worker;
-      const processing = new Promise<void>(resolve => {
+      let worker
+      const processing = new Promise<void>((resolve) => {
         worker = new Worker(queueName, async () => resolve(), {
           connection,
           telemetry: telemetryClient,
           prefix,
-        });
-      });
+        })
+      })
 
       const job = await queue.add(
         'testJob',
         { foo: 'bar' },
         { telemetry: { omitContext: true } },
-      );
+      )
 
-      await processing;
+      await processing
 
-      expect(fromMetadataSpy.callCount).to.equal(0);
-      await worker.close();
-    });
+      expect(fromMetadataSpy.callCount).to.equal(0)
+      await worker.close()
+    })
 
     it('should omit propagation on queue addBulk', async () => {
-      let worker;
-      const processing = new Promise<void>(resolve => {
+      let worker
+      const processing = new Promise<void>((resolve) => {
         worker = new Worker(queueName, async () => resolve(), {
           connection,
           telemetry: telemetryClient,
           prefix,
-        });
-      });
+        })
+      })
 
       const jobs = [
         {
@@ -572,28 +582,28 @@ describe('Telemetry', () => {
           data: { foo: 'bar' },
           opts: { telemetry: { omitContext: true } },
         },
-      ];
-      const addedJos = await queue.addBulk(jobs);
-      expect(addedJos).to.have.length(1);
+      ]
+      const addedJos = await queue.addBulk(jobs)
+      expect(addedJos).to.have.length(1)
 
-      await processing;
+      await processing
 
-      expect(fromMetadataSpy.callCount).to.equal(0);
-      await worker.close();
-    });
+      expect(fromMetadataSpy.callCount).to.equal(0)
+      await worker.close()
+    })
 
     it('should omit propagation on job scheduler', async () => {
-      let worker;
-      const processing = new Promise<void>(resolve => {
+      let worker
+      const processing = new Promise<void>((resolve) => {
         worker = new Worker(queueName, async () => resolve(), {
           connection,
           telemetry: telemetryClient,
           prefix,
-        });
-      });
+        })
+      })
 
-      const jobSchedulerId = 'testJobScheduler';
-      const data = { foo: 'bar' };
+      const jobSchedulerId = 'testJobScheduler'
+      const data = { foo: 'bar' }
 
       const job = await queue.upsertJobScheduler(
         jobSchedulerId,
@@ -603,29 +613,29 @@ describe('Telemetry', () => {
           data,
           opts: { telemetry: { omitContext: true } },
         },
-      );
+      )
 
-      await processing;
+      await processing
 
-      expect(fromMetadataSpy.callCount).to.equal(0);
-      await worker.close();
-    });
+      expect(fromMetadataSpy.callCount).to.equal(0)
+      await worker.close()
+    })
 
     it('should omit propagation on flow producer', async () => {
-      let worker;
-      const processing = new Promise<void>(resolve => {
+      let worker
+      const processing = new Promise<void>((resolve) => {
         worker = new Worker(queueName, async () => resolve(), {
           connection,
           telemetry: telemetryClient,
           prefix,
-        });
-      });
+        })
+      })
 
       const flowProducer = new FlowProducer({
         connection,
         telemetry: telemetryClient,
         prefix,
-      });
+      })
 
       const testFlow = {
         name: 'parentJob',
@@ -640,18 +650,18 @@ describe('Telemetry', () => {
           },
         ],
         opts: { telemetry: { omitContext: true } },
-      };
+      }
 
-      const jobNode = await flowProducer.add(testFlow);
+      const jobNode = await flowProducer.add(testFlow)
       const jobs = jobNode.children
         ? [jobNode.job, ...jobNode.children.map(c => c.job)]
-        : [jobNode.job];
+        : [jobNode.job]
 
-      await processing;
+      await processing
 
-      expect(fromMetadataSpy.callCount).to.equal(0);
-      await flowProducer.close();
-      await worker.close();
-    });
-  });
-});
+      expect(fromMetadataSpy.callCount).to.equal(0)
+      await flowProducer.close()
+      await worker.close()
+    })
+  })
+})

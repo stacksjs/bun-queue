@@ -2,43 +2,44 @@
  * A processor file to be used in tests.
  *
  */
-'use strict';
+'use strict'
 
 // This processor will timeout in 10 seconds.
-const MAX_TTL = 1_000;
-const CLEANUP_TTL = 500;
+const MAX_TTL = 1_000
+const CLEANUP_TTL = 500
 
-const TTL_EXIT_CODE = 10;
+const TTL_EXIT_CODE = 10
 
 module.exports = async function (job) {
-  let hasCompleted = false;
+  let hasCompleted = false
   const harKillTimeout = setTimeout(() => {
     if (!hasCompleted) {
-      process.exit(TTL_EXIT_CODE);
+      process.exit(TTL_EXIT_CODE)
     }
-  }, MAX_TTL);
+  }, MAX_TTL)
 
   const softKillTimeout = setTimeout(async () => {
-    await doCleanup(job);
-  }, CLEANUP_TTL);
+    await doCleanup(job)
+  }, CLEANUP_TTL)
 
   try {
     // If doAsyncWork is CPU intensive and blocks NodeJS loop forever, the timeout will never be triggered.
-    await doAsyncWork(job);
-    hasCompleted = true;
-  } finally {
-    // Important to clear the timeouts before returning as this process will be reused.
-    clearTimeout(harKillTimeout);
-    clearTimeout(softKillTimeout);
+    await doAsyncWork(job)
+    hasCompleted = true
   }
-};
+  finally {
+    // Important to clear the timeouts before returning as this process will be reused.
+    clearTimeout(harKillTimeout)
+    clearTimeout(softKillTimeout)
+  }
+}
 
-const doAsyncWork = async job => {
+async function doAsyncWork(job) {
   // Simulate a long running operation.
-  await new Promise(resolve => setTimeout(resolve, 10000));
-};
+  await new Promise(resolve => setTimeout(resolve, 10000))
+}
 
-const doCleanup = async job => {
+async function doCleanup(job) {
   // Simulate a cleanup operation.
-  await job.updateProgress(50);
-};
+  await job.updateProgress(50)
+}

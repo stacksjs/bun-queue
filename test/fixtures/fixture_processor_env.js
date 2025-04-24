@@ -2,15 +2,15 @@
  * A processor file to be used in tests.
  *
  */
-'use strict';
+'use strict'
 
-const delay = require('./delay');
+const delay = require('./delay')
 
-module.exports = function (/*job*/) {
+module.exports = function (/* job */) {
   return delay(500).then(() => {
     if (process.env.variable === 'variable') {
-      return 'variable';
+      return 'variable'
     }
-    throw new Error('Manually failed processor');
-  });
-};
+    throw new Error('Manually failed processor')
+  })
+}
