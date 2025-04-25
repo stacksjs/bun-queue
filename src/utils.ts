@@ -21,8 +21,7 @@ export function getRedisClient(queueConfig?: QueueConfig): RedisClient {
  * Generates a unique job ID
  */
 export function generateId(): string {
-  return Math.random().toString(36).substring(2, 15)
-    + Math.random().toString(36).substring(2, 15)
+  return Date.now().toString(36) + Math.random().toString(36).substring(2, 15)
 }
 
 /**
@@ -62,6 +61,7 @@ export function parseJob(hash: Record<string, string>): any {
     returnvalue: hash.returnvalue ? JSON.parse(hash.returnvalue) : null,
     finishedOn: hash.finishedOn ? Number(hash.finishedOn) : undefined,
     processedOn: hash.processedOn ? Number(hash.processedOn) : undefined,
+    dependencies: hash.dependencies ? JSON.parse(hash.dependencies) : [],
   }
 
   return job

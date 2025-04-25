@@ -17,6 +17,7 @@ export class Job<T = any> {
   finishedOn?: number
   processedOn?: number
   failedReason?: string
+  dependencies?: string[]
 
   constructor(queue: Queue<T>, jobId: string) {
     this.queue = queue
@@ -30,6 +31,7 @@ export class Job<T = any> {
     this.attemptsMade = 0
     this.stacktrace = []
     this.returnvalue = null
+    this.dependencies = []
   }
 
   /**
@@ -63,16 +65,26 @@ export class Job<T = any> {
     this.finishedOn = parsed.finishedOn
     this.processedOn = parsed.processedOn
     this.failedReason = parsed.failedReason
+    this.dependencies = parsed.dependencies || []
   }
 
   /**
    * Update job progress
    */
   async updateProgress(progress: number): Promise<void> {
+    if (progress < 0 || progress > 100) {
+      throw new Error('Progress must be between 0 and 100')
+    }
+
     this.progress = progress
 
     const jobKey = this.queue.getJobKey(this.id)
     await this.queue.redisClient.send('HSET', [jobKey, 'progress', progress.toString()])
+
+    // Emit progress event
+    if (this.queue.events) {
+      this.queue.events.emitJobProgress(this.id, progress)
+    }
   }
 
   /**
@@ -102,6 +114,14 @@ export class Job<T = any> {
 
     this.finishedOn = now
     this.returnvalue = returnvalue
+
+    // Emit completion event
+    if (this.queue.events) {
+      this.queue.events.emitJobCompleted(this.id, returnvalue)
+    }
+
+    // Update any dependent jobs - move them to waiting if all dependencies are met
+    await this.processDependents()
   }
 
   /**
@@ -146,6 +166,11 @@ export class Job<T = any> {
     this.failedReason = failedReason || err.message
     this.stacktrace = stacktrace
     this.attemptsMade += 1
+
+    // Emit failure event
+    if (this.queue.events) {
+      this.queue.events.emitJobFailed(this.id, err)
+    }
   }
 
   /**
@@ -177,5 +202,42 @@ export class Job<T = any> {
    */
   async remove(): Promise<void> {
     await this.queue.removeJob(this.id)
+  }
+
+  /**
+   * Process dependent jobs after this job completes
+   */
+  private async processDependents(): Promise<void> {
+    const dependentKey = `${this.queue.getJobKey(this.id)}:dependents`
+    const dependents = await this.queue.redisClient.send('SMEMBERS', [dependentKey])
+
+    if (!dependents || dependents.length === 0) {
+      return
+    }
+
+    // Check each dependent job
+    for (const depJobId of dependents) {
+      // Check if all dependencies of this dependent job are completed
+      const depJob = await this.queue.getJob(depJobId as string)
+      if (!depJob || !depJob.dependencies) {
+        continue
+      }
+
+      // Check if all dependencies are completed
+      let allDependenciesCompleted = true
+      for (const dependency of depJob.dependencies) {
+        const depJob = await this.queue.getJob(dependency)
+        if (depJob && !depJob.finishedOn) {
+          allDependenciesCompleted = false
+          break
+        }
+      }
+
+      if (allDependenciesCompleted) {
+        // All dependencies are now completed, move to waiting
+        await this.queue.redisClient.send('SREM', [this.queue.getKey('dependency-wait'), depJobId])
+        await this.queue.redisClient.send('LPUSH', [this.queue.getKey('waiting'), depJobId])
+      }
+    }
   }
 }

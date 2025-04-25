@@ -35,7 +35,7 @@ export class Worker<T = any> {
   /**
    * Stop processing jobs
    */
-  async stop(): Promise<void> {
+  async stop(timeout = 10000): Promise<void> {
     this.running = false
 
     if (this.timer) {
@@ -43,9 +43,19 @@ export class Worker<T = any> {
       this.timer = null
     }
 
-    // Wait for all processing jobs to complete
+    // Wait for all processing jobs to complete with timeout
     if (this.processing.size > 0) {
-      await Promise.all(this.processing.values())
+      const timeoutPromise = new Promise<void>((resolve) => {
+        setTimeout(() => {
+          console.warn(`Worker shutdown timed out with ${this.processing.size} jobs still processing`)
+          resolve()
+        }, timeout)
+      })
+
+      await Promise.race([
+        Promise.all(this.processing.values()),
+        timeoutPromise,
+      ])
     }
   }
 
@@ -132,6 +142,9 @@ export class Worker<T = any> {
         await job.moveToCompleted(result)
       }
       catch (err) {
+        // Log the error
+        console.error(`Error processing job ${jobId}:`, err)
+
         // Get the job again to ensure we have latest data
         const job = await this.queue.getJob(jobId)
         if (!job)

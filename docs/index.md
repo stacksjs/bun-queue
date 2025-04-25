@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: "bun-starter"
+  name: "bun-queue"
   text: "For a better local environment."
   tagline: "Modern and smart reverse proxy."
   image: /images/logo-white.png

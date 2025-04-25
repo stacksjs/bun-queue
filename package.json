@@ -5,13 +5,13 @@
   "description": "A Redis-backed job queue built for Bun.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
-  "homepage": "https://github.com/stacksjs/bun-starter#readme",
+  "homepage": "https://github.com/stacksjs/bun-queue#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stacksjs/bun-starter.git"
+    "url": "git+https://github.com/stacksjs/bun-queue.git"
   },
   "bugs": {
-    "url": "https://github.com/stacksjs/bun-starter/issues"
+    "url": "https://github.com/stacksjs/bun-queue/issues"
   },
   "keywords": ["typescript", "starter", "kit", "bun", "package"],
   "exports": {
@@ -56,7 +56,8 @@
     "build:docs": "bun --bun vitepress build docs",
     "preview:docs": "bun --bun vitepress preview docs",
     "typecheck": "bun --bun tsc --noEmit",
-    "example:basic": "bun examples/basic.ts"
+    "example:basic": "bun examples/basic.ts",
+    "example:advanced": "bun examples/advanced.ts"
   },
   "dependencies": {
     "@types/semver": "^7.7.0",

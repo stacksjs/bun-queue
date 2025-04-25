@@ -1,7 +1,10 @@
 import type { RedisClient } from 'bun'
 
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent'
+
 export interface QueueConfig {
   verbose: boolean
+  logLevel?: LogLevel
   redis?: {
     url?: string
     client?: RedisClient
@@ -9,6 +12,12 @@ export interface QueueConfig {
   prefix?: string
   defaultJobOptions?: JobOptions
   limiter?: RateLimiter
+  metrics?: {
+    enabled: boolean
+    collectInterval?: number
+  }
+  stalledJobCheckInterval?: number
+  maxStalledJobRetries?: number
 }
 
 export type { RedisClient }
@@ -37,6 +46,8 @@ export interface JobOptions {
     startDate?: Date | number
     endDate?: Date | number
   }
+  dependsOn?: string | string[]
+  keepJobs?: boolean
 }
 
 export interface RateLimiter {
@@ -58,4 +69,18 @@ export interface Job<T = any> {
   finishedOn?: number
   processedOn?: number
   failedReason?: string
+  dependencies?: string[]
+}
+
+export interface QueueEvents {
+  jobAdded: (jobId: string, name: string) => void
+  jobRemoved: (jobId: string) => void
+  jobCompleted: (jobId: string, result: any) => void
+  jobFailed: (jobId: string, error: Error) => void
+  jobProgress: (jobId: string, progress: number) => void
+  jobActive: (jobId: string) => void
+  jobStalled: (jobId: string) => void
+  jobDelayed: (jobId: string, delay: number) => void
+  ready: () => void
+  error: (error: Error) => void
 }

@@ -1,8 +1,13 @@
 import type { RedisClient } from 'bun'
 import type { JobOptions, JobStatus, QueueConfig } from './types'
+import { CleanupService } from './cleanup'
 import { scriptLoader } from './commands'
 import { config } from './config'
+import { JobEvents } from './events'
 import { Job } from './job'
+import { createLogger } from './logger'
+import { Metrics } from './metrics'
+import { StalledJobChecker } from './stalled-checker'
 import { generateId, getRedisClient, mergeOptions } from './utils'
 import { Worker } from './worker'
 
@@ -11,13 +16,40 @@ export class Queue<T = any> {
   prefix: string
   redisClient: RedisClient
   keyPrefix: string
+  events: JobEvents
   private worker: Worker<T> | null = null
+  private metrics: Metrics | null = null
+  private cleanupService: CleanupService | null = null
+  private stalledChecker: StalledJobChecker | null = null
+  private readonly logger = createLogger()
 
   constructor(name: string, options?: QueueConfig) {
     this.name = name
     this.prefix = options?.prefix || config.prefix || 'queue'
     this.redisClient = getRedisClient(options)
     this.keyPrefix = `${this.prefix}:${this.name}`
+    this.events = new JobEvents(name)
+
+    // Set logger level if specified
+    if (options?.logLevel) {
+      this.logger.setLevel(options.logLevel)
+    }
+
+    // Initialize metrics if enabled
+    if (options?.metrics?.enabled || config.metrics?.enabled) {
+      this.metrics = new Metrics(this)
+      this.logger.debug(`Metrics enabled for queue ${name}`)
+    }
+
+    // Initialize stalled job checker
+    const stalledJobCheckInterval = options?.stalledJobCheckInterval || config.stalledJobCheckInterval
+    const maxStalledJobRetries = options?.maxStalledJobRetries || config.maxStalledJobRetries
+
+    if (stalledJobCheckInterval) {
+      this.stalledChecker = new StalledJobChecker(this, stalledJobCheckInterval, maxStalledJobRetries)
+      this.stalledChecker.start()
+      this.logger.debug(`Stalled job checker started for queue ${name}`)
+    }
 
     // Initialize scripts
     this.init()
@@ -27,74 +59,174 @@ export class Queue<T = any> {
    * Initialize the queue by loading scripts
    */
   private async init(): Promise<void> {
-    await scriptLoader.load(this.redisClient, 'src/commands')
+    try {
+      await scriptLoader.load(this.redisClient, 'src/commands')
+      this.events.emitReady()
+      this.logger.info(`Queue ${this.name} initialized successfully`)
+    }
+    catch (err) {
+      this.logger.error(`Error initializing queue ${this.name}: ${(err as Error).message}`)
+      this.events.emitError(err as Error)
+    }
   }
 
   /**
    * Add a job to the queue
    */
   async add(data: T, options?: JobOptions): Promise<Job<T>> {
-    const opts = mergeOptions(options)
-    const jobId = opts.jobId || generateId()
-    const timestamp = Date.now()
+    try {
+      const opts = mergeOptions(options)
+      const jobId = opts.jobId || generateId()
+      const timestamp = Date.now()
 
-    // Store the job
-    const jobKey = this.getJobKey(jobId)
+      // Store the job
+      const jobKey = this.getJobKey(jobId)
 
-    await this.redisClient.send('HMSET', [
-      jobKey,
-      'id',
-      jobId,
-      'name',
-      this.name,
-      'data',
-      JSON.stringify(data),
-      'timestamp',
-      timestamp.toString(),
-      'delay',
-      (opts.delay || 0).toString(),
-      'opts',
-      JSON.stringify(opts),
-      'attemptsMade',
-      '0',
-      'progress',
-      '0',
-    ])
+      // Check if we have dependencies
+      const dependencies = opts.dependsOn
+        ? (Array.isArray(opts.dependsOn) ? opts.dependsOn : [opts.dependsOn])
+        : undefined
 
-    if (opts.delay && opts.delay > 0) {
-      // Add to delayed set
-      const processAt = timestamp + opts.delay
-      await this.redisClient.send('ZADD', [
-        this.getKey('delayed'),
-        processAt.toString(),
+      // Create a multi command
+      await this.redisClient.send('MULTI', [])
+
+      // Store the job data
+      await this.redisClient.send('HMSET', [
+        jobKey,
+        'id',
         jobId,
+        'name',
+        this.name,
+        'data',
+        JSON.stringify(data),
+        'timestamp',
+        timestamp.toString(),
+        'delay',
+        (opts.delay || 0).toString(),
+        'opts',
+        JSON.stringify(opts),
+        'attemptsMade',
+        '0',
+        'progress',
+        '0',
       ])
-    }
-    else {
-      // Add to waiting list
-      const pushCmd = opts.lifo ? 'RPUSH' : 'LPUSH'
-      await this.redisClient.send(pushCmd, [this.getKey('waiting'), jobId])
-    }
 
-    const job = new Job<T>(this, jobId)
-    await job.refresh()
-    return job
+      // If we have dependencies, store them and create a dependency list
+      if (dependencies && dependencies.length > 0) {
+        // Store the dependencies with the job
+        await this.redisClient.send('HSET', [
+          jobKey,
+          'dependencies',
+          JSON.stringify(dependencies),
+        ])
+
+        // Check if all dependencies exist
+        const dependencyKeys = dependencies.map(depId => this.getJobKey(depId))
+        let allDependenciesExist = true
+
+        for (const depKey of dependencyKeys) {
+          const exists = await this.redisClient.exists(depKey)
+          if (!exists) {
+            allDependenciesExist = false
+            this.logger.warn(`Dependency job ${depKey} does not exist for job ${jobId}`)
+            break
+          }
+        }
+
+        if (!allDependenciesExist) {
+          // If dependencies don't exist, add the job but don't process it yet
+          this.logger.warn(`Job ${jobId} has dependencies that don't exist, adding to waiting list anyway`)
+        }
+
+        // Store job ID in a dependency waiting set for each dependency
+        for (const depId of dependencies) {
+          const dependentKey = `${this.getJobKey(depId)}:dependents`
+          await this.redisClient.send('SADD', [dependentKey, jobId])
+        }
+
+        // Add to a special dependencies list if any dependency is not completed
+        for (const depId of dependencies) {
+          const depJob = await this.getJob(depId)
+          if (depJob && !depJob.finishedOn) {
+            // At least one dependency is not finished, add to dependency wait list
+            await this.redisClient.send('SADD', [this.getKey('dependency-wait'), jobId])
+            // Don't add to the waiting/delayed list yet
+            await this.redisClient.send('EXEC', [])
+
+            const job = new Job<T>(this, jobId)
+            await job.refresh()
+
+            // Emit events
+            this.events.emitJobAdded(jobId, this.name)
+            if (this.metrics) {
+              this.metrics.trackJobAdded()
+            }
+
+            return job
+          }
+        }
+      }
+
+      // If we get here, either we have no dependencies or all dependencies are already completed
+      if (opts.delay && opts.delay > 0) {
+        // Add to delayed set
+        const processAt = timestamp + opts.delay
+        await this.redisClient.send('ZADD', [
+          this.getKey('delayed'),
+          processAt.toString(),
+          jobId,
+        ])
+
+        // Emit delayed event
+        this.events.emitJobDelayed(jobId, opts.delay)
+      }
+      else {
+        // Add to waiting list
+        const pushCmd = opts.lifo ? 'RPUSH' : 'LPUSH'
+        await this.redisClient.send(pushCmd, [this.getKey('waiting'), jobId])
+      }
+
+      // Execute the multi command
+      await this.redisClient.send('EXEC', [])
+
+      const job = new Job<T>(this, jobId)
+      await job.refresh()
+
+      // Emit events
+      this.events.emitJobAdded(jobId, this.name)
+      if (this.metrics) {
+        this.metrics.trackJobAdded()
+      }
+
+      return job
+    }
+    catch (err) {
+      this.logger.error(`Error adding job to queue ${this.name}: ${(err as Error).message}`)
+      this.events.emitError(err as Error)
+      throw err
+    }
   }
 
   /**
    * Get a job by id
    */
   async getJob(jobId: string): Promise<Job<T> | null> {
-    const jobKey = this.getJobKey(jobId)
-    const exists = await this.redisClient.exists(jobKey)
+    try {
+      const jobKey = this.getJobKey(jobId)
+      const exists = await this.redisClient.exists(jobKey)
 
-    if (!exists) {
+      if (!exists) {
+        return null
+      }
+
+      const job = new Job<T>(this, jobId)
+      await job.refresh()
+      return job
+    }
+    catch (err) {
+      this.logger.error(`Error getting job ${jobId} from queue ${this.name}: ${(err as Error).message}`)
       return null
     }
-
-    const job = new Job<T>(this, jobId)
-    await job.refresh()
-    return job
   }
 
   /**
@@ -103,17 +235,42 @@ export class Queue<T = any> {
   process(concurrency: number, handler: (job: Job<T>) => Promise<any>): void {
     this.worker = new Worker<T>(this, concurrency, handler)
     this.worker.start()
+    this.logger.info(`Started worker for queue ${this.name} with concurrency ${concurrency}`)
+
+    // Initialize cleanup service if not already done
+    if (!this.cleanupService) {
+      this.cleanupService = new CleanupService(this)
+      this.cleanupService.start()
+      this.logger.debug(`Cleanup service started for queue ${this.name}`)
+    }
   }
 
   /**
    * Stop processing jobs
    */
   async close(): Promise<void> {
-    if (this.worker) {
-      await this.worker.stop()
-    }
+    try {
+      if (this.worker) {
+        await this.worker.stop()
+        this.worker = null
+      }
 
-    this.redisClient.close()
+      if (this.cleanupService) {
+        this.cleanupService.stop()
+        this.cleanupService = null
+      }
+
+      if (this.stalledChecker) {
+        this.stalledChecker.stop()
+        this.stalledChecker = null
+      }
+
+      this.redisClient.close()
+      this.logger.info(`Queue ${this.name} closed`)
+    }
+    catch (err) {
+      this.logger.error(`Error closing queue ${this.name}: ${(err as Error).message}`)
+    }
   }
 
   /**
@@ -121,6 +278,7 @@ export class Queue<T = any> {
    */
   async pause(): Promise<void> {
     await this.redisClient.set(this.getKey('paused'), '1')
+    this.logger.info(`Queue ${this.name} paused`)
   }
 
   /**
@@ -128,95 +286,196 @@ export class Queue<T = any> {
    */
   async resume(): Promise<void> {
     await this.redisClient.del(this.getKey('paused'))
+    this.logger.info(`Queue ${this.name} resumed`)
   }
 
   /**
    * Remove a job from the queue
    */
   async removeJob(jobId: string): Promise<void> {
-    const jobKey = this.getJobKey(jobId)
+    try {
+      const jobKey = this.getJobKey(jobId)
 
-    // Remove from all possible lists
-    const statusLists = ['active', 'waiting', 'completed', 'failed']
-    for (const list of statusLists) {
-      await this.redisClient.send('LREM', [this.getKey(list), '0', jobId])
+      // Get job data first to check for dependencies
+      const job = await this.getJob(jobId)
+      if (!job) {
+        return
+      }
+
+      // Remove from all possible lists
+      const statusLists = ['active', 'waiting', 'completed', 'failed', 'dependency-wait']
+      for (const list of statusLists) {
+        await this.redisClient.send('LREM', [this.getKey(list), '0', jobId])
+        // Also remove from sets
+        await this.redisClient.send('SREM', [this.getKey(list), jobId])
+      }
+
+      // Remove from delayed set
+      await this.redisClient.send('ZREM', [this.getKey('delayed'), jobId])
+
+      // Remove dependent jobs link
+      const dependentKey = `${jobKey}:dependents`
+      const dependents = await this.redisClient.send('SMEMBERS', [dependentKey])
+
+      if (dependents && dependents.length > 0) {
+        // Process dependent jobs, they might be ready to move to waiting now
+        for (const depJobId of dependents) {
+          // Check if all dependencies of this dependent job are completed
+          const depJob = await this.getJob(depJobId)
+          if (depJob && depJob.dependencies) {
+            // Check if all remaining dependencies are completed
+            let allDependenciesCompleted = true
+            for (const dependency of depJob.dependencies) {
+              if (dependency !== jobId) { // Skip the one we're removing
+                const depJob = await this.getJob(dependency)
+                if (depJob && !depJob.finishedOn) {
+                  allDependenciesCompleted = false
+                  break
+                }
+              }
+            }
+
+            if (allDependenciesCompleted) {
+              // All dependencies are now completed, move to waiting
+              await this.redisClient.send('SREM', [this.getKey('dependency-wait'), depJobId])
+              await this.redisClient.send('LPUSH', [this.getKey('waiting'), depJobId])
+              this.logger.debug(`Job ${depJobId} dependencies met, moved to waiting`)
+            }
+          }
+        }
+      }
+
+      // Remove the job hash and the dependent key
+      await this.redisClient.send('DEL', [jobKey, dependentKey])
+
+      // Emit event
+      this.events.emitJobRemoved(jobId)
+      this.logger.debug(`Job ${jobId} removed from queue ${this.name}`)
+    }
+    catch (err) {
+      this.logger.error(`Error removing job ${jobId} from queue ${this.name}: ${(err as Error).message}`)
+    }
+  }
+
+  /**
+   * Get metrics data
+   */
+  async getMetrics(): Promise<any> {
+    if (!this.metrics) {
+      return null
     }
 
-    // Remove from delayed set
-    await this.redisClient.send('ZREM', [this.getKey('delayed'), jobId])
-
-    // Remove the job hash
-    await this.redisClient.del(jobKey)
+    return await this.metrics.getMetrics()
   }
 
   /**
    * Get jobs by status
    */
   async getJobs(status: JobStatus, start = 0, end = -1): Promise<Job<T>[]> {
-    let jobIds: string[] = []
+    try {
+      let jobIds: string[] = []
 
-    if (status === 'delayed') {
-      const jobs = await this.redisClient.send('ZRANGE', [
-        this.getKey(status),
-        start.toString(),
-        end.toString(),
-      ])
-      jobIds = jobs as string[]
-    }
-    else {
-      const jobs = await this.redisClient.send('LRANGE', [
-        this.getKey(status),
-        start.toString(),
-        end.toString(),
-      ])
-      jobIds = jobs as string[]
-    }
-
-    const result: Job<T>[] = []
-
-    for (const jobId of jobIds) {
-      const job = await this.getJob(jobId)
-      if (job) {
-        result.push(job)
+      if (status === 'delayed') {
+        const jobs = await this.redisClient.send('ZRANGE', [
+          this.getKey(status),
+          start.toString(),
+          end.toString(),
+        ])
+        jobIds = jobs as string[]
       }
-    }
+      else {
+        const jobs = await this.redisClient.send('LRANGE', [
+          this.getKey(status),
+          start.toString(),
+          end.toString(),
+        ])
+        jobIds = jobs as string[]
+      }
 
-    return result
+      const result: Job<T>[] = []
+
+      for (const jobId of jobIds) {
+        const job = await this.getJob(jobId)
+        if (job) {
+          result.push(job)
+        }
+      }
+
+      return result
+    }
+    catch (err) {
+      this.logger.error(`Error getting jobs with status ${status} from queue ${this.name}: ${(err as Error).message}`)
+      return []
+    }
   }
 
   /**
    * Get job counts
    */
   async getJobCounts(): Promise<Record<JobStatus, number>> {
-    const statuses: JobStatus[] = ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused']
-    const counts: Record<JobStatus, number> = {} as Record<JobStatus, number>
+    try {
+      const statuses: JobStatus[] = ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused']
+      const counts: Record<JobStatus, number> = {} as Record<JobStatus, number>
 
-    for (const status of statuses) {
-      let count = 0
-      if (status === 'delayed') {
-        count = await this.redisClient.send('ZCARD', [this.getKey(status)]) as number
+      for (const status of statuses) {
+        let count = 0
+        if (status === 'delayed') {
+          count = await this.redisClient.send('ZCARD', [this.getKey(status)]) as number
+        }
+        else if (status === 'paused') {
+          const exists = await this.redisClient.exists(this.getKey(status))
+          count = exists ? 1 : 0
+        }
+        else {
+          count = await this.redisClient.send('LLEN', [this.getKey(status)]) as number
+        }
+        counts[status] = count
       }
-      else if (status === 'paused') {
-        const exists = await this.redisClient.exists(this.getKey(status))
-        count = exists ? 1 : 0
-      }
-      else {
-        count = await this.redisClient.send('LLEN', [this.getKey(status)]) as number
-      }
-      counts[status] = count
+
+      return counts
     }
-
-    return counts
+    catch (err) {
+      this.logger.error(`Error getting job counts for queue ${this.name}: ${(err as Error).message}`)
+      return {
+        waiting: 0,
+        active: 0,
+        completed: 0,
+        failed: 0,
+        delayed: 0,
+        paused: 0,
+      }
+    }
   }
 
   /**
    * Clear all jobs from the queue
    */
   async empty(): Promise<void> {
-    const keys = await this.redisClient.keys(`${this.keyPrefix}:*`)
+    try {
+      const keys = await this.redisClient.keys(`${this.keyPrefix}:*`)
 
-    if (keys.length) {
-      await this.redisClient.del(...keys)
+      if (keys.length) {
+        await this.redisClient.send('DEL', keys)
+      }
+
+      this.logger.info(`Queue ${this.name} emptied`)
+    }
+    catch (err) {
+      this.logger.error(`Error emptying queue ${this.name}: ${(err as Error).message}`)
+    }
+  }
+
+  /**
+   * Check Redis connection health
+   */
+  async ping(): Promise<boolean> {
+    try {
+      const response = await this.redisClient.send('PING', [])
+      return response === 'PONG'
+    }
+    catch (error) {
+      this.logger.error(`Connection error: ${(error as Error).message}`)
+      return false
     }
   }
 

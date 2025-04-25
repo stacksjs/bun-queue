@@ -23,15 +23,13 @@ export class RateLimiter {
     const key = this.queue.getKey('limit')
     const now = Date.now()
 
-    const result = await this.queue.redisClient.send('rateLimit', {
-      keys: [key],
-      args: [
-        this.queue.name,
-        this.options.max.toString(),
-        this.options.duration.toString(),
-        now.toString(),
-      ],
-    })
+    const result = await this.queue.redisClient.send('rateLimit', [
+      key,
+      this.queue.name,
+      this.options.max.toString(),
+      this.options.duration.toString(),
+      now.toString(),
+    ])
 
     return {
       limited: result[0] === 1,
