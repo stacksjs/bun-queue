@@ -1,6 +1,6 @@
 import type { RedisClient } from 'bun'
-import { generateId } from './utils'
 import { createLogger } from './logger'
+import { generateId } from './utils'
 
 export interface LockOptions {
   /**
@@ -61,8 +61,8 @@ export class DistributedLock {
       const result = await this.redisClient.send('SET', [
         lockKey,
         token,
-        'NX',  // Only set if key doesn't exist
-        'PX',  // Set expiry in milliseconds
+        'NX', // Only set if key doesn't exist
+        'PX', // Set expiry in milliseconds
         duration.toString(),
       ])
 
@@ -108,7 +108,8 @@ export class DistributedLock {
       await this.redisClient.del(lockKey)
       this.logger.debug(`Released lock ${resource} with token ${token}`)
       return true
-    } else {
+    }
+    else {
       this.logger.debug(`Failed to release lock ${resource} with token ${token}`)
       return false
     }
@@ -123,7 +124,7 @@ export class DistributedLock {
     const lockKey = this.getLockKey(resource)
     const result = await this.redisClient.exists(lockKey)
     // Different Redis clients may return different types
-    return result ? true : false
+    return !!result
   }
 
   /**
@@ -166,7 +167,8 @@ export class DistributedLock {
           clearInterval(autoExtendId)
           this.logger.debug(`Stopped auto-extension for lock ${resource}`)
         }
-      } catch (error) {
+      }
+      catch (error) {
         this.logger.error(`Error extending lock ${resource}: ${(error as Error).message}`)
         clearInterval(autoExtendId)
       }
@@ -219,7 +221,8 @@ export class DistributedLock {
 
     try {
       return await fn()
-    } finally {
+    }
+    finally {
       await this.release(resource, token)
     }
   }

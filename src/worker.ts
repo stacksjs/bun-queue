@@ -130,7 +130,8 @@ export class Worker<T = any> {
         if ('processJobWithLock' in this.queue && typeof this.queue.processJobWithLock === 'function') {
           // Process with distributed lock for better concurrency safety
           await this.queue.processJobWithLock(jobId, async (job) => {
-            if (!job) return
+            if (!job)
+              return
 
             // Set processedOn timestamp
             const jobKey = this.queue.getJobKey(jobId)
@@ -145,7 +146,8 @@ export class Worker<T = any> {
             await job.moveToCompleted(result)
             return result
           })
-        } else {
+        }
+        else {
           // Fallback to traditional processing without distributed lock
           const job = await this.queue.getJob(jobId)
           if (!job)

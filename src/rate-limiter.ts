@@ -31,7 +31,8 @@ export class RateLimiter {
         // Use the function to generate a key from the data
         const keyValue = this.options.keyPrefix(data)
         identifier = `${this.queue.name}:${keyValue}`
-      } else {
+      }
+      else {
         // Use the keyPrefix as a property path in the data object
         const keyValue = data[this.options.keyPrefix]
         if (keyValue) {

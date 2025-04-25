@@ -94,7 +94,7 @@ export class CronScheduler {
           limit: options.limit,
           // Need to specify 'every' for backward compatibility
           every: 0, // This value is ignored when cron is specified
-        }
+        },
       }
 
       // Calculate delay until next execution
@@ -107,7 +107,8 @@ export class CronScheduler {
       this.logger.info(`Scheduled cron job ${jobId} with expression "${cronExpression}", next run at ${nextRun.toLocaleString()}`)
 
       return jobId
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.error(`Error scheduling cron job: ${(error as Error).message}`)
       throw error
     }
@@ -155,7 +156,7 @@ export class CronScheduler {
     for (const part of parts) {
       // Handle ranges (e.g. "1-5")
       if (part.includes('-')) {
-        const [start, end] = part.split('-').map(n => parseInt(n, 10))
+        const [start, end] = part.split('-').map(n => Number.parseInt(n, 10))
 
         if (isNaN(start) || isNaN(end) || start < min || end > max || start > end) {
           throw new Error(`Invalid range in cron expression: ${part}`)
@@ -168,17 +169,17 @@ export class CronScheduler {
       // Handle steps (e.g. "*/2", "1/2")
       else if (part.includes('/')) {
         const [range, step] = part.split('/')
-        const stepValue = parseInt(step, 10)
+        const stepValue = Number.parseInt(step, 10)
 
         if (isNaN(stepValue) || stepValue <= 0) {
           throw new Error(`Invalid step in cron expression: ${part}`)
         }
 
         let start = min
-        let end = max
+        const end = max
 
         if (range !== '*') {
-          const rangeValue = parseInt(range, 10)
+          const rangeValue = Number.parseInt(range, 10)
           if (!isNaN(rangeValue)) {
             start = rangeValue
           }
@@ -190,7 +191,7 @@ export class CronScheduler {
       }
       // Handle single values
       else {
-        const value = parseInt(part, 10)
+        const value = Number.parseInt(part, 10)
 
         if (isNaN(value) || value < min || value > max) {
           throw new Error(`Invalid value in cron expression: ${part}`)
@@ -226,7 +227,7 @@ export class CronScheduler {
           hour: 'numeric',
           minute: 'numeric',
           second: 'numeric',
-          hour12: false
+          hour12: false,
         }
 
         const formatter = new Intl.DateTimeFormat('en-US', options)
@@ -234,7 +235,7 @@ export class CronScheduler {
 
         const getValue = (type: string): number => {
           const part = parts.find(p => p.type === type)
-          return part ? parseInt(part.value, 10) : 0
+          return part ? Number.parseInt(part.value, 10) : 0
         }
 
         const year = getValue('year')
@@ -246,7 +247,8 @@ export class CronScheduler {
         // Create a new date in the target timezone
         date.setFullYear(year, month, day)
         date.setHours(hour, minute, 0, 0)
-      } catch (error) {
+      }
+      catch (error) {
         this.logger.warn(`Invalid timezone: ${timezone}, using system timezone`)
       }
     }
@@ -325,7 +327,8 @@ export class CronScheduler {
 
       this.logger.info(`Unscheduled cron job ${jobId}`)
       return true
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.error(`Error unscheduling cron job ${jobId}: ${(error as Error).message}`)
       return false
     }

@@ -1,19 +1,20 @@
 import type { RedisClient } from 'bun'
+import type { CronJobOptions } from './cron-scheduler'
+import type { RateLimitResult } from './rate-limiter'
 import type { JobOptions, JobStatus, QueueConfig } from './types'
 import { CleanupService } from './cleanup'
 import { scriptLoader } from './commands'
 import { config } from './config'
-import { CronScheduler, type CronJobOptions } from './cron-scheduler'
+import { CronScheduler } from './cron-scheduler'
 import { DistributedLock } from './distributed-lock'
 import { JobEvents } from './events'
 import { Job } from './job'
 import { createLogger } from './logger'
 import { Metrics } from './metrics'
+import { RateLimiter } from './rate-limiter'
 import { StalledJobChecker } from './stalled-checker'
 import { generateId, getRedisClient, mergeOptions } from './utils'
 import { Worker } from './worker'
-import { RateLimiter } from './rate-limiter'
-import type { RateLimitResult } from './rate-limiter'
 
 export class Queue<T = any> {
   name: string
@@ -112,7 +113,7 @@ export class Queue<T = any> {
           const opts = {
             ...this.defaultJobOptions,
             ...options,
-            delay: limiterResult.resetIn
+            delay: limiterResult.resetIn,
           }
 
           return this.add(data, opts)
@@ -540,7 +541,7 @@ export class Queue<T = any> {
   /**
    * Check if the queue is rate limited for a specific key
    */
-  async isRateLimited(key?: string, data?: T): Promise<{ limited: boolean; resetIn: number }> {
+  async isRateLimited(key?: string, data?: T): Promise<{ limited: boolean, resetIn: number }> {
     if (!this.limiter) {
       return { limited: false, resetIn: 0 }
     }
@@ -550,7 +551,8 @@ export class Queue<T = any> {
     if (key) {
       // Use explicit key if provided
       result = await this.limiter.checkByKey(key)
-    } else {
+    }
+    else {
       // Use data with keyPrefix from limiter options
       result = await this.limiter.check(data)
     }
@@ -570,7 +572,8 @@ export class Queue<T = any> {
     // If locks are disabled, just process the job directly
     if (!this.lock) {
       const job = await this.getJob(jobId)
-      if (!job) return null
+      if (!job)
+        return null
       return handler(job)
     }
 
@@ -582,17 +585,19 @@ export class Queue<T = any> {
       return await this.lock.withLock(lockResource, async () => {
         // Now we have the lock, fetch the job and process it
         const job = await this.getJob(jobId)
-        if (!job) return null
+        if (!job)
+          return null
 
         // Process the job with the lock held
         this.logger.debug(`Processing job ${jobId} with distributed lock`)
         return handler(job)
       }, {
         duration: 30000, // 30 second lock
-        retries: 3,      // Try 3 times to get the lock
-        retryDelay: 200  // 200ms between retries
+        retries: 3, // Try 3 times to get the lock
+        retryDelay: 200, // 200ms between retries
       })
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.error(`Failed to acquire lock for job ${jobId}: ${(error as Error).message}`)
       throw error
     }

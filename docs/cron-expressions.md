@@ -96,7 +96,8 @@ For more complex scheduling needs, you might need to combine multiple cron expre
 ## Using Cron Jobs in Bun Bull
 
 ```typescript
-import { Queue, type CronJobOptions } from 'bun-queue'
+import type { CronJobOptions } from 'bun-queue'
+import { Queue } from 'bun-queue'
 
 // Create a queue
 const queue = new Queue('my-queue')

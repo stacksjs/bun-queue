@@ -1,12 +1,11 @@
 import type { RedisClient } from 'bun'
-import type { QueueConfig, JobOptions, PriorityLevel, PriorityQueueOptions, JobStatus } from './types'
-import { DEFAULT_PRIORITY_LEVEL, MAX_PRIORITY_LEVELS } from './types'
+import type { JobEvents } from './events'
+import type { JobOptions, JobStatus, PriorityLevel, PriorityQueueOptions, QueueConfig } from './types'
 import { Job } from './job'
-import { Queue } from './queue'
 import { createLogger } from './logger'
-import { generateId, getRedisClient, mergeOptions } from './utils'
-import { Worker } from './worker'
-import { JobEvents } from './events'
+import { Queue } from './queue'
+import { DEFAULT_PRIORITY_LEVEL, MAX_PRIORITY_LEVELS } from './types'
+import { generateId } from './utils'
 
 /**
  * PriorityQueue implements a queue with priority support
@@ -98,15 +97,24 @@ export class PriorityQueue<T = any> {
       // Store the job data with priority
       await this.redisClient.send('HMSET', [
         jobKey,
-        'id', jobId,
-        'name', this.name,
-        'data', JSON.stringify(data),
-        'timestamp', timestamp.toString(),
-        'delay', (opts.delay || 0).toString(),
-        'opts', JSON.stringify(opts),
-        'attemptsMade', '0',
-        'progress', '0',
-        'priority', priority.toString(),
+        'id',
+        jobId,
+        'name',
+        this.name,
+        'data',
+        JSON.stringify(data),
+        'timestamp',
+        timestamp.toString(),
+        'delay',
+        (opts.delay || 0).toString(),
+        'opts',
+        JSON.stringify(opts),
+        'attemptsMade',
+        '0',
+        'progress',
+        '0',
+        'priority',
+        priority.toString(),
       ])
 
       // Handle dependencies if any
@@ -283,7 +291,7 @@ export class PriorityQueue<T = any> {
     for (let priority = 0; priority < this.priorityLevels; priority++) {
       const priorityKey = this.getPriorityKey(priority)
       const countResult = await this.redisClient.send('LLEN', [priorityKey])
-      const count = typeof countResult === 'string' ? parseInt(countResult, 10) : Number(countResult)
+      const count = typeof countResult === 'string' ? Number.parseInt(countResult, 10) : Number(countResult)
       priorityJobs += count
     }
 
@@ -319,7 +327,7 @@ export class PriorityQueue<T = any> {
 
       // See if there are any jobs in this priority queue
       const lengthResult = await this.redisClient.send('LLEN', [priorityKey])
-      const length = typeof lengthResult === 'string' ? parseInt(lengthResult, 10) : Number(lengthResult)
+      const length = typeof lengthResult === 'string' ? Number.parseInt(lengthResult, 10) : Number(lengthResult)
 
       if (length && length > 0) {
         // Get all jobs from this priority level
@@ -350,13 +358,13 @@ export class PriorityQueue<T = any> {
   private startJobMover(): void {
     // Move jobs immediately to start
     this.moveJobsToWaiting().catch(err =>
-      this.logger.error(`Error moving priority jobs to waiting: ${(err as Error).message}`)
+      this.logger.error(`Error moving priority jobs to waiting: ${(err as Error).message}`),
     )
 
     // Then set up interval to do it periodically (faster than the worker tick)
     this.jobMoverTimer = setInterval(() => {
       this.moveJobsToWaiting().catch(err =>
-        this.logger.error(`Error moving priority jobs to waiting: ${(err as Error).message}`)
+        this.logger.error(`Error moving priority jobs to waiting: ${(err as Error).message}`),
       )
     }, 25) // Faster than the standard worker tick (50ms)
   }
