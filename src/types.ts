@@ -135,3 +135,15 @@ export interface Observable {
   interval: number
   running: boolean
 }
+
+// Priority Queue types
+export type PriorityLevel = number
+export const DEFAULT_PRIORITY_LEVEL = 0
+export const MAX_PRIORITY_LEVELS = 10 // Support 0-9 priority levels by default
+
+export interface PriorityQueueOptions {
+  levels?: number // Number of priority levels to support
+  defaultLevel?: number // Default priority level
+  dynamicReordering?: boolean // Whether to allow dynamic reordering of jobs
+  reorderInterval?: number // Interval in ms to check for reordering
+}

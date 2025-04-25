@@ -64,7 +64,8 @@
     "typecheck": "bun --bun tsc --noEmit",
     "example:basic": "bun examples/basic.ts",
     "example:advanced": "bun examples/advanced.ts",
-    "example:advanced-features": "bun examples/advanced-features.ts"
+    "example:advanced-features": "bun examples/advanced-features.ts",
+    "example:priority-queue": "bun examples/priority-queue.ts"
   },
   "devDependencies": {
     "@stacksjs/docs": "^0.70.23",
