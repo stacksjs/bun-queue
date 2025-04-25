@@ -136,7 +136,7 @@ export class CronScheduler {
 
   /**
    * Parse a single field of a cron expression
-   * @param field The field to parse (e.g. "1-5", "star/2", "1,3,5")
+   * @param field The field to parse (e.g. "1-5", "*\/2", "1,3,5")
    * @param min The minimum value
    * @param max The maximum value
    * @returns Array of valid values or null for all values
