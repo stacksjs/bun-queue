@@ -154,6 +154,22 @@ class JobEvents extends EventEmitter {
     this.logger.debug(`Observable ${observableId} stopped for queue ${this.queueName}`)
     this.emit('observableStopped', observableId)
   }
+
+  /**
+   * Emit job moved to dead letter queue event
+   */
+  emitJobMovedToDeadLetter(jobId: string, deadLetterQueueName: string, reason: string): void {
+    this.logger.debug(`Job ${jobId} moved to dead letter queue ${deadLetterQueueName}: ${reason}`)
+    this.emit('jobMovedToDeadLetter', jobId, deadLetterQueueName, reason)
+  }
+
+  /**
+   * Emit job republished from dead letter queue event
+   */
+  emitJobRepublishedFromDeadLetter(jobId: string, originalQueueName: string): void {
+    this.logger.debug(`Job ${jobId} republished from dead letter queue to ${originalQueueName}`)
+    this.emit('jobRepublishedFromDeadLetter', jobId, originalQueueName)
+  }
 }
 
 export { JobEvents }

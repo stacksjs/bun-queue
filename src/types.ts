@@ -19,6 +19,7 @@ export interface QueueConfig {
   stalledJobCheckInterval?: number
   maxStalledJobRetries?: number
   distributedLock?: boolean
+  defaultDeadLetterOptions?: DeadLetterQueueOptions // Default dead letter queue options
 }
 
 export type { RedisClient }
@@ -49,6 +50,7 @@ export interface JobOptions {
   }
   dependsOn?: string | string[]
   keepJobs?: boolean
+  deadLetter?: boolean | DeadLetterQueueOptions // Whether to use dead letter queue for this job
 }
 
 export interface RateLimiter {
@@ -93,6 +95,8 @@ export interface QueueEvents {
   groupRemoved: (groupName: string) => void
   observableStarted: (observableId: string) => void
   observableStopped: (observableId: string) => void
+  jobMovedToDeadLetter: (jobId: string, deadLetterQueueName: string, reason: string) => void
+  jobRepublishedFromDeadLetter: (jobId: string, originalQueueName: string) => void
 }
 
 // Batch processing types
@@ -148,4 +152,13 @@ export interface PriorityQueueOptions {
   defaultLevel?: number // Default priority level
   dynamicReordering?: boolean // Whether to allow dynamic reordering of jobs
   reorderInterval?: number // Interval in ms to check for reordering
+}
+
+// Dead Letter Queue options
+export interface DeadLetterQueueOptions {
+  queueSuffix?: string // Suffix to append to the queue name for the dead letter queue, defaults to '-dead-letter'
+  maxRetries?: number // Maximum number of retries before moving to dead letter queue, defaults to 3
+  processFailed?: boolean // Whether to automatically process failed jobs, defaults to false
+  removeFromOriginalQueue?: boolean // Whether to remove the job from the original queue's failed list, defaults to true
+  enabled?: boolean // Whether the dead letter queue is enabled by default, defaults to false
 }

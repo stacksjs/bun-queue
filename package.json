@@ -68,7 +68,8 @@
     "example:priority-queue": "bun examples/priority-queue.ts",
     "example:key-rate-limiting": "bun examples/key-rate-limiting.ts",
     "example:distributed-locks": "bun examples/distributed-locks.ts",
-    "example:cron-jobs": "bun examples/cron-jobs.ts"
+    "example:cron-jobs": "bun examples/cron-jobs.ts",
+    "example:dead-letter-queue": "bun examples/dead-letter-queue.ts"
   },
   "devDependencies": {
     "@stacksjs/docs": "^0.70.23",

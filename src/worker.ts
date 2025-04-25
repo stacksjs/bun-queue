@@ -179,6 +179,22 @@ export class Worker<T = any> {
 
         // Check for retry
         const maxAttempts = job.opts.attempts || 1
+
+        // Check if we should move to dead letter queue
+        const useDeadLetter = job.opts.deadLetter !== undefined
+          ? job.opts.deadLetter
+          : this.queue.getDefaultDeadLetterOptions()?.enabled
+
+        const deadLetterMaxRetries = (typeof job.opts.deadLetter === 'object' && job.opts.deadLetter !== null
+          ? job.opts.deadLetter.maxRetries
+          : this.queue.getDefaultDeadLetterOptions()?.maxRetries) || 3
+
+        // Move to dead letter queue if we've exceeded max retries
+        if (useDeadLetter && job.attemptsMade >= deadLetterMaxRetries) {
+          await this.queue.moveToDeadLetter(job.id, `Failed after ${job.attemptsMade} attempts`)
+          return
+        }
+
         if (job.attemptsMade < maxAttempts) {
           // Calculate delay for retry based on backoff strategy
           let delay = 0

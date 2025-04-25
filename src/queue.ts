@@ -1,11 +1,12 @@
 import type { RedisClient } from 'bun'
 import type { CronJobOptions } from './cron-scheduler'
 import type { RateLimitResult } from './rate-limiter'
-import type { JobOptions, JobStatus, QueueConfig } from './types'
+import type { DeadLetterQueueOptions, JobOptions, JobStatus, QueueConfig } from './types'
 import { CleanupService } from './cleanup'
 import { scriptLoader } from './commands'
 import { config } from './config'
 import { CronScheduler } from './cron-scheduler'
+import { DeadLetterQueue } from './dead-letter-queue'
 import { DistributedLock } from './distributed-lock'
 import { JobEvents } from './events'
 import { Job } from './job'
@@ -31,6 +32,8 @@ export class Queue<T = any> {
   private defaultJobOptions: JobOptions | undefined
   private lock: DistributedLock | null = null
   private cronScheduler: CronScheduler | null = null
+  private deadLetterQueue: DeadLetterQueue<T> | null = null
+  private defaultDeadLetterOptions: DeadLetterQueueOptions | undefined
 
   constructor(name: string, options?: QueueConfig) {
     this.name = name
@@ -79,6 +82,14 @@ export class Queue<T = any> {
 
     // Initialize scripts
     this.init()
+
+    this.defaultDeadLetterOptions = options?.defaultDeadLetterOptions
+
+    // Initialize dead letter queue if enabled by default
+    if (options?.defaultDeadLetterOptions?.enabled) {
+      this.deadLetterQueue = new DeadLetterQueue<T>(this, options.defaultDeadLetterOptions)
+      this.logger.debug(`Dead letter queue initialized for queue ${name}`)
+    }
   }
 
   /**
@@ -634,5 +645,65 @@ export class Queue<T = any> {
     }
 
     return this.cronScheduler.unschedule(jobId)
+  }
+
+  getDeadLetterQueue(): DeadLetterQueue<T> {
+    if (!this.deadLetterQueue) {
+      this.deadLetterQueue = new DeadLetterQueue<T>(this, this.defaultDeadLetterOptions)
+    }
+    return this.deadLetterQueue
+  }
+
+  /**
+   * Get default dead letter queue options
+   */
+  getDefaultDeadLetterOptions(): DeadLetterQueueOptions | undefined {
+    return this.defaultDeadLetterOptions
+  }
+
+  /**
+   * Move a job to the dead letter queue
+   */
+  async moveToDeadLetter(jobId: string, reason: string): Promise<boolean> {
+    const job = await this.getJob(jobId)
+    if (!job) {
+      return false
+    }
+
+    const dlq = this.getDeadLetterQueue()
+    await dlq.moveToDeadLetter(job, reason)
+    return true
+  }
+
+  /**
+   * Get jobs from the dead letter queue
+   */
+  async getDeadLetterJobs(start = 0, end = -1): Promise<Job<T>[]> {
+    const dlq = this.getDeadLetterQueue()
+    return dlq.getJobs(start, end)
+  }
+
+  /**
+   * Republish a job from the dead letter queue
+   */
+  async republishDeadLetterJob(jobId: string, options: { resetRetries?: boolean } = {}): Promise<Job<T> | null> {
+    const dlq = this.getDeadLetterQueue()
+    return dlq.republishJob(jobId, options)
+  }
+
+  /**
+   * Remove a job from the dead letter queue
+   */
+  async removeDeadLetterJob(jobId: string): Promise<boolean> {
+    const dlq = this.getDeadLetterQueue()
+    return dlq.removeJob(jobId)
+  }
+
+  /**
+   * Clear the dead letter queue
+   */
+  async clearDeadLetterQueue(): Promise<void> {
+    const dlq = this.getDeadLetterQueue()
+    return dlq.clear()
   }
 }
