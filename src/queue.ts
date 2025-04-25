@@ -706,4 +706,163 @@ export class Queue<T = any> {
     const dlq = this.getDeadLetterQueue()
     return dlq.clear()
   }
+
+  /**
+   * Remove multiple jobs from the queue in a single operation
+   * @param jobIds Array of job IDs to remove
+   * @returns Number of jobs successfully removed
+   */
+  async bulkRemove(jobIds: string[]): Promise<number> {
+    if (!jobIds.length)
+      return 0
+
+    try {
+      // Use pipeline for better performance
+      await this.redisClient.send('MULTI', [])
+
+      // Keep track of successful removes
+      let removedCount = 0
+
+      for (const jobId of jobIds) {
+        const jobKey = this.getJobKey(jobId)
+
+        // Check if job exists first
+        const exists = await this.redisClient.exists(jobKey)
+        if (!exists)
+          continue
+
+        // Remove from all possible lists
+        const statusLists = ['active', 'waiting', 'completed', 'failed', 'dependency-wait']
+        for (const list of statusLists) {
+          await this.redisClient.send('LREM', [this.getKey(list), '0', jobId])
+          await this.redisClient.send('SREM', [this.getKey(list), jobId])
+        }
+
+        // Remove from delayed set
+        await this.redisClient.send('ZREM', [this.getKey('delayed'), jobId])
+
+        // Remove dependent jobs links
+        const dependentKey = `${jobKey}:dependents`
+
+        // Remove the job hash and the dependent key
+        await this.redisClient.send('DEL', [jobKey, dependentKey])
+
+        removedCount++
+
+        // Emit event
+        this.events.emitJobRemoved(jobId)
+      }
+
+      // Execute all commands
+      await this.redisClient.send('EXEC', [])
+
+      this.logger.debug(`Bulk removed ${removedCount} jobs from queue ${this.name}`)
+      return removedCount
+    }
+    catch (err) {
+      this.logger.error(`Error in bulk remove operation for queue ${this.name}: ${(err as Error).message}`)
+      return 0
+    }
+  }
+
+  /**
+   * Pause multiple jobs (move them from waiting/delayed to paused state)
+   * @param jobIds Array of job IDs to pause
+   * @returns Number of jobs successfully paused
+   */
+  async bulkPause(jobIds: string[]): Promise<number> {
+    if (!jobIds.length)
+      return 0
+
+    try {
+      // Use pipeline for better performance
+      await this.redisClient.send('MULTI', [])
+
+      let pausedCount = 0
+
+      for (const jobId of jobIds) {
+        const jobKey = this.getJobKey(jobId)
+
+        // Check if job exists
+        const exists = await this.redisClient.exists(jobKey)
+        if (!exists)
+          continue
+
+        // Check if it's in waiting or delayed
+        const isWaiting = await this.redisClient.send('LREM', [this.getKey('waiting'), '0', jobId])
+        const isDelayed = await this.redisClient.send('ZREM', [this.getKey('delayed'), jobId])
+
+        if ((isWaiting && isWaiting > 0) || (isDelayed && isDelayed > 0)) {
+          // Add to paused list
+          await this.redisClient.send('LPUSH', [this.getKey('paused'), jobId])
+
+          // Update job status
+          await this.redisClient.send('HSET', [jobKey, 'status', 'paused'])
+
+          pausedCount++
+          this.logger.debug(`Job ${jobId} paused`)
+        }
+      }
+
+      // Execute all commands
+      await this.redisClient.send('EXEC', [])
+
+      this.logger.debug(`Bulk paused ${pausedCount} jobs in queue ${this.name}`)
+      return pausedCount
+    }
+    catch (err) {
+      this.logger.error(`Error in bulk pause operation for queue ${this.name}: ${(err as Error).message}`)
+      return 0
+    }
+  }
+
+  /**
+   * Resume multiple paused jobs (move them from paused to waiting state)
+   * @param jobIds Array of job IDs to resume
+   * @returns Number of jobs successfully resumed
+   */
+  async bulkResume(jobIds: string[]): Promise<number> {
+    if (!jobIds.length)
+      return 0
+
+    try {
+      // Use pipeline for better performance
+      await this.redisClient.send('MULTI', [])
+
+      let resumedCount = 0
+
+      for (const jobId of jobIds) {
+        const jobKey = this.getJobKey(jobId)
+
+        // Check if job exists
+        const exists = await this.redisClient.exists(jobKey)
+        if (!exists)
+          continue
+
+        // Check if it's in paused list
+        const isPaused = await this.redisClient.send('LREM', [this.getKey('paused'), '0', jobId])
+
+        if (isPaused && isPaused > 0) {
+          // Add back to waiting list
+          await this.redisClient.send('LPUSH', [this.getKey('waiting'), jobId])
+
+          // Update job status
+          await this.redisClient.send('HSET', [jobKey, 'status', 'waiting'])
+
+          resumedCount++
+          this.logger.debug(`Job ${jobId} resumed`)
+        }
+      }
+
+      // Execute all commands
+      await this.redisClient.send('EXEC', [])
+
+      this.logger.debug(`Bulk resumed ${resumedCount} jobs in queue ${this.name}`)
+      return resumedCount
+    }
+    catch (err) {
+      this.logger.error(`Error in bulk resume operation for queue ${this.name}: ${(err as Error).message}`)
+      return 0
+    }
+  }
 }
