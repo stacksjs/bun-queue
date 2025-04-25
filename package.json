@@ -13,7 +13,16 @@
   "bugs": {
     "url": "https://github.com/stacksjs/bun-queue/issues"
   },
-  "keywords": ["typescript", "starter", "kit", "bun", "package"],
+  "keywords": [
+    "queue",
+    "job",
+    "redis",
+    "worker",
+    "task",
+    "scheduler",
+    "bun",
+    "typescript"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -25,9 +34,6 @@
   },
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "bin": {
-    "bin-name": "./dist/bin/cli.js"
-  },
   "files": ["README.md", "dist"],
   "scripts": {
     "build": "bun --bun build.ts && bun run compile",
