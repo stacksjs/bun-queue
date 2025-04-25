@@ -1,4 +1,4 @@
-import { Queue } from '../src'
+import { Queue } from '../packages/bun-queue/src'
 
 // Define job data type
 interface EmailJob {

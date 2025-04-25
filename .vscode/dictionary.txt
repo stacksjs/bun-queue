@@ -8,6 +8,7 @@ bunfig
 bunx
 changelogen
 changelogithub
+chartjs
 chrisbbreuer
 codecov
 commitlint

@@ -1,4 +1,4 @@
-import { Queue, DistributedLock } from '../src'
+import { Queue, DistributedLock } from '../packages/bun-queue/src'
 
 interface TaskData {
   id: string

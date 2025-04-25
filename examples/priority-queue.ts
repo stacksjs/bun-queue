@@ -1,4 +1,4 @@
-import { PriorityQueue, type Job } from '../src'
+import { PriorityQueue, type Job } from '../packages/bun-queue/src'
 
 interface TaskData {
   name: string

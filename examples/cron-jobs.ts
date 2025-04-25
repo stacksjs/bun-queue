@@ -1,4 +1,4 @@
-import { Queue } from '../src'
+import { Queue } from '../packages/bun-queue/src'
 
 interface NotificationData {
   title: string

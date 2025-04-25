@@ -1,4 +1,4 @@
-import { BatchProcessor, Queue, QueueGroup, QueueObservable } from '../src'
+import { BatchProcessor, Queue, QueueGroup, QueueObservable } from '../packages/bun-queue/src'
 
 async function main() {
   console.log('🚀 Advanced Features Example - Groups, Observables, and Batches')

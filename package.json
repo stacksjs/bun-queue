@@ -88,5 +88,8 @@
   },
   "lint-staged": {
     "*.{js,ts}": "bunx --bun eslint . --fix"
-  }
+  },
+  "workspaces": [
+    "packages/*"
+  ]
 }

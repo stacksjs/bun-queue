@@ -1,5 +1,6 @@
 {
   "name": "bun-queue-dashboard",
+  "type": "module",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,20 +10,16 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "@iconify-json/carbon": "^1.1.24",
     "axios": "^1.9.0",
     "chart.js": "^4.4.9",
     "date-fns": "^4.1.0",
-    "pinia": "^2.3.1",
+    "pinia": "^3.0.2",
     "vue": "^3.5.13",
     "vue-chartjs": "^5.3.2",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
-    "@unocss/reset": "^66.1.0-beta.12",
-    "@vitejs/plugin-vue": "^4.6.2",
-    "typescript": "^5.8.3",
-    "unocss": "^66.1.0-beta.12",
-    "vite": "^4.5.13",
-    "vue-tsc": "^1.8.27"
+    "typescript": "^5.8.3"
   }
 }

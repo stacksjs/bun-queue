@@ -30,19 +30,19 @@ const iconClass = computed(() => {
 const colorClass = computed(() => {
   switch (props.color) {
     case 'primary':
-      return 'bg-primary text-white'
+      return 'bg-gradient-to-br from-indigo-500 to-indigo-600 text-white'
     case 'secondary':
-      return 'bg-secondary text-white'
+      return 'bg-gradient-to-br from-slate-500 to-slate-600 text-white'
     case 'success':
-      return 'bg-success text-white'
+      return 'bg-gradient-to-br from-emerald-500 to-emerald-600 text-white'
     case 'danger':
-      return 'bg-danger text-white'
+      return 'bg-gradient-to-br from-red-500 to-red-600 text-white'
     case 'warning':
-      return 'bg-warning text-white'
+      return 'bg-gradient-to-br from-amber-500 to-amber-600 text-white'
     case 'info':
-      return 'bg-info text-white'
+      return 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
     default:
-      return 'bg-gray-100 text-gray-800'
+      return 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-800'
   }
 })
 
@@ -52,16 +52,16 @@ const formattedValue = computed(() => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="flex items-center p-4">
-      <div class="rounded-full p-3 mr-4" :class="[colorClass]">
-        <div class="text-xl" :class="[iconClass]" />
+  <div class="card transition-all duration-300 hover:shadow-lg hover:transform hover:translate-y-[-2px]">
+    <div class="flex items-center p-5">
+      <div class="rounded-full p-3.5 mr-5 shadow-md" :class="[colorClass]">
+        <div class="text-2xl" :class="[iconClass]" />
       </div>
       <div>
         <h4 class="text-sm font-medium text-gray-500">
           {{ title }}
         </h4>
-        <p class="text-2xl font-semibold">
+        <p class="text-3xl font-bold mt-1">
           {{ formattedValue }}
         </p>
       </div>

@@ -1,4 +1,4 @@
-import { Queue, RateLimiter } from '../src'
+import { Queue, RateLimiter } from '../packages/bun-queue/src'
 
 interface EmailData {
   userId: string
