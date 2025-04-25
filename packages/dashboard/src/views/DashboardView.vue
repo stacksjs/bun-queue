@@ -5,6 +5,7 @@ import { JobStatus } from '../types/job'
 
 const queueStore = useQueueStore()
 const error = ref<string | null>(null)
+const isLoading = ref(false)
 
 // Mock data for charts
 const processingRateData = ref([42, 50, 65, 59, 80, 81, 56, 55, 72, 64, 61, 68, 75, 62, 44, 35, 41, 48])
@@ -30,39 +31,52 @@ const queueActivityData = computed(() => {
     }))
 })
 
+// Mock data for groups and batches
+const groupData = ref([
+  { name: 'Daily Reports', jobCount: 45, completionRate: 78, activeJobs: 3 },
+  { name: 'User Notifications', jobCount: 128, completionRate: 62, activeJobs: 12 },
+  { name: 'Data Exports', jobCount: 34, completionRate: 91, activeJobs: 1 },
+])
+
+const recentBatches = ref([
+  { id: 'batch_abc123', name: 'Weekly Newsletter', jobCount: 15, completedJobs: 12, status: 'active' },
+  { id: 'batch_def456', name: 'Image Processing', jobCount: 24, completedJobs: 24, status: 'completed' },
+  { id: 'batch_ghi789', name: 'User Import', jobCount: 120, completedJobs: 98, status: 'active' },
+])
+
 onMounted(async () => {
+  await fetchDashboardData()
+})
+
+async function fetchDashboardData(forceRefresh = false) {
+  error.value = null
+  isLoading.value = true
+
   try {
     await Promise.all([
-      queueStore.fetchQueueStats(),
-      queueStore.fetchQueues(),
+      queueStore.fetchQueueStats(forceRefresh),
+      queueStore.fetchQueues(forceRefresh),
     ])
 
     // Generate processing rate data (last 18 minutes)
     processingRateData.value = Array.from({ length: 18 }, () =>
       Math.max(20, Math.floor(Math.random() * queueStore.stats.processingRate * 1.5)))
+
+    // In a real implementation, you would fetch groups and batches data here
+    // await queueStore.fetchGroups(forceRefresh)
+    // await queueStore.fetchBatches(forceRefresh)
   }
   catch (err) {
     error.value = 'Failed to load dashboard data'
     console.error('Dashboard data loading error:', err)
   }
-})
+  finally {
+    isLoading.value = false
+  }
+}
 
 async function refreshData() {
-  error.value = null
-  try {
-    await Promise.all([
-      queueStore.fetchQueueStats(true),
-      queueStore.fetchQueues(true),
-    ])
-
-    // Generate new processing rate data
-    processingRateData.value = Array.from({ length: 18 }, () =>
-      Math.max(20, Math.floor(Math.random() * queueStore.stats.processingRate * 1.5)))
-  }
-  catch (err) {
-    error.value = 'Failed to refresh dashboard data'
-    console.error('Dashboard data refresh error:', err)
-  }
+  await fetchDashboardData(true)
 }
 </script>
 
@@ -75,14 +89,18 @@ async function refreshData() {
           Dashboard Overview
         </h2>
       </div>
-      <button class="btn btn-primary flex items-center" :disabled="queueStore.isLoadingStats || queueStore.isLoadingQueues" @click="refreshData">
-        <span v-if="queueStore.isLoadingStats || queueStore.isLoadingQueues" class="loader mr-2" />
+      <button
+        class="btn btn-primary flex items-center"
+        :disabled="isLoading || queueStore.isLoadingStats || queueStore.isLoadingQueues"
+        @click="refreshData"
+      >
+        <span v-if="isLoading || queueStore.isLoadingStats || queueStore.isLoadingQueues" class="loader mr-2" />
         <span v-else class="i-carbon-refresh mr-2" />
-        {{ queueStore.isLoadingStats || queueStore.isLoadingQueues ? 'Loading...' : 'Refresh' }}
+        {{ isLoading || queueStore.isLoadingStats || queueStore.isLoadingQueues ? 'Loading...' : 'Refresh' }}
       </button>
     </div>
 
-    <div v-if="queueStore.isLoadingStats && !queueStore.hasStats" class="card p-8 text-center bg-white rounded-xl shadow-md">
+    <div v-if="isLoading && !queueStore.hasStats" class="card p-8 text-center bg-white rounded-xl shadow-md">
       <div class="flex justify-center items-center space-x-3">
         <div class="w-5 h-5 rounded-full bg-indigo-600 animate-pulse" />
         <div class="w-5 h-5 rounded-full bg-indigo-600 animate-pulse" style="animation-delay: 0.2s" />
@@ -182,7 +200,7 @@ async function refreshData() {
             </h3>
           </div>
           <div class="p-2 h-64 bg-white rounded-lg">
-            <div v-if="queueStore.isLoadingStats && !queueStore.hasStats" class="flex h-full items-center justify-center">
+            <div v-if="isLoading && !queueStore.hasStats" class="flex h-full items-center justify-center">
               <div class="loader mr-2" />
               <span class="text-gray-500">Loading chart data...</span>
             </div>
@@ -217,7 +235,7 @@ async function refreshData() {
             </h3>
           </div>
           <div class="p-2 h-64 bg-white rounded-lg flex justify-center items-center">
-            <div v-if="queueStore.isLoadingStats && !queueStore.hasStats" class="flex items-center">
+            <div v-if="isLoading && !queueStore.hasStats" class="flex items-center">
               <div class="loader mr-2" />
               <span class="text-gray-500">Loading chart data...</span>
             </div>
@@ -278,6 +296,155 @@ async function refreshData() {
         </div>
       </div>
 
+      <!-- Group Activity Section -->
+      <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow mb-8">
+        <div class="flex items-center mb-6">
+          <span class="i-carbon-group text-xl text-indigo-600 mr-2" />
+          <h3 class="text-lg font-medium text-gray-800">
+            Job Groups
+          </h3>
+        </div>
+
+        <div v-if="isLoading" class="py-8 text-center">
+          <div class="loader mx-auto mb-4" />
+          <p class="text-gray-500">
+            Loading group data...
+          </p>
+        </div>
+
+        <div v-else-if="groupData.length === 0" class="py-8 text-center text-gray-500">
+          No group data available
+        </div>
+
+        <div v-else>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div v-for="group in groupData" :key="group.name" class="p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
+              <div class="flex justify-between items-start mb-2">
+                <h4 class="font-medium text-gray-800">
+                  {{ group.name }}
+                </h4>
+                <span class="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700">{{ group.activeJobs }} active</span>
+              </div>
+
+              <div class="mt-3">
+                <div class="flex justify-between text-xs mb-1">
+                  <span>Completion</span>
+                  <span>{{ group.completionRate }}%</span>
+                </div>
+                <div class="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    class="h-full bg-indigo-500 rounded-full"
+                    :style="{ width: `${group.completionRate}%` }"
+                  />
+                </div>
+              </div>
+
+              <div class="mt-3 text-sm text-gray-600">
+                {{ group.jobCount }} total jobs
+              </div>
+            </div>
+          </div>
+
+          <div class="text-right mt-4">
+            <router-link to="/groups" class="btn btn-outline text-sm">
+              <span class="i-carbon-list-checked mr-2" />
+              View All Groups
+            </router-link>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Batches Section -->
+      <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow mb-8">
+        <div class="flex items-center mb-6">
+          <span class="i-carbon-batch-job text-xl text-indigo-600 mr-2" />
+          <h3 class="text-lg font-medium text-gray-800">
+            Recent Batches
+          </h3>
+        </div>
+
+        <div v-if="isLoading" class="py-8 text-center">
+          <div class="loader mx-auto mb-4" />
+          <p class="text-gray-500">
+            Loading batch data...
+          </p>
+        </div>
+
+        <div v-else-if="recentBatches.length === 0" class="py-8 text-center text-gray-500">
+          No batch data available
+        </div>
+
+        <div v-else>
+          <div class="overflow-x-auto">
+            <table class="w-full">
+              <thead>
+                <tr class="text-left border-b border-gray-200">
+                  <th class="pb-3 font-medium text-gray-500">
+                    Batch Name
+                  </th>
+                  <th class="pb-3 font-medium text-gray-500">
+                    Status
+                  </th>
+                  <th class="pb-3 font-medium text-gray-500">
+                    Progress
+                  </th>
+                  <th class="pb-3 font-medium text-gray-500 text-right">
+                    Jobs
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="batch in recentBatches" :key="batch.id" class="border-b border-gray-100">
+                  <td class="py-3">
+                    <div class="font-medium text-gray-800">
+                      {{ batch.name }}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                      {{ batch.id }}
+                    </div>
+                  </td>
+                  <td class="py-3">
+                    <span
+                      class="px-2 py-1 text-xs rounded-full"
+                      :class="{
+                        'bg-blue-100 text-blue-700': batch.status === 'active',
+                        'bg-emerald-100 text-emerald-700': batch.status === 'completed',
+                        'bg-amber-100 text-amber-700': batch.status === 'waiting',
+                        'bg-red-100 text-red-700': batch.status === 'failed',
+                      }"
+                    >
+                      {{ batch.status }}
+                    </span>
+                  </td>
+                  <td class="py-3">
+                    <div class="flex items-center">
+                      <div class="w-32 bg-gray-200 rounded-full h-2 mr-3">
+                        <div
+                          class="bg-indigo-500 h-2 rounded-full"
+                          :style="{ width: `${(batch.completedJobs / batch.jobCount) * 100}%` }"
+                        />
+                      </div>
+                      <span class="text-sm">{{ Math.round((batch.completedJobs / batch.jobCount) * 100) }}%</span>
+                    </div>
+                  </td>
+                  <td class="py-3 text-right">
+                    <span class="font-medium">{{ batch.completedJobs }}</span>
+                    <span class="text-gray-500">/{{ batch.jobCount }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="text-right mt-4">
+            <router-link to="/batches" class="btn btn-outline text-sm">
+              <span class="i-carbon-list mr-2" />
+              View All Batches
+            </router-link>
+          </div>
+        </div>
+      </div>
+
       <!-- Queue Activity -->
       <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
         <div class="flex items-center mb-6">
@@ -287,7 +454,7 @@ async function refreshData() {
           </h3>
         </div>
 
-        <div v-if="queueStore.isLoadingQueues && !queueStore.hasQueues" class="py-8 text-center">
+        <div v-if="isLoading && !queueStore.hasQueues" class="py-8 text-center">
           <div class="loader mx-auto mb-4" />
           <p class="text-gray-500">
             Loading queue data...
