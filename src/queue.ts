@@ -3,6 +3,7 @@ import type { JobOptions, JobStatus, QueueConfig } from './types'
 import { CleanupService } from './cleanup'
 import { scriptLoader } from './commands'
 import { config } from './config'
+import { DistributedLock } from './distributed-lock'
 import { JobEvents } from './events'
 import { Job } from './job'
 import { createLogger } from './logger'
@@ -26,6 +27,7 @@ export class Queue<T = any> {
   private readonly logger = createLogger()
   private limiter: RateLimiter | null = null
   private defaultJobOptions: JobOptions | undefined
+  private lock: DistributedLock | null = null
 
   constructor(name: string, options?: QueueConfig) {
     this.name = name
@@ -60,6 +62,12 @@ export class Queue<T = any> {
     if (options?.limiter) {
       this.limiter = new RateLimiter(this, options.limiter)
       this.logger.debug(`Rate limiter configured for queue ${name}`)
+    }
+
+    // Initialize distributed lock for job processing
+    if (options?.distributedLock !== false) {
+      this.lock = new DistributedLock(this.redisClient, `${this.prefix}:lock`)
+      this.logger.debug(`Distributed lock system initialized for queue ${name}`)
     }
 
     // Initialize scripts
@@ -545,5 +553,49 @@ export class Queue<T = any> {
       limited: result.limited,
       resetIn: result.resetIn,
     }
+  }
+
+  /**
+   * Process a job with a distributed lock to prevent race conditions
+   * @param jobId The job ID
+   * @param handler The processing function
+   */
+  async processJobWithLock(jobId: string, handler: (job: Job<T>) => Promise<any>): Promise<any> {
+    // If locks are disabled, just process the job directly
+    if (!this.lock) {
+      const job = await this.getJob(jobId)
+      if (!job) return null
+      return handler(job)
+    }
+
+    // Get a lock for this specific job
+    const lockResource = `job:${jobId}`
+
+    try {
+      // Try to get the lock with a reasonable timeout and retries
+      return await this.lock.withLock(lockResource, async () => {
+        // Now we have the lock, fetch the job and process it
+        const job = await this.getJob(jobId)
+        if (!job) return null
+
+        // Process the job with the lock held
+        this.logger.debug(`Processing job ${jobId} with distributed lock`)
+        return handler(job)
+      }, {
+        duration: 30000, // 30 second lock
+        retries: 3,      // Try 3 times to get the lock
+        retryDelay: 200  // 200ms between retries
+      })
+    } catch (error) {
+      this.logger.error(`Failed to acquire lock for job ${jobId}: ${(error as Error).message}`)
+      throw error
+    }
+  }
+
+  /**
+   * Get the distributed lock instance
+   */
+  getLock(): DistributedLock | null {
+    return this.lock
   }
 }

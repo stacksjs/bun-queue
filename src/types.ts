@@ -18,6 +18,7 @@ export interface QueueConfig {
   }
   stalledJobCheckInterval?: number
   maxStalledJobRetries?: number
+  distributedLock?: boolean
 }
 
 export type { RedisClient }

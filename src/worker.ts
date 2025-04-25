@@ -125,21 +125,44 @@ export class Worker<T = any> {
   private processJob(jobId: string): void {
     const promise = (async () => {
       try {
-        const job = await this.queue.getJob(jobId)
-        if (!job)
-          return
+        // Use the queue's processJobWithLock method if available,
+        // which provides distributed locking to prevent race conditions
+        if ('processJobWithLock' in this.queue && typeof this.queue.processJobWithLock === 'function') {
+          // Process with distributed lock for better concurrency safety
+          await this.queue.processJobWithLock(jobId, async (job) => {
+            if (!job) return
 
-        // Set processedOn timestamp
-        const jobKey = this.queue.getJobKey(jobId)
-        const now = Date.now()
-        await this.queue.redisClient.send('HSET', [jobKey, 'processedOn', now.toString()])
-        job.processedOn = now
+            // Set processedOn timestamp
+            const jobKey = this.queue.getJobKey(jobId)
+            const now = Date.now()
+            await this.queue.redisClient.send('HSET', [jobKey, 'processedOn', now.toString()])
+            job.processedOn = now
 
-        // Process the job
-        const result = await this.handler(job)
+            // Process the job
+            const result = await this.handler(job)
 
-        // Mark as completed
-        await job.moveToCompleted(result)
+            // Mark as completed
+            await job.moveToCompleted(result)
+            return result
+          })
+        } else {
+          // Fallback to traditional processing without distributed lock
+          const job = await this.queue.getJob(jobId)
+          if (!job)
+            return
+
+          // Set processedOn timestamp
+          const jobKey = this.queue.getJobKey(jobId)
+          const now = Date.now()
+          await this.queue.redisClient.send('HSET', [jobKey, 'processedOn', now.toString()])
+          job.processedOn = now
+
+          // Process the job
+          const result = await this.handler(job)
+
+          // Mark as completed
+          await job.moveToCompleted(result)
+        }
       }
       catch (err) {
         // Log the error
