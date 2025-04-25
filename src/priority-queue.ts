@@ -256,7 +256,7 @@ export class PriorityQueue<T = any> {
 
     for (let priority = this.priorityLevels - 1; priority >= 0; priority--) {
       const priorityKey = this.getPriorityKey(priority)
-      const jobIds = await this.redisClient.send('LRANGE', [priorityKey, start, end])
+      const jobIds = await this.redisClient.send('LRANGE', [priorityKey, start.toString(), end.toString()])
 
       if (jobIds && jobIds.length > 0) {
         for (const jobId of jobIds) {
@@ -323,7 +323,7 @@ export class PriorityQueue<T = any> {
 
       if (length && length > 0) {
         // Get all jobs from this priority level
-        const jobIds = await this.redisClient.send('LRANGE', [priorityKey, 0, -1])
+        const jobIds = await this.redisClient.send('LRANGE', [priorityKey, '0', '-1'])
 
         if (jobIds && jobIds.length > 0) {
           // Move jobs to the front of the waiting queue in reverse order
@@ -374,7 +374,7 @@ export class PriorityQueue<T = any> {
 
       for (let priority = 0; priority < this.priorityLevels; priority++) {
         const priorityKey = this.getPriorityKey(priority)
-        const jobIds = await this.redisClient.send('LRANGE', [priorityKey, 0, -1])
+        const jobIds = await this.redisClient.send('LRANGE', [priorityKey, '0', '-1'])
 
         if (jobIds && jobIds.length > 0) {
           for (const jobId of jobIds) {

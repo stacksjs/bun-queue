@@ -65,7 +65,8 @@
     "example:basic": "bun examples/basic.ts",
     "example:advanced": "bun examples/advanced.ts",
     "example:advanced-features": "bun examples/advanced-features.ts",
-    "example:priority-queue": "bun examples/priority-queue.ts"
+    "example:priority-queue": "bun examples/priority-queue.ts",
+    "example:key-rate-limiting": "bun examples/key-rate-limiting.ts"
   },
   "devDependencies": {
     "@stacksjs/docs": "^0.70.23",

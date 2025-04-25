@@ -10,6 +10,8 @@ import { Metrics } from './metrics'
 import { StalledJobChecker } from './stalled-checker'
 import { generateId, getRedisClient, mergeOptions } from './utils'
 import { Worker } from './worker'
+import { RateLimiter } from './rate-limiter'
+import type { RateLimitResult } from './rate-limiter'
 
 export class Queue<T = any> {
   name: string
@@ -22,6 +24,8 @@ export class Queue<T = any> {
   private cleanupService: CleanupService | null = null
   private stalledChecker: StalledJobChecker | null = null
   private readonly logger = createLogger()
+  private limiter: RateLimiter | null = null
+  private defaultJobOptions: JobOptions | undefined
 
   constructor(name: string, options?: QueueConfig) {
     this.name = name
@@ -29,6 +33,7 @@ export class Queue<T = any> {
     this.redisClient = getRedisClient(options)
     this.keyPrefix = `${this.prefix}:${this.name}`
     this.events = new JobEvents(name)
+    this.defaultJobOptions = options?.defaultJobOptions
 
     // Set logger level if specified
     if (options?.logLevel) {
@@ -51,6 +56,12 @@ export class Queue<T = any> {
       this.logger.debug(`Stalled job checker started for queue ${name}`)
     }
 
+    // Initialize rate limiter if provided
+    if (options?.limiter) {
+      this.limiter = new RateLimiter(this, options.limiter)
+      this.logger.debug(`Rate limiter configured for queue ${name}`)
+    }
+
     // Initialize scripts
     this.init()
   }
@@ -71,10 +82,29 @@ export class Queue<T = any> {
   }
 
   /**
-   * Add a job to the queue
+   * Add a job to the queue with rate limiting support
    */
   async add(data: T, options?: JobOptions): Promise<Job<T>> {
     try {
+      // Check rate limit if configured
+      if (this.limiter) {
+        // If we have keyPrefix in the limiter, check rate limit based on data
+        const limiterResult = await this.limiter.check(data)
+
+        if (limiterResult.limited) {
+          this.logger.warn(`Rate limit exceeded, retrying in ${limiterResult.resetIn}ms`)
+
+          // If rate limited, add to delayed queue with the reset time
+          const opts = {
+            ...this.defaultJobOptions,
+            ...options,
+            delay: limiterResult.resetIn
+          }
+
+          return this.add(data, opts)
+        }
+      }
+
       const opts = mergeOptions(options)
       const jobId = opts.jobId || generateId()
       const timestamp = Date.now()
@@ -491,5 +521,29 @@ export class Queue<T = any> {
    */
   getJobKey(jobId: string): string {
     return `${this.keyPrefix}:job:${jobId}`
+  }
+
+  /**
+   * Check if the queue is rate limited for a specific key
+   */
+  async isRateLimited(key?: string, data?: T): Promise<{ limited: boolean; resetIn: number }> {
+    if (!this.limiter) {
+      return { limited: false, resetIn: 0 }
+    }
+
+    let result: RateLimitResult
+
+    if (key) {
+      // Use explicit key if provided
+      result = await this.limiter.checkByKey(key)
+    } else {
+      // Use data with keyPrefix from limiter options
+      result = await this.limiter.check(data)
+    }
+
+    return {
+      limited: result.limited,
+      resetIn: result.resetIn,
+    }
   }
 }
