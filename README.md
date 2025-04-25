@@ -196,7 +196,7 @@ Please see [CONTRIBUTING](.github/CONTRIBUTING.md) for details.
 
 For help, discussion about best practices, or any other conversation that would benefit from being searchable:
 
-[Discussions on GitHub](<https://github.com/stacksjs/bun-> queue/discussions)
+[Discussions on GitHub](https://github.com/stacksjs/bun-queue/discussions)
 
 For casual chit-chat with others using this package:
 
