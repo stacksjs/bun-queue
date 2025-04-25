@@ -3,9 +3,10 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import router from './router'
 
-// Import UnoCSS styles
-import 'uno.css'
+// Import styles in the correct order
 import '@unocss/reset/tailwind.css'
+import './assets/base.css'
+import 'uno.css'
 
 const app = createApp(App)
 

@@ -1,32 +1,39 @@
-import type { RouteRecordRaw } from 'vue-router'
 import { createRouter, createWebHistory } from 'vue-router'
 
-const routes: RouteRecordRaw[] = [
-  {
-    path: '/',
-    name: 'Home',
-    component: () => import('@/views/DashboardView.vue'),
-  },
-  {
-    path: '/jobs',
-    name: 'Jobs',
-    component: () => import('@/views/JobsView.vue'),
-  },
-  {
-    path: '/queues',
-    name: 'Queues',
-    component: () => import('@/views/QueuesView.vue'),
-  },
-  {
-    path: '/metrics',
-    name: 'Metrics',
-    component: () => import('@/views/MetricsView.vue'),
-  },
-]
-
 const router = createRouter({
-  history: createWebHistory(),
-  routes,
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes: [
+    {
+      path: '/',
+      name: 'dashboard',
+      component: () => import('../views/DashboardView.vue'),
+    },
+    {
+      path: '/queues',
+      name: 'queues',
+      component: () => import('../views/QueuesView.vue'),
+    },
+    {
+      path: '/queues/:id',
+      name: 'queue-details',
+      component: () => import('../views/QueueDetailsView.vue'),
+    },
+    {
+      path: '/jobs',
+      name: 'jobs',
+      component: () => import('../views/JobsView.vue'),
+    },
+    {
+      path: '/jobs/:id',
+      name: 'job-details',
+      component: () => import('../views/JobDetailsView.vue'),
+    },
+    {
+      path: '/dependencies',
+      name: 'dependencies',
+      component: () => import('../views/JobDependenciesView.vue'),
+    },
+  ],
 })
 
 export default router

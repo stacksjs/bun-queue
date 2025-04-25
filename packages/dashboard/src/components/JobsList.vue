@@ -1,150 +1,137 @@
 <script setup lang="ts">
-import { format } from 'date-fns'
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { JobStatus } from '../types/job'
 
 interface Job {
   id: string
   name: string
   status: string
-  data: any
-  progress: number
-  timestamp: number
-  processedOn?: number
-  finishedOn?: number
-  attemptsMade: number
+  queue: string
+  created: string
+  updated: string
+  data?: Record<string, any>
 }
 
-interface Props {
+defineProps<{
   jobs: Job[]
-}
+  loading?: boolean
+}>()
 
-defineProps<Props>()
-const expandedJob = ref<string | null>(null)
+const router = useRouter()
 
-function formatTime(timestamp: number): string {
-  return format(new Date(timestamp), 'yyyy-MM-dd HH:mm:ss')
-}
-
-function formatDuration(start?: number, end?: number): string {
-  if (!start || !end)
-    return 'N/A'
-
-  const durationMs = end - start
-  if (durationMs < 1000) {
-    return `${durationMs}ms`
-  }
-  else if (durationMs < 60000) {
-    return `${Math.round(durationMs / 1000)}s`
-  }
-  else {
-    return `${Math.round(durationMs / 60000)}m ${Math.round((durationMs % 60000) / 1000)}s`
-  }
-}
-
-function toggleDetails(jobId: string) {
-  if (expandedJob.value === jobId) {
-    expandedJob.value = null
-  }
-  else {
-    expandedJob.value = jobId
-  }
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleString()
 }
 
 function getStatusClass(status: string): string {
-  switch (status) {
-    case 'completed':
-      return 'badge-success'
-    case 'failed':
-      return 'badge-danger'
-    case 'active':
-      return 'badge-info'
-    case 'waiting':
-      return 'badge-warning'
+  switch (status.toLowerCase()) {
+    case JobStatus.WAITING:
+      return 'bg-yellow-100 text-yellow-800'
+    case JobStatus.ACTIVE:
+      return 'bg-blue-100 text-blue-800'
+    case JobStatus.COMPLETED:
+      return 'bg-green-100 text-green-800'
+    case JobStatus.FAILED:
+      return 'bg-red-100 text-red-800'
     default:
-      return 'bg-gray-200 text-gray-700'
+      return 'bg-gray-100 text-gray-800'
   }
+}
+
+function viewJobDetails(jobId: string) {
+  router.push(`/jobs/${jobId}`)
 }
 </script>
 
 <template>
-  <div>
-    <div v-if="jobs.length === 0" class="card p-8 text-center text-gray-500">
-      No jobs found
+  <div class="overflow-x-auto">
+    <div v-if="loading" class="flex justify-center p-8">
+      <div class="spinner mr-2" />
+      <span>Loading jobs...</span>
     </div>
 
-    <div v-else class="card divide-y">
-      <div v-for="job in jobs" :key="job.id" class="p-4">
-        <div class="flex justify-between items-center">
-          <div>
-            <div class="flex items-center">
-              <span class="mr-3 text-gray-400 text-sm font-mono">{{ job.id.substring(0, 8) }}</span>
-              <h4 class="font-medium">
-                {{ job.name }}
-              </h4>
-              <span class="badge ml-2" :class="[getStatusClass(job.status)]">{{ job.status }}</span>
-            </div>
-            <p class="text-sm text-gray-500 mt-1">
-              Created: {{ formatTime(job.timestamp) }}
-            </p>
-          </div>
+    <div v-else-if="jobs.length === 0" class="text-center p-8 text-gray-500">
+      No jobs found matching your search criteria
+    </div>
 
-          <div class="flex items-center space-x-4">
-            <div v-if="job.progress > 0 && job.progress < 100" class="w-32">
-              <div class="bg-gray-200 rounded-full h-2">
-                <div
-                  class="bg-primary rounded-full h-2"
-                  :style="{ width: `${job.progress}%` }"
-                />
-              </div>
-              <div class="text-xs text-gray-500 text-right mt-1">
-                {{ job.progress }}%
-              </div>
-            </div>
-
-            <button
-              class="p-2 text-gray-500 hover:text-gray-700"
-              @click="toggleDetails(job.id)"
+    <table v-else class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Name
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            ID
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Queue
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Status
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Created
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Updated
+          </th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr v-for="job in jobs" :key="job.id" class="hover:bg-gray-50">
+          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+            {{ job.name }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ job.id }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ job.queue }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span
+              class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+              :class="getStatusClass(job.status)"
             >
-              <div :class="expandedJob === job.id ? 'i-carbon-chevron-up' : 'i-carbon-chevron-down'" />
+              {{ job.status }}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ formatDate(job.created) }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            {{ formatDate(job.updated) }}
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+            <button
+              class="text-indigo-600 hover:text-indigo-900 cursor-pointer"
+              @click="viewJobDetails(job.id)"
+            >
+              View Details
             </button>
-          </div>
-        </div>
-
-        <div v-if="expandedJob === job.id" class="mt-4 bg-gray-50 p-4 rounded-lg">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h5 class="text-sm font-medium text-gray-500 mb-1">
-                Processing Info
-              </h5>
-              <div class="space-y-2">
-                <div class="grid grid-cols-2 text-sm">
-                  <span class="text-gray-500">Attempts:</span>
-                  <span>{{ job.attemptsMade }}</span>
-                </div>
-                <div class="grid grid-cols-2 text-sm">
-                  <span class="text-gray-500">Started At:</span>
-                  <span>{{ job.processedOn ? formatTime(job.processedOn) : 'N/A' }}</span>
-                </div>
-                <div class="grid grid-cols-2 text-sm">
-                  <span class="text-gray-500">Finished At:</span>
-                  <span>{{ job.finishedOn ? formatTime(job.finishedOn) : 'N/A' }}</span>
-                </div>
-                <div class="grid grid-cols-2 text-sm">
-                  <span class="text-gray-500">Duration:</span>
-                  <span>{{ formatDuration(job.processedOn, job.finishedOn) }}</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h5 class="text-sm font-medium text-gray-500 mb-1">
-                Job Data
-              </h5>
-              <pre class="text-xs bg-gray-100 p-3 rounded overflow-auto max-h-40">{{ JSON.stringify(job.data, null, 2) }}</pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>
+
+<style scoped>
+.spinner {
+  border: 2px solid #f3f3f3;
+  border-top: 2px solid #3498db;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+</style>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import QueuesList from '@/components/QueuesList.vue'
-import { useQueueStore } from '@/store/queueStore'
 import { onMounted, ref } from 'vue'
+import QueuesList from '../components/QueuesList.vue'
+import { useQueueStore } from '../store/queueStore'
 
 const queueStore = useQueueStore()
 const isLoading = ref(true)

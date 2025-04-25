@@ -7,9 +7,6 @@
     "baseUrl": ".",
     "module": "ESNext",
     "moduleResolution": "Node",
-    "paths": {
-      "@/*": ["src/*"]
-    },
     "resolveJsonModule": true,
     "strict": true,
     "noEmit": true,

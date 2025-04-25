@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import JobsList from '@/components/JobsList.vue'
-import JobStatusFilter from '@/components/JobStatusFilter.vue'
-import { useQueueStore } from '@/store/queueStore'
 import { computed, onMounted, ref } from 'vue'
+import JobsList from '../components/JobsList.vue'
+import JobStatusFilter from '../components/JobStatusFilter.vue'
+import { useQueueStore } from '../store/queueStore'
 
 const queueStore = useQueueStore()
 const isLoading = ref(true)

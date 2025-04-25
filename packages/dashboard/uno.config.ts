@@ -4,10 +4,11 @@ export default defineConfig({
   presets: [
     presetUno(),
     presetIcons({
-      collections: {
-        carbon: () => import('@iconify-json/carbon/icons.json').then(i => i.default),
-      },
       scale: 1.2,
+      extraProperties: {
+        'display': 'inline-block',
+        'vertical-align': 'middle',
+      },
     }),
     presetWebFonts({
       fonts: {
@@ -32,14 +33,16 @@ export default defineConfig({
     },
   },
   shortcuts: {
-    'btn': 'py-2 px-4 font-semibold rounded-lg shadow-md transition-all duration-200',
-    'btn-primary': 'bg-primary text-white hover:bg-primary/90 hover:shadow-lg',
-    'btn-secondary': 'bg-secondary text-white hover:bg-secondary/90 hover:shadow-lg',
     'card': 'bg-white rounded-lg shadow',
-    'badge': 'px-2 py-0.5 text-xs font-semibold rounded-full',
-    'badge-success': 'bg-success/20 text-success',
-    'badge-danger': 'bg-danger/20 text-danger',
-    'badge-warning': 'bg-warning/20 text-warning',
-    'badge-info': 'bg-info/20 text-info',
+    'btn': 'px-4 py-2 rounded-lg transition-colors duration-200 focus:outline-none',
+    'btn-primary': 'bg-indigo-600 hover:bg-indigo-700 text-white',
+    'btn-secondary': 'bg-gray-200 hover:bg-gray-300 text-gray-800',
+    'btn-danger': 'bg-red-500 hover:bg-red-600 text-white',
+    'btn-outline': 'border border-gray-300 hover:bg-gray-100',
+    'badge': 'px-2 py-1 rounded-full text-xs font-semibold',
+    'badge-success': 'bg-green-100 text-green-800',
+    'badge-warning': 'bg-yellow-100 text-yellow-800',
+    'badge-info': 'bg-blue-100 text-blue-800',
+    'badge-danger': 'bg-red-100 text-red-800',
   },
 })

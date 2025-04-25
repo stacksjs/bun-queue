@@ -5,9 +5,6 @@
     "moduleDetection": "force",
     "module": "esnext",
     "moduleResolution": "bundler",
-    "paths": {
-      "@/*": ["./dashboard/src/*"]
-    },
     "resolveJsonModule": true,
     "types": ["bun"],
     "allowImportingTsExtensions": true,
