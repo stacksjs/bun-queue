@@ -10,11 +10,13 @@ import { DeadLetterQueue } from './dead-letter-queue'
 import { DistributedLock } from './distributed-lock'
 import { JobEvents } from './events'
 import { Job } from './job'
+import { LeaderElection } from './leader-election'
 import { createLogger } from './logger'
 import { Metrics } from './metrics'
 import { RateLimiter } from './rate-limiter'
 import { StalledJobChecker } from './stalled-checker'
 import { generateId, getRedisClient, mergeOptions } from './utils'
+import { WorkCoordinator } from './work-coordinator'
 import { Worker } from './worker'
 
 export class Queue<T = any> {
@@ -34,6 +36,10 @@ export class Queue<T = any> {
   private cronScheduler: CronScheduler | null = null
   private deadLetterQueue: DeadLetterQueue<T> | null = null
   private defaultDeadLetterOptions: DeadLetterQueueOptions | undefined
+  private leaderElection: LeaderElection | null = null
+  private workCoordinator: WorkCoordinator | null = null
+  private instanceId: string
+  private horizontalScalingEnabled: boolean = false
 
   constructor(name: string, options?: QueueConfig) {
     this.name = name
@@ -42,6 +48,7 @@ export class Queue<T = any> {
     this.keyPrefix = `${this.prefix}:${this.name}`
     this.events = new JobEvents(name)
     this.defaultJobOptions = options?.defaultJobOptions
+    this.instanceId = options?.horizontalScaling?.instanceId || generateId()
 
     // Set logger level if specified
     if (options?.logLevel) {
@@ -90,6 +97,66 @@ export class Queue<T = any> {
       this.deadLetterQueue = new DeadLetterQueue<T>(this, options.defaultDeadLetterOptions)
       this.logger.debug(`Dead letter queue initialized for queue ${name}`)
     }
+
+    // Initialize horizontal scaling if enabled
+    if (options?.horizontalScaling?.enabled) {
+      this.horizontalScalingEnabled = true
+      this.initializeHorizontalScaling(options)
+    }
+  }
+
+  /**
+   * Initialize horizontal scaling components
+   */
+  private initializeHorizontalScaling(options: QueueConfig): void {
+    const hsOptions = options.horizontalScaling || {}
+
+    // Initialize leader election
+    this.leaderElection = new LeaderElection(this.redisClient, {
+      keyPrefix: `${this.prefix}:${this.name}:leader`,
+      instanceId: this.instanceId,
+      heartbeatInterval: hsOptions.leaderElection?.heartbeatInterval,
+      leaderTimeout: hsOptions.leaderElection?.leaderTimeout,
+      onBecomeLeader: () => this.handleBecomeLeader(),
+      onLeadershipLost: () => this.handleLeadershipLost(),
+      onLeaderChanged: leaderId => this.handleLeaderChanged(leaderId),
+    })
+
+    // Initialize work coordinator
+    this.workCoordinator = new WorkCoordinator(this.redisClient, {
+      keyPrefix: hsOptions.workCoordination?.keyPrefix || `${this.prefix}:${this.name}:coordinator`,
+      instanceId: this.instanceId,
+      pollInterval: hsOptions.workCoordination?.pollInterval,
+      jobsPerWorker: hsOptions.jobsPerWorker || 10,
+      maxWorkersPerInstance: hsOptions.maxWorkersPerInstance || 10,
+    })
+
+    this.logger.info(`Horizontal scaling initialized for queue ${this.name} with instance ID ${this.instanceId}`)
+  }
+
+  /**
+   * Handler for when this instance becomes the leader
+   */
+  private handleBecomeLeader(): void {
+    this.logger.info(`Instance ${this.instanceId} became the leader for queue ${this.name}`)
+    // The leader typically handles distributed tasks like:
+    // - Moving delayed jobs to ready queue
+    // - Cleaning up stale jobs
+    // - Any other cluster-wide administrative tasks
+  }
+
+  /**
+   * Handler for when this instance loses leadership
+   */
+  private handleLeadershipLost(): void {
+    this.logger.info(`Instance ${this.instanceId} lost leadership for queue ${this.name}`)
+  }
+
+  /**
+   * Handler for when the leader changes
+   */
+  private handleLeaderChanged(leaderId: string): void {
+    this.logger.info(`Leader changed to ${leaderId} for queue ${this.name}`)
   }
 
   /**
@@ -264,31 +331,57 @@ export class Queue<T = any> {
   }
 
   /**
-   * Get a job by id
+   * Process jobs with a handler function
    */
-  async getJob(jobId: string): Promise<Job<T> | null> {
-    try {
-      const jobKey = this.getJobKey(jobId)
-      const exists = await this.redisClient.exists(jobKey)
-
-      if (!exists) {
-        return null
-      }
-
-      const job = new Job<T>(this, jobId)
-      await job.refresh()
-      return job
+  process(concurrency: number, handler: (job: Job<T>) => Promise<any>): void {
+    if (this.horizontalScalingEnabled && this.workCoordinator) {
+      // In horizontal scaling mode, we need to start the leader election and work coordinator
+      this.logger.info(`Starting horizontal scaling for queue ${this.name}`)
+      this.startHorizontalScaling(concurrency, handler)
     }
-    catch (err) {
-      this.logger.error(`Error getting job ${jobId} from queue ${this.name}: ${(err as Error).message}`)
-      return null
+    else {
+      // Traditional single instance mode
+      this.startWorker(concurrency, handler)
     }
   }
 
   /**
-   * Process jobs with a handler function
+   * Start processing in horizontal scaling mode
    */
-  process(concurrency: number, handler: (job: Job<T>) => Promise<any>): void {
+  private async startHorizontalScaling(concurrency: number, handler: (job: Job<T>) => Promise<any>): Promise<void> {
+    if (!this.leaderElection || !this.workCoordinator) {
+      throw new Error('Horizontal scaling components not initialized')
+    }
+
+    // Start leader election
+    await this.leaderElection.start()
+
+    // Start work coordinator
+    await this.workCoordinator.start()
+
+    // Start worker with the initial concurrency, this will be dynamically adjusted
+    this.startWorker(concurrency, handler)
+
+    // Set up a periodic check to adjust worker concurrency based on the coordinator
+    const adjustWorkerInterval = setInterval(() => {
+      if (!this.workCoordinator || !this.worker)
+        return
+
+      const targetWorkers = this.workCoordinator.getWorkerCount()
+      if (targetWorkers !== this.worker.concurrency) {
+        this.worker.adjustConcurrency(targetWorkers)
+        this.logger.info(`Adjusted worker concurrency to ${targetWorkers} for queue ${this.name}`)
+      }
+    }, 5000) // Check every 5 seconds
+
+    // Store the interval reference for cleanup
+    this._horizontalScalingInterval = adjustWorkerInterval
+  }
+
+  /**
+   * Start a worker in traditional mode
+   */
+  private startWorker(concurrency: number, handler: (job: Job<T>) => Promise<any>): void {
     this.worker = new Worker<T>(this, concurrency, handler)
     this.worker.start()
     this.logger.info(`Started worker for queue ${this.name} with concurrency ${concurrency}`)
@@ -301,11 +394,30 @@ export class Queue<T = any> {
     }
   }
 
+  // Store interval for horizontal scaling
+  private _horizontalScalingInterval: NodeJS.Timeout | null = null
+
   /**
    * Stop processing jobs
    */
   async close(): Promise<void> {
     try {
+      // Stop horizontal scaling components if enabled
+      if (this.horizontalScalingEnabled) {
+        if (this._horizontalScalingInterval) {
+          clearInterval(this._horizontalScalingInterval)
+          this._horizontalScalingInterval = null
+        }
+
+        if (this.leaderElection) {
+          await this.leaderElection.stop()
+        }
+
+        if (this.workCoordinator) {
+          await this.workCoordinator.stop()
+        }
+      }
+
       if (this.worker) {
         await this.worker.stop()
         this.worker = null
@@ -326,6 +438,75 @@ export class Queue<T = any> {
     }
     catch (err) {
       this.logger.error(`Error closing queue ${this.name}: ${(err as Error).message}`)
+    }
+  }
+
+  /**
+   * Get the instance ID for this queue
+   */
+  getInstanceId(): string {
+    return this.instanceId
+  }
+
+  /**
+   * Get information about all instances in the horizontal scaling cluster
+   */
+  async getClusterInfo(): Promise<Record<string, any> | null> {
+    if (!this.horizontalScalingEnabled || !this.workCoordinator) {
+      return null
+    }
+
+    try {
+      const instances = await this.workCoordinator.getInstanceStatistics()
+      return instances
+    }
+    catch (err) {
+      this.logger.error(`Error getting cluster info: ${(err as Error).message}`)
+      return null
+    }
+  }
+
+  /**
+   * Check if this instance is the leader in the cluster
+   */
+  isLeader(): boolean {
+    if (!this.horizontalScalingEnabled || !this.leaderElection) {
+      return true // In non-clustered mode, the instance is always the "leader"
+    }
+
+    return this.leaderElection.isCurrentLeader()
+  }
+
+  /**
+   * Get the ID of the current leader
+   */
+  async getLeaderId(): Promise<string | null> {
+    if (!this.horizontalScalingEnabled || !this.leaderElection) {
+      return this.instanceId // In non-clustered mode, the instance is always the "leader"
+    }
+
+    return this.leaderElection.getCurrentLeader()
+  }
+
+  /**
+   * Get a job by id
+   */
+  async getJob(jobId: string): Promise<Job<T> | null> {
+    try {
+      const jobKey = this.getJobKey(jobId)
+      const exists = await this.redisClient.exists(jobKey)
+
+      if (!exists) {
+        return null
+      }
+
+      const job = new Job<T>(this, jobId)
+      await job.refresh()
+      return job
+    }
+    catch (err) {
+      this.logger.error(`Error getting job ${jobId} from queue ${this.name}: ${(err as Error).message}`)
+      return null
     }
   }
 

@@ -263,4 +263,19 @@ export class Worker<T = any> {
       await this.queue.redisClient.send('EXEC', [])
     }
   }
+
+  /**
+   * Adjust the concurrency level dynamically
+   */
+  adjustConcurrency(newConcurrency: number): void {
+    if (newConcurrency <= 0) {
+      throw new Error('Concurrency must be greater than 0')
+    }
+
+    this.concurrency = newConcurrency
+
+    // If we're reducing concurrency and have more jobs processing than the new limit,
+    // we won't interrupt them, but will let them complete naturally.
+    // New jobs will adhere to the new concurrency limit.
+  }
 }

@@ -20,6 +20,20 @@ export interface QueueConfig {
   maxStalledJobRetries?: number
   distributedLock?: boolean
   defaultDeadLetterOptions?: DeadLetterQueueOptions // Default dead letter queue options
+  horizontalScaling?: {
+    enabled?: boolean
+    instanceId?: string
+    maxWorkersPerInstance?: number
+    jobsPerWorker?: number
+    leaderElection?: {
+      heartbeatInterval?: number
+      leaderTimeout?: number
+    }
+    workCoordination?: {
+      pollInterval?: number
+      keyPrefix?: string
+    }
+  }
 }
 
 export type { RedisClient }
