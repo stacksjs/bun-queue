@@ -1,6 +1,7 @@
 export { BatchProcessor } from './batch'
 export { type CleanupOptions, CleanupService } from './cleanup'
 export * from './config'
+export { CronScheduler, type CronJobOptions } from './cron-scheduler'
 export { DistributedLock, type LockOptions } from './distributed-lock'
 export { JobEvents } from './events'
 export { QueueGroup } from './group'

@@ -3,6 +3,7 @@ import type { JobOptions, JobStatus, QueueConfig } from './types'
 import { CleanupService } from './cleanup'
 import { scriptLoader } from './commands'
 import { config } from './config'
+import { CronScheduler, type CronJobOptions } from './cron-scheduler'
 import { DistributedLock } from './distributed-lock'
 import { JobEvents } from './events'
 import { Job } from './job'
@@ -28,6 +29,7 @@ export class Queue<T = any> {
   private limiter: RateLimiter | null = null
   private defaultJobOptions: JobOptions | undefined
   private lock: DistributedLock | null = null
+  private cronScheduler: CronScheduler | null = null
 
   constructor(name: string, options?: QueueConfig) {
     this.name = name
@@ -69,6 +71,10 @@ export class Queue<T = any> {
       this.lock = new DistributedLock(this.redisClient, `${this.prefix}:lock`)
       this.logger.debug(`Distributed lock system initialized for queue ${name}`)
     }
+
+    // Initialize cron scheduler
+    this.cronScheduler = new CronScheduler(this)
+    this.logger.debug(`Cron scheduler initialized for queue ${name}`)
 
     // Initialize scripts
     this.init()
@@ -597,5 +603,31 @@ export class Queue<T = any> {
    */
   getLock(): DistributedLock | null {
     return this.lock
+  }
+
+  /**
+   * Schedule a recurring job using cron syntax
+   * @param options Cron job options including the cron expression
+   * @returns The scheduled job ID
+   */
+  async scheduleCron(options: CronJobOptions): Promise<string> {
+    if (!this.cronScheduler) {
+      throw new Error('Cron scheduler not initialized')
+    }
+
+    return this.cronScheduler.schedule(options)
+  }
+
+  /**
+   * Unschedule a cron job
+   * @param jobId The ID of the job to unschedule
+   * @returns True if successfully unscheduled
+   */
+  async unscheduleCron(jobId: string): Promise<boolean> {
+    if (!this.cronScheduler) {
+      throw new Error('Cron scheduler not initialized')
+    }
+
+    return this.cronScheduler.unschedule(jobId)
   }
 }
