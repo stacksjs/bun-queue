@@ -9,12 +9,12 @@ import {
   Title,
   Tooltip,
 } from 'chart.js'
-import { format, parseISO } from 'date-fns'
 import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 
 const props = defineProps<{
-  data: ChartData[]
+  data: number[]
+  labels: string[]
 }>()
 
 ChartJS.register(
@@ -27,22 +27,9 @@ ChartJS.register(
   Legend,
 )
 
-interface ChartData {
-  time: string
-  value: number
-}
-
-function formatTime(time: string): string {
-  const date = parseISO(time)
-  return format(date, 'HH:mm')
-}
-
 const chartData = computed(() => {
-  const labels = props.data.map(item => formatTime(item.time))
-  const values = props.data.map(item => item.value)
-
   return {
-    labels,
+    labels: props.labels,
     datasets: [
       {
         label: 'Error Rate (%)',
@@ -50,7 +37,7 @@ const chartData = computed(() => {
         borderColor: '#ef4444',
         tension: 0.4,
         fill: true,
-        data: values,
+        data: props.data,
       },
     ],
   }
@@ -64,6 +51,8 @@ const chartOptions = {
       display: false,
     },
     tooltip: {
+      mode: 'index' as const,
+      intersect: false,
       callbacks: {
         label: (context: any) => {
           return `${context.raw}%`
@@ -74,7 +63,6 @@ const chartOptions = {
   scales: {
     y: {
       beginAtZero: true,
-      suggestedMax: 10,
       title: {
         display: true,
         text: 'Error Rate (%)',

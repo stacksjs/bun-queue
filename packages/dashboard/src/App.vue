@@ -11,9 +11,11 @@ function toggleSidebar() {
 
 const navItems = [
   { name: 'Dashboard', path: '/', icon: 'i-carbon-dashboard' },
-  { name: 'Queues', path: '/queues', icon: 'i-carbon-list-boxes' },
-  { name: 'Jobs', path: '/jobs', icon: 'i-carbon-task' },
-  { name: 'Dependencies', path: '/dependencies', icon: 'i-carbon-diagram' },
+  { name: 'Monitoring', path: '/monitoring', icon: 'i-carbon-cloud-monitoring' },
+  { name: 'Metrics', path: '/metrics', icon: 'i-carbon-chart-line' },
+  { name: 'Groups', path: '/groups', icon: 'i-carbon-group' },
+  { name: 'Batches', path: '/batches', icon: 'i-carbon-batch-job' },
+  { name: 'Jobs', path: '/jobs', icon: 'i-carbon-time' },
 ]
 </script>
 
@@ -27,7 +29,7 @@ const navItems = [
       <div class="sidebar-header">
         <div class="sidebar-logo">
           <div class="logo-icon">
-            <span class="carbon-delivery" />
+            <span class="i-carbon-delivery text-indigo-600 text-2xl" />
           </div>
           <h1
             class="logo-text"
@@ -42,7 +44,7 @@ const navItems = [
         >
           <span
             class="toggle-icon"
-            :class="isSidebarOpen ? 'carbon-chevron-left' : 'carbon-chevron-right'"
+            :class="isSidebarOpen ? 'i-carbon-chevron-left' : 'i-carbon-chevron-right'"
           />
         </button>
       </div>
@@ -54,7 +56,7 @@ const navItems = [
               :to="item.path"
               class="nav-link"
               :class="[
-                route.path === item.path ? 'nav-link-active' : '',
+                item.path === '/' ? route.path === item.path : route.fullPath.startsWith(item.path) ? 'nav-link-active' : '',
                 isSidebarOpen ? 'justify-start' : 'justify-center',
               ]"
             >
@@ -67,6 +69,13 @@ const navItems = [
           </li>
         </ul>
       </nav>
+
+      <div v-if="isSidebarOpen" class="sidebar-footer">
+        <div class="status-indicator">
+          <span class="status-dot bg-green-500" />
+          <span class="status-text">Active</span>
+        </div>
+      </div>
     </aside>
 
     <!-- Main content -->
@@ -84,7 +93,7 @@ const navItems = [
 <style scoped>
 .app-container {
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: #f9fafb;
   color: #1e293b;
   display: flex;
 }
@@ -98,6 +107,8 @@ const navItems = [
   background-color: white;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: all 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-expanded {
@@ -131,6 +142,7 @@ const navItems = [
   font-size: 1.25rem;
   font-weight: 700;
   transition: opacity 0.3s;
+  color: #4f46e5;
 }
 
 .sidebar-toggle {
@@ -150,27 +162,30 @@ const navItems = [
 }
 
 .sidebar-nav {
-  padding: 1rem;
+  padding: 1rem 0.75rem;
+  flex: 1;
 }
 
 .nav-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
   transition: all 0.2s;
   color: #64748b;
+  text-decoration: none;
+  font-weight: 500;
 }
 
 .nav-link:hover {
-  background-color: #f1f5f9;
-  color: #334155;
+  background-color: #f3f4f6;
+  color: #4f46e5;
 }
 
 .nav-link-active {
@@ -180,11 +195,36 @@ const navItems = [
 
 .nav-icon {
   font-size: 1.25rem;
+  min-width: 1.25rem;
 }
 
 .nav-text {
   margin-left: 0.75rem;
   transition: opacity 0.3s;
+  font-size: 0.9375rem;
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+  border-top: 1px solid #e2e8f0;
+  padding: 1rem;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  margin-right: 0.5rem;
+}
+
+.status-text {
+  font-size: 0.875rem;
+  color: #64748b;
 }
 
 /* Utility classes */

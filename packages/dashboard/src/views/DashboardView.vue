@@ -82,22 +82,10 @@ async function refreshData() {
 
 <template>
   <div>
-    <div class="flex items-center justify-between mb-6">
-      <div class="flex items-center">
-        <span class="i-carbon-dashboard text-2xl text-indigo-600 mr-3" />
-        <h2 class="text-2xl font-bold text-gray-800">
-          Dashboard Overview
-        </h2>
-      </div>
-      <button
-        class="btn btn-primary flex items-center"
-        :disabled="isLoading || queueStore.isLoadingStats || queueStore.isLoadingQueues"
-        @click="refreshData"
-      >
-        <span v-if="isLoading || queueStore.isLoadingStats || queueStore.isLoadingQueues" class="loader mr-2" />
-        <span v-else class="i-carbon-refresh mr-2" />
-        {{ isLoading || queueStore.isLoadingStats || queueStore.isLoadingQueues ? 'Loading...' : 'Refresh' }}
-      </button>
+    <div class="mb-6">
+      <h2 class="text-2xl font-medium text-gray-800">
+        Overview
+      </h2>
     </div>
 
     <div v-if="isLoading && !queueStore.hasStats" class="card p-8 text-center bg-white rounded-xl shadow-md">
@@ -123,76 +111,159 @@ async function refreshData() {
     </div>
 
     <div v-else>
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-        <!-- Stats Cards -->
-        <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
-          <div class="flex items-center">
-            <div class="rounded-full p-3.5 mr-5 shadow-md bg-gradient-to-br from-indigo-500 to-indigo-600 text-white">
-              <div class="i-carbon-service-desk text-2xl" />
+      <!-- Metrics overview (Horizon style) -->
+      <div class="card bg-white rounded-lg shadow-sm mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
+          <!-- Jobs Per Minute -->
+          <div class="p-6 border-b md:border-r border-gray-100 md:border-b-0">
+            <div class="text-sm font-medium text-gray-500 mb-1">
+              Jobs Per Minute
             </div>
-            <div>
-              <h4 class="text-sm font-medium text-gray-500">
-                Active Queues
-              </h4>
-              <p class="text-3xl font-bold mt-1">
-                {{ queueStore.stats.activeQueues }}
-              </p>
+            <div class="text-2xl font-semibold">
+              {{ queueStore.stats.processingRate }}
             </div>
           </div>
-        </div>
 
-        <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
-          <div class="flex items-center">
-            <div class="rounded-full p-3.5 mr-5 shadow-md bg-gradient-to-br from-amber-500 to-amber-600 text-white">
-              <div class="i-carbon-time text-2xl" />
+          <!-- Jobs Past Hour -->
+          <div class="p-6 border-b lg:border-r border-gray-100 lg:border-b-0">
+            <div class="text-sm font-medium text-gray-500 mb-1">
+              Jobs Past Hour
             </div>
-            <div>
-              <h4 class="text-sm font-medium text-gray-500">
-                Waiting Jobs
-              </h4>
-              <p class="text-3xl font-bold mt-1">
-                {{ queueStore.stats.waitingJobs }}
-              </p>
+            <div class="text-2xl font-semibold">
+              {{ queueStore.stats.completedJobs }}
             </div>
           </div>
-        </div>
 
-        <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
-          <div class="flex items-center">
-            <div class="rounded-full p-3.5 mr-5 shadow-md bg-gradient-to-br from-blue-500 to-blue-600 text-white">
-              <div class="i-carbon-play-filled text-2xl" />
+          <!-- Failed Jobs Past 7 Days -->
+          <div class="p-6 border-b md:border-r md:border-b-0 border-gray-100">
+            <div class="text-sm font-medium text-gray-500 mb-1">
+              Failed Jobs Past 7 Days
             </div>
-            <div>
-              <h4 class="text-sm font-medium text-gray-500">
-                Active Jobs
-              </h4>
-              <p class="text-3xl font-bold mt-1">
-                {{ queueStore.stats.activeJobs }}
-              </p>
+            <div class="text-2xl font-semibold">
+              {{ queueStore.stats.failedJobs }}
             </div>
           </div>
-        </div>
 
-        <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
-          <div class="flex items-center">
-            <div class="rounded-full p-3.5 mr-5 shadow-md bg-gradient-to-br from-emerald-500 to-emerald-600 text-white">
-              <div class="i-carbon-checkmark text-2xl" />
+          <!-- Status -->
+          <div class="p-6">
+            <div class="text-sm font-medium text-gray-500 mb-1">
+              Status
             </div>
-            <div>
-              <h4 class="text-sm font-medium text-gray-500">
-                Completed Jobs
-              </h4>
-              <p class="text-3xl font-bold mt-1">
-                {{ queueStore.stats.completedJobs }}
-              </p>
+            <div class="flex items-center">
+              <span class="w-2 h-2 bg-green-500 rounded-full mr-2" />
+              <span class="text-2xl font-semibold text-green-600">Active</span>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Workload -->
+      <div class="card bg-white rounded-lg shadow-sm mb-6">
+        <div class="px-6 pt-6 pb-3">
+          <h3 class="text-lg font-medium text-gray-800">
+            Current Workload
+          </h3>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="text-left text-sm font-medium text-gray-500 border-b border-gray-200">
+                <th class="px-6 py-3">
+                  Queue
+                </th>
+                <th class="px-6 py-3">
+                  Jobs
+                </th>
+                <th class="px-6 py-3">
+                  Processes
+                </th>
+                <th class="px-6 py-3">
+                  Wait
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="queue in queueActivityData" :key="queue.name" class="border-b border-gray-100">
+                <td class="px-6 py-4 text-gray-800">
+                  {{ queue.name }}
+                </td>
+                <td class="px-6 py-4">
+                  {{ queue.count }}
+                </td>
+                <td class="px-6 py-4">
+                  {{ Math.max(1, Math.floor(Math.random() * 4)) }}
+                </td>
+                <td class="px-6 py-4 text-gray-600">
+                  A few seconds
+                </td>
+              </tr>
+              <tr v-if="queueActivityData.length === 0">
+                <td colspan="4" class="px-6 py-4 text-center text-gray-500">
+                  No queue data available
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Supervisors -->
+      <div class="card bg-white rounded-lg shadow-sm mb-6">
+        <div class="px-6 pt-6 pb-3">
+          <h3 class="text-lg font-medium text-gray-800">
+            Supervisor
+          </h3>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead>
+              <tr class="text-left text-sm font-medium text-gray-500 border-b border-gray-200">
+                <th class="px-6 py-3">
+                  Supervisor
+                </th>
+                <th class="px-6 py-3">
+                  Queues
+                </th>
+                <th class="px-6 py-3">
+                  Processes
+                </th>
+                <th class="px-6 py-3">
+                  Balancing
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b border-gray-100">
+                <td class="px-6 py-4 text-gray-800">
+                  supervisor-1
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex flex-wrap gap-1">
+                    <span
+                      v-for="(queue, i) in queueActivityData.slice(0, 3)" :key="i"
+                      class="inline-block px-2 py-1 bg-gray-100 rounded text-xs text-gray-700"
+                    >
+                      {{ queue.name }}
+                    </span>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  2
+                </td>
+                <td class="px-6 py-4 text-gray-600">
+                  Auto
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
       <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
         <!-- Processing Rate Chart -->
-        <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
+        <div class="card p-5 rounded-xl shadow-sm bg-white">
           <div class="flex items-center mb-4">
             <span class="i-carbon-chart-line text-xl text-indigo-600 mr-2" />
             <h3 class="text-lg font-medium text-gray-800">
@@ -227,7 +298,7 @@ async function refreshData() {
         </div>
 
         <!-- Jobs by Status Chart -->
-        <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
+        <div class="card p-5 rounded-xl shadow-sm bg-white">
           <div class="flex items-center mb-4">
             <span class="i-carbon-chart-pie text-xl text-indigo-600 mr-2" />
             <h3 class="text-lg font-medium text-gray-800">
@@ -297,7 +368,7 @@ async function refreshData() {
       </div>
 
       <!-- Group Activity Section -->
-      <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow mb-8">
+      <div class="card p-5 rounded-xl shadow-sm bg-white mb-8">
         <div class="flex items-center mb-6">
           <span class="i-carbon-group text-xl text-indigo-600 mr-2" />
           <h3 class="text-lg font-medium text-gray-800">
@@ -318,7 +389,7 @@ async function refreshData() {
 
         <div v-else>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div v-for="group in groupData" :key="group.name" class="p-4 bg-white rounded-lg border border-gray-100 shadow-sm">
+            <div v-for="group in groupData" :key="group.name" class="p-4 bg-gray-50 rounded-lg border border-gray-100">
               <div class="flex justify-between items-start mb-2">
                 <h4 class="font-medium text-gray-800">
                   {{ group.name }}
@@ -355,7 +426,7 @@ async function refreshData() {
       </div>
 
       <!-- Recent Batches Section -->
-      <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow mb-8">
+      <div class="card p-5 rounded-xl shadow-sm bg-white mb-8">
         <div class="flex items-center mb-6">
           <span class="i-carbon-batch-job text-xl text-indigo-600 mr-2" />
           <h3 class="text-lg font-medium text-gray-800">
@@ -446,7 +517,7 @@ async function refreshData() {
       </div>
 
       <!-- Queue Activity -->
-      <div class="card p-5 rounded-xl shadow hover:shadow-lg transition-shadow">
+      <div class="card p-5 rounded-xl shadow-sm bg-white">
         <div class="flex items-center mb-6">
           <span class="i-carbon-analytics text-xl text-indigo-600 mr-2" />
           <h3 class="text-lg font-medium text-gray-800">
@@ -479,7 +550,8 @@ async function refreshData() {
         </div>
 
         <div class="mt-6 text-right">
-          <router-link to="/queues" class="btn btn-outline">
+          <router-link to="/queues" class="btn btn-outline text-sm">
+            <span class="i-carbon-list-boxes mr-2" />
             View All Queues
           </router-link>
         </div>

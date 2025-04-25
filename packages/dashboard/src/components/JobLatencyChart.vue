@@ -1,51 +1,43 @@
 <script setup lang="ts">
 import {
-  BarElement,
   CategoryScale,
   Chart as ChartJS,
   Legend,
   LinearScale,
+  LineElement,
+  PointElement,
   Title,
   Tooltip,
 } from 'chart.js'
-import { format, parseISO } from 'date-fns'
 import { computed } from 'vue'
-import { Bar } from 'vue-chartjs'
+import { Line } from 'vue-chartjs'
 
 const props = defineProps<{
-  data: ChartData[]
+  data: number[]
+  labels: string[]
 }>()
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
-  BarElement,
+  PointElement,
+  LineElement,
   Title,
   Tooltip,
   Legend,
 )
 
-interface ChartData {
-  time: string
-  value: number
-}
-
-function formatTime(time: string): string {
-  const date = parseISO(time)
-  return format(date, 'HH:mm')
-}
-
 const chartData = computed(() => {
-  const labels = props.data.map(item => formatTime(item.time))
-  const values = props.data.map(item => item.value)
-
   return {
-    labels,
+    labels: props.labels,
     datasets: [
       {
-        label: 'Average Latency (ms)',
-        backgroundColor: 'rgba(59, 130, 246, 0.7)',
-        data: values,
+        label: 'Latency (ms)',
+        backgroundColor: 'rgba(6, 182, 212, 0.2)',
+        borderColor: '#06b6d4',
+        tension: 0.4,
+        fill: true,
+        data: props.data,
       },
     ],
   }
@@ -59,11 +51,8 @@ const chartOptions = {
       display: false,
     },
     tooltip: {
-      callbacks: {
-        label: (context: any) => {
-          return `${context.raw} ms`
-        },
-      },
+      mode: 'index' as const,
+      intersect: false,
     },
   },
   scales: {
@@ -85,6 +74,6 @@ const chartOptions = {
 
 <template>
   <div class="h-80">
-    <Bar :data="chartData" :options="chartOptions" />
+    <Line :data="chartData" :options="chartOptions" />
   </div>
 </template>

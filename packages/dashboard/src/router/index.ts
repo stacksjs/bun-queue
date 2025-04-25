@@ -9,6 +9,26 @@ const router = createRouter({
       component: () => import('../views/DashboardView.vue'),
     },
     {
+      path: '/monitoring',
+      name: 'monitoring',
+      component: () => import('../views/MonitoringView.vue'),
+    },
+    {
+      path: '/metrics',
+      name: 'metrics',
+      component: () => import('../views/MetricsView.vue'),
+    },
+    {
+      path: '/batches',
+      name: 'batches',
+      component: () => import('../views/BatchesView.vue'),
+    },
+    {
+      path: '/batches/:id',
+      name: 'batch-details',
+      component: () => import('../views/BatchDetailsView.vue'),
+    },
+    {
       path: '/queues',
       name: 'queues',
       component: () => import('../views/QueuesView.vue'),
@@ -27,6 +47,16 @@ const router = createRouter({
       path: '/jobs/:id',
       name: 'job-details',
       component: () => import('../views/JobDetailsView.vue'),
+    },
+    {
+      path: '/groups',
+      name: 'groups',
+      component: () => import('../views/GroupsView.vue'),
+    },
+    {
+      path: '/groups/:id',
+      name: 'group-details',
+      component: () => import('../views/GroupDetailsView.vue'),
     },
     {
       path: '/dependencies',

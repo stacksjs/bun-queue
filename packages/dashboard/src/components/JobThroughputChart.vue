@@ -9,12 +9,12 @@ import {
   Title,
   Tooltip,
 } from 'chart.js'
-import { format, parseISO } from 'date-fns'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { Line } from 'vue-chartjs'
 
 const props = defineProps<{
-  data: ChartData[]
+  data: number[]
+  labels: string[]
 }>()
 
 ChartJS.register(
@@ -27,22 +27,9 @@ ChartJS.register(
   Legend,
 )
 
-interface ChartData {
-  time: string
-  value: number
-}
-
-function formatTime(time: string): string {
-  const date = parseISO(time)
-  return format(date, 'HH:mm')
-}
-
 const chartData = computed(() => {
-  const labels = props.data.map(item => formatTime(item.time))
-  const values = props.data.map(item => item.value)
-
   return {
-    labels,
+    labels: props.labels,
     datasets: [
       {
         label: 'Jobs/Hour',
@@ -50,7 +37,7 @@ const chartData = computed(() => {
         borderColor: '#4f46e5',
         tension: 0.4,
         fill: true,
-        data: values,
+        data: props.data,
       },
     ],
   }

@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 
-interface Props {
+const props = defineProps<{
   selected: string
-}
+}>()
 
-const props = defineProps<Props>()
 const emit = defineEmits<{
-  (e: 'change', range: string): void
+  (e: 'change', value: string): void
 }>()
 
 const timeRanges = [
@@ -16,24 +15,31 @@ const timeRanges = [
   { value: '30d', label: '30 Days' },
 ]
 
-function handleChange(range: string) {
-  emit('change', range)
-}
+const selectedValue = ref(props.selected || '24h')
+
+watch(selectedValue, (newValue) => {
+  emit('change', newValue)
+})
+
+watch(() => props.selected, (newValue) => {
+  if (newValue !== selectedValue.value) {
+    selectedValue.value = newValue
+  }
+})
 </script>
 
 <template>
-  <div class="flex items-center space-x-2">
-    <span class="text-sm text-gray-600">Time Range:</span>
-    <div class="flex space-x-1">
+  <div class="time-range-selector">
+    <div class="flex space-x-1 p-1 bg-gray-100 rounded-lg">
       <button
         v-for="range in timeRanges"
         :key="range.value"
-        class="px-3 py-1 text-sm rounded-lg transition-colors duration-200" :class="[
-          range.value === selected
-            ? 'bg-primary text-white'
-            : 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-        ]"
-        @click="handleChange(range.value)"
+        class="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
+        :class="{
+          'bg-white text-indigo-600 shadow': selectedValue === range.value,
+          'text-gray-600 hover:text-gray-900': selectedValue !== range.value,
+        }"
+        @click="selectedValue = range.value"
       >
         {{ range.label }}
       </button>

@@ -1,3 +1,4 @@
+import type { JobGroup } from '../types/jobGroup'
 import axios from 'axios'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
@@ -37,6 +38,7 @@ export const useQueueStore = defineStore('queue', () => {
   // Data
   const queues = ref<Queue[]>([])
   const jobs = ref<Job[]>([])
+  const jobGroups = ref<JobGroup[]>([])
   const stats = ref<QueueStats>({
     activeQueues: 0,
     waitingJobs: 0,
@@ -49,20 +51,35 @@ export const useQueueStore = defineStore('queue', () => {
   // Loading states
   const isLoadingQueues = ref(false)
   const isLoadingJobs = ref(false)
+  const isLoadingJobGroups = ref(false)
   const isLoadingStats = ref(false)
   const queuesFetchedAt = ref<Date | null>(null)
   const jobsFetchedAt = ref<Date | null>(null)
+  const jobGroupsFetchedAt = ref<Date | null>(null)
   const statsFetchedAt = ref<Date | null>(null)
 
   // Errors
   const queueError = ref<string | null>(null)
   const jobsError = ref<string | null>(null)
+  const jobGroupsError = ref<string | null>(null)
   const statsError = ref<string | null>(null)
 
   // Computed properties
   const hasQueues = computed(() => queues.value.length > 0)
   const hasJobs = computed(() => jobs.value.length > 0)
+  const hasJobGroups = computed(() => jobGroups.value.length > 0)
   const hasStats = computed(() => statsFetchedAt.value !== null)
+
+  // Metrics
+  const metrics = ref({
+    throughput: [] as number[],
+    latency: [] as number[],
+    errorRate: [] as number[],
+    timestamps: [] as string[],
+  })
+  const isLoadingMetrics = ref(false)
+  const metricsError = ref<string | null>(null)
+  const metricsFetchedAt = ref<Date | null>(null)
 
   // Check if data needs refresh (older than 5 minutes)
   const needsRefresh = (lastFetchTime: Date | null) => {
@@ -398,10 +415,195 @@ export const useQueueStore = defineStore('queue', () => {
     }
   }
 
+  async function fetchMetrics(timeRange = '24h', forceRefresh = false) {
+    if (!forceRefresh && metricsFetchedAt.value && !needsRefresh(metricsFetchedAt.value)) {
+      return metrics.value
+    }
+
+    isLoadingMetrics.value = true
+    metricsError.value = null
+
+    try {
+      // In a real app, this would be an API call
+      // const response = await axios.get(`/api/metrics?timeRange=${timeRange}`)
+      // metrics.value = response.data
+
+      // Mock data for demo
+      await new Promise(resolve => setTimeout(resolve, 800))
+
+      // Generate mock metrics data based on time range
+      const dataPoints = timeRange === '24h' ? 24 : timeRange === '7d' ? 7 : 30
+      const timestamps: string[] = []
+      const throughput: number[] = []
+      const latency: number[] = []
+      const errorRate: number[] = []
+
+      // Generate timestamps
+      const now = new Date()
+      for (let i = dataPoints - 1; i >= 0; i--) {
+        const date = new Date()
+        if (timeRange === '24h') {
+          date.setHours(now.getHours() - i)
+          timestamps.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }))
+        }
+        else if (timeRange === '7d') {
+          date.setDate(now.getDate() - i)
+          timestamps.push(date.toLocaleDateString([], { month: 'short', day: 'numeric' }))
+        }
+        else {
+          date.setDate(now.getDate() - i)
+          timestamps.push(date.toLocaleDateString([], { month: 'short', day: 'numeric' }))
+        }
+      }
+
+      // Generate metrics data
+      for (let i = 0; i < dataPoints; i++) {
+        // Throughput: 50-150 jobs per hour with some variability
+        const baseValue = 100
+        const variability = 50
+
+        // Add daily patterns for 24h view
+        let timeMultiplier = 1
+        if (timeRange === '24h') {
+          const hour = (now.getHours() - (dataPoints - 1) + i) % 24
+          // Less activity during night hours
+          if (hour >= 0 && hour < 6) {
+            timeMultiplier = 0.3
+          }
+          else if (hour >= 6 && hour < 9) {
+            timeMultiplier = 0.7
+          }
+          else if (hour >= 9 && hour < 17) {
+            timeMultiplier = 1.2
+          }
+          else if (hour >= 17 && hour < 20) {
+            timeMultiplier = 1
+          }
+          else {
+            timeMultiplier = 0.6
+          }
+        }
+
+        throughput.push(Math.round((baseValue + (Math.random() * variability * 2 - variability)) * timeMultiplier))
+
+        // Latency: 100-500ms with some spikes
+        latency.push(Math.round(200 + Math.random() * 300))
+
+        // Error rate: 0-5%
+        errorRate.push(Math.round(Math.random() * 500) / 100)
+      }
+
+      metrics.value = {
+        throughput,
+        latency,
+        errorRate,
+        timestamps,
+      }
+
+      metricsFetchedAt.value = new Date()
+      return metrics.value
+    }
+    catch (error) {
+      metricsError.value = 'Failed to load metrics'
+      console.error('Error fetching metrics:', error)
+      throw error
+    }
+    finally {
+      isLoadingMetrics.value = false
+    }
+  }
+
+  // Fetch job groups
+  async function fetchJobGroups(forceRefresh = false) {
+    if (!forceRefresh && hasJobGroups.value && !needsRefresh(jobGroupsFetchedAt.value)) {
+      return jobGroups.value
+    }
+
+    isLoadingJobGroups.value = true
+    jobGroupsError.value = null
+
+    try {
+      // In a real app, this would be an API call
+      // const response = await axios.get('/api/job-groups')
+      // jobGroups.value = response.data
+
+      // Mock data for demo
+      await new Promise(resolve => setTimeout(resolve, 800))
+      jobGroups.value = [
+        {
+          id: 'group_email_campaigns',
+          name: 'Email Campaigns',
+          jobCount: 124,
+          activeJobs: 3,
+          waitingJobs: 21,
+          completedJobs: 98,
+          failedJobs: 2,
+          createdAt: '2023-10-01 08:30:45',
+          updatedAt: '2023-10-15 14:22:33',
+        },
+        {
+          id: 'group_data_imports',
+          name: 'Data Imports',
+          jobCount: 56,
+          activeJobs: 1,
+          waitingJobs: 12,
+          completedJobs: 42,
+          failedJobs: 1,
+          createdAt: '2023-10-05 11:15:22',
+          updatedAt: '2023-10-15 09:45:12',
+        },
+        {
+          id: 'group_media_processing',
+          name: 'Media Processing',
+          jobCount: 87,
+          activeJobs: 5,
+          waitingJobs: 18,
+          completedJobs: 62,
+          failedJobs: 2,
+          createdAt: '2023-09-28 15:40:10',
+          updatedAt: '2023-10-15 16:30:45',
+        },
+        {
+          id: 'group_reporting',
+          name: 'Regular Reports',
+          jobCount: 42,
+          activeJobs: 2,
+          waitingJobs: 8,
+          completedJobs: 32,
+          failedJobs: 0,
+          createdAt: '2023-10-10 09:00:00',
+          updatedAt: '2023-10-15 10:15:30',
+        },
+        {
+          id: 'group_notifications',
+          name: 'User Notifications',
+          jobCount: 156,
+          activeJobs: 4,
+          waitingJobs: 22,
+          completedJobs: 128,
+          failedJobs: 2,
+          createdAt: '2023-09-15 14:25:50',
+          updatedAt: '2023-10-15 17:10:24',
+        },
+      ]
+      jobGroupsFetchedAt.value = new Date()
+      return jobGroups.value
+    }
+    catch (error) {
+      jobGroupsError.value = 'Failed to load job groups'
+      console.error('Error fetching job groups:', error)
+      throw error
+    }
+    finally {
+      isLoadingJobGroups.value = false
+    }
+  }
+
   // Clear stored data (for logout, etc)
   function clearData() {
     queues.value = []
     jobs.value = []
+    jobGroups.value = []
     stats.value = {
       activeQueues: 0,
       waitingJobs: 0,
@@ -412,34 +614,58 @@ export const useQueueStore = defineStore('queue', () => {
     }
     queuesFetchedAt.value = null
     jobsFetchedAt.value = null
+    jobGroupsFetchedAt.value = null
     statsFetchedAt.value = null
+    metrics.value = {
+      throughput: [],
+      latency: [],
+      errorRate: [],
+      timestamps: [],
+    }
+    metricsFetchedAt.value = null
   }
 
   return {
     // Data
     queues,
     jobs,
+    jobGroups,
     stats,
+    metrics,
 
     // Loading states
     isLoadingQueues,
     isLoadingJobs,
+    isLoadingJobGroups,
     isLoadingStats,
+    isLoadingMetrics,
 
-    // Error states
+    // Fetch timestamps
+    queuesFetchedAt,
+    jobsFetchedAt,
+    jobGroupsFetchedAt,
+    statsFetchedAt,
+    metricsFetchedAt,
+
+    // Errors
     queueError,
     jobsError,
+    jobGroupsError,
     statsError,
+    metricsError,
 
-    // Status helpers
+    // Computed
     hasQueues,
     hasJobs,
+    hasJobGroups,
     hasStats,
 
-    // Actions
+    // Methods
     fetchQueues,
     fetchJobs,
+    fetchJobGroups,
     fetchQueueStats,
+    fetchMetrics,
     clearData,
   }
 })
