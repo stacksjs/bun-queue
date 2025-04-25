@@ -59,27 +59,16 @@
     "example:basic": "bun examples/basic.ts",
     "example:advanced": "bun examples/advanced.ts"
   },
-  "dependencies": {
-    "@types/semver": "^7.7.0",
-    "cron-parser": "^5.1.1",
-    "ioredis": "^5.6.1",
-    "msgpackr": "^1.11.2",
-    "semver": "^7.7.1",
-    "uuid": "^11.1.0"
-  },
   "devDependencies": {
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.10.2-beta.3",
     "@types/bun": "^1.2.10",
-    "@types/node": "^20.11.20",
     "bumpp": "^10.1.0",
     "bun-plugin-dtsx": "^0.21.9",
     "bunfig": "^0.8.2",
     "changelogen": "^0.6.1",
     "lint-staged": "^15.5.1",
-    "rrule": "^2.8.1",
     "simple-git-hooks": "^2.12.1",
-    "sinon": "^20.0.0",
     "typescript": "^5.8.3"
   },
   "overrides": {
