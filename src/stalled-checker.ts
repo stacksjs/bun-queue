@@ -20,7 +20,8 @@ class StalledJobChecker {
    * Start the stalled job checker
    */
   start(): void {
-    if (this.running) return
+    if (this.running)
+      return
     this.running = true
 
     this.logger.info(`Starting stalled job checker for queue ${this.queue.name}`)
@@ -36,7 +37,8 @@ class StalledJobChecker {
    * Stop the stalled job checker
    */
   stop(): void {
-    if (!this.running) return
+    if (!this.running)
+      return
     this.running = false
 
     if (this.timer) {
@@ -94,7 +96,8 @@ class StalledJobChecker {
           if (this.queue.events) {
             this.queue.events.emitJobStalled(job.id)
           }
-        } else {
+        }
+        else {
           this.logger.warn(`Stalled job ${job.id} has reached max retries, moving to failed`)
 
           // Move the job to the failed queue
@@ -102,7 +105,8 @@ class StalledJobChecker {
           await job.moveToFailed(err, 'Job stalled and exceeded maximum stalled job retries')
         }
       }
-    } catch (error) {
+    }
+    catch (error) {
       this.logger.error(`Error checking stalled jobs: ${(error as Error).message}`)
     }
   }

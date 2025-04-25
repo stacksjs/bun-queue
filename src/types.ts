@@ -3,7 +3,7 @@ import type { RedisClient } from 'bun'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent'
 
 export interface QueueConfig {
-  verbose: boolean
+  verbose?: boolean
   logLevel?: LogLevel
   redis?: {
     url?: string
@@ -83,4 +83,55 @@ export interface QueueEvents {
   jobDelayed: (jobId: string, delay: number) => void
   ready: () => void
   error: (error: Error) => void
+  batchAdded: (batchId: string, jobIds: string[]) => void
+  batchCompleted: (batchId: string, results: any[]) => void
+  batchFailed: (batchId: string, errors: Error[]) => void
+  batchProgress: (batchId: string, progress: number) => void
+  groupCreated: (groupName: string) => void
+  groupRemoved: (groupName: string) => void
+  observableStarted: (observableId: string) => void
+  observableStopped: (observableId: string) => void
+}
+
+// Batch processing types
+export interface BatchOptions extends JobOptions {
+  batchSize?: number
+  processTimeout?: number
+}
+
+export interface Batch<T = any> {
+  id: string
+  jobs: Job<T>[]
+  opts: BatchOptions
+  timestamp: number
+  status: JobStatus
+  processingAt?: number
+  finishedAt?: number
+}
+
+// Group types
+export interface GroupOptions {
+  name: string
+  limit?: number
+  maxConcurrency?: number
+}
+
+export interface Group {
+  name: string
+  limit: number
+  maxConcurrency: number
+  queues: string[]
+}
+
+// Observable types
+export interface ObservableOptions {
+  interval?: number
+  autoStart?: boolean
+}
+
+export interface Observable {
+  id: string
+  queues: string[]
+  interval: number
+  running: boolean
 }

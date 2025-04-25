@@ -4,7 +4,7 @@
 
 > A TypeScript Starter Kit that will help you bootstrap your next project without minimal opinion.
 
-# bun-bull
+# bun-queue
 
 This is an opinionated TypeScript Starter kit to help kick-start development of your next Bun package.
 

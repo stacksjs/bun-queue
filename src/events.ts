@@ -1,4 +1,3 @@
-import type { QueueEvents } from './types'
 import { EventEmitter } from 'node:events'
 import { createLogger } from './logger'
 
@@ -90,6 +89,70 @@ class JobEvents extends EventEmitter {
   emitError(error: Error): void {
     this.logger.error(`Queue ${this.queueName} error: ${error.message}`)
     this.emit('error', error)
+  }
+
+  /**
+   * Emit a batch added event
+   */
+  emitBatchAdded(batchId: string, jobIds: string[]): void {
+    this.logger.debug(`Batch ${batchId} added to queue ${this.queueName} with ${jobIds.length} jobs`)
+    this.emit('batchAdded', batchId, jobIds)
+  }
+
+  /**
+   * Emit a batch completed event
+   */
+  emitBatchCompleted(batchId: string, results: any[]): void {
+    this.logger.debug(`Batch ${batchId} completed in queue ${this.queueName}`)
+    this.emit('batchCompleted', batchId, results)
+  }
+
+  /**
+   * Emit a batch failed event
+   */
+  emitBatchFailed(batchId: string, errors: Error[]): void {
+    this.logger.debug(`Batch ${batchId} failed in queue ${this.queueName}`)
+    this.emit('batchFailed', batchId, errors)
+  }
+
+  /**
+   * Emit a batch progress event
+   */
+  emitBatchProgress(batchId: string, progress: number): void {
+    this.logger.debug(`Batch ${batchId} progress: ${progress}%`)
+    this.emit('batchProgress', batchId, progress)
+  }
+
+  /**
+   * Emit a group created event
+   */
+  emitGroupCreated(groupName: string): void {
+    this.logger.debug(`Group ${groupName} created for queue ${this.queueName}`)
+    this.emit('groupCreated', groupName)
+  }
+
+  /**
+   * Emit a group removed event
+   */
+  emitGroupRemoved(groupName: string): void {
+    this.logger.debug(`Group ${groupName} removed from queue ${this.queueName}`)
+    this.emit('groupRemoved', groupName)
+  }
+
+  /**
+   * Emit an observable started event
+   */
+  emitObservableStarted(observableId: string): void {
+    this.logger.debug(`Observable ${observableId} started for queue ${this.queueName}`)
+    this.emit('observableStarted', observableId)
+  }
+
+  /**
+   * Emit an observable stopped event
+   */
+  emitObservableStopped(observableId: string): void {
+    this.logger.debug(`Observable ${observableId} stopped for queue ${this.queueName}`)
+    this.emit('observableStopped', observableId)
   }
 }
 

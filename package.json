@@ -57,7 +57,8 @@
     "preview:docs": "bun --bun vitepress preview docs",
     "typecheck": "bun --bun tsc --noEmit",
     "example:basic": "bun examples/basic.ts",
-    "example:advanced": "bun examples/advanced.ts"
+    "example:advanced": "bun examples/advanced.ts",
+    "example:advanced-features": "bun examples/advanced-features.ts"
   },
   "devDependencies": {
     "@stacksjs/docs": "^0.70.23",

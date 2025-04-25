@@ -1,4 +1,4 @@
-import { Job, Queue, RateLimiter } from '../src'
+import { Queue, RateLimiter } from '../src'
 
 // Define job data types
 interface EmailJob {
