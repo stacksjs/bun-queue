@@ -9,10 +9,10 @@
         "@types/bun": "^1.2.10",
         "bumpp": "^10.1.0",
         "bun-plugin-dtsx": "^0.21.9",
-        "bunfig": "^0.8.2",
+        "bunfig": "^0.8.3",
         "changelogen": "^0.6.1",
         "lint-staged": "^15.5.1",
-        "simple-git-hooks": "^2.12.1",
+        "simple-git-hooks": "^2.13.0",
         "typescript": "^5.8.3",
       },
     },
@@ -22,10 +22,10 @@
       "dependencies": {
         "@unocss/reset": "^66.1.0-beta.12",
         "axios": "^1.9.0",
-        "d3": "7.8.5",
+        "d3": "7.9.0",
         "pinia": "^3.0.2",
-        "vue": "^3.3.8",
-        "vue-router": "^4.5.0",
+        "vue": "^3.5.13",
+        "vue-router": "^4.5.1",
       },
       "devDependencies": {
         "@iconify-json/carbon": "^1.2.8",
@@ -853,7 +853,7 @@
 
     "bundle-name": ["bundle-name@4.1.0", "", { "dependencies": { "run-applescript": "^7.0.0" } }, "sha512-tjwM5exMg6BGRI+kNmTntNsvdZS1X8BFYS6tnJ2hdH0kVxM6/eVZ2xy+FqStSWvYmtfFMDLIxurorHwDKfDz5Q=="],
 
-    "bunfig": ["bunfig@0.8.2", "", { "bin": { "bunfig": "bin/cli.js" } }, "sha512-fJxLZ8pI2J0LQuYFAvpgfvLcQGCHZDcr2tRCafUQpgICwbagkBJby9EGKwKGicUaM8cYR42Rz41o/57OefQLEw=="],
+    "bunfig": ["bunfig@0.8.3", "", { "bin": { "bunfig": "bin/cli.js" } }, "sha512-v5dk6KdK1QpDAzgXlwcRVMz5MXBpGXPP4oODcMAP+WegYCQaO+TXF2Totan41gnGh9+JImzqe22axOBN4YJC5A=="],
 
     "c12": ["c12@3.0.3", "", { "dependencies": { "chokidar": "^4.0.3", "confbox": "^0.2.2", "defu": "^6.1.4", "dotenv": "^16.4.7", "exsolve": "^1.0.4", "giget": "^2.0.0", "jiti": "^2.4.2", "ohash": "^2.0.11", "pathe": "^2.0.3", "perfect-debounce": "^1.0.0", "pkg-types": "^2.1.0", "rc9": "^2.1.2" }, "peerDependencies": { "magicast": "^0.3.5" }, "optionalPeers": ["magicast"] }, "sha512-uC3MacKBb0Z15o5QWCHvHWj5Zv34pGQj9P+iXKSpTuSGFS0KKhUWf4t9AJ+gWjYOdmWCPEGpEzm8sS0iqbpo1w=="],
 
@@ -937,7 +937,7 @@
 
     "csstype": ["csstype@3.1.3", "", {}, "sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw=="],
 
-    "d3": ["d3@7.8.5", "", { "dependencies": { "d3-array": "3", "d3-axis": "3", "d3-brush": "3", "d3-chord": "3", "d3-color": "3", "d3-contour": "4", "d3-delaunay": "6", "d3-dispatch": "3", "d3-drag": "3", "d3-dsv": "3", "d3-ease": "3", "d3-fetch": "3", "d3-force": "3", "d3-format": "3", "d3-geo": "3", "d3-hierarchy": "3", "d3-interpolate": "3", "d3-path": "3", "d3-polygon": "3", "d3-quadtree": "3", "d3-random": "3", "d3-scale": "4", "d3-scale-chromatic": "3", "d3-selection": "3", "d3-shape": "3", "d3-time": "3", "d3-time-format": "4", "d3-timer": "3", "d3-transition": "3", "d3-zoom": "3" } }, "sha512-JgoahDG51ncUfJu6wX/1vWQEqOflgXyl4MaHqlcSruTez7yhaRKR9i8VjjcQGeS2en/jnFivXuaIMnseMMt0XA=="],
+    "d3": ["d3@7.9.0", "", { "dependencies": { "d3-array": "3", "d3-axis": "3", "d3-brush": "3", "d3-chord": "3", "d3-color": "3", "d3-contour": "4", "d3-delaunay": "6", "d3-dispatch": "3", "d3-drag": "3", "d3-dsv": "3", "d3-ease": "3", "d3-fetch": "3", "d3-force": "3", "d3-format": "3", "d3-geo": "3", "d3-hierarchy": "3", "d3-interpolate": "3", "d3-path": "3", "d3-polygon": "3", "d3-quadtree": "3", "d3-random": "3", "d3-scale": "4", "d3-scale-chromatic": "3", "d3-selection": "3", "d3-shape": "3", "d3-time": "3", "d3-time-format": "4", "d3-timer": "3", "d3-transition": "3", "d3-zoom": "3" } }, "sha512-e1U46jVP+w7Iut8Jt8ri1YsPOvFpg46k+K8TpCb0P+zjCkjkPnV7WzfDJzMHy1LnA+wj5pLT1wjO901gLXeEhA=="],
 
     "d3-array": ["d3-array@3.2.4", "", { "dependencies": { "internmap": "1 - 2" } }, "sha512-tdQAmyA18i4J7wprpYq8ClcxZy3SC31QMeByyCFyRt7BVHdREQZ5lpzoe5mFEYZUWe+oq8HBvk9JjpibyEV4Jg=="],
 
@@ -1973,7 +1973,7 @@
 
     "vue-resize": ["vue-resize@2.0.0-alpha.1", "", { "peerDependencies": { "vue": "^3.0.0" } }, "sha512-7+iqOueLU7uc9NrMfrzbG8hwMqchfVfSzpVlCMeJQe4pyibqyoifDNbKTZvwxZKDvGkB+PdFeKvnGZMoEb8esg=="],
 
-    "vue-router": ["vue-router@4.5.0", "", { "dependencies": { "@vue/devtools-api": "^6.6.4" }, "peerDependencies": { "vue": "^3.2.0" } }, "sha512-HDuk+PuH5monfNuY+ct49mNmkCRK4xJAV9Ts4z9UFc4rzdDnxQLyCMGGc8pKhZhHTVzfanpNwB/lwqevcBwI4w=="],
+    "vue-router": ["vue-router@4.5.1", "", { "dependencies": { "@vue/devtools-api": "^6.6.4" }, "peerDependencies": { "vue": "^3.2.0" } }, "sha512-ogAF3P97NPm8fJsE4by9dwSYtDwXIY1nFY9T6DyQnGHd1E2Da94w9JIolpe42LJGIl0DwOHBi8TcRPlPGwbTtw=="],
 
     "vue-template-compiler": ["vue-template-compiler@2.7.16", "", { "dependencies": { "de-indent": "^1.0.2", "he": "^1.2.0" } }, "sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ=="],
 
