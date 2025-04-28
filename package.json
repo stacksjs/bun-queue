@@ -77,10 +77,10 @@
     "@types/bun": "^1.2.10",
     "bumpp": "^10.1.0",
     "bun-plugin-dtsx": "^0.21.9",
-    "bunfig": "^0.8.2",
+    "bunfig": "^0.8.3",
     "changelogen": "^0.6.1",
     "lint-staged": "^15.5.1",
-    "simple-git-hooks": "^2.12.1",
+    "simple-git-hooks": "^2.13.0",
     "typescript": "^5.8.3"
   },
   "overrides": {
