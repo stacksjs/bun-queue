@@ -79,12 +79,12 @@
     "@stacksjs/eslint-config": "^4.10.2-beta.3",
     "@stacksjs/gitlint": "^0.1.5",
     "@stacksjs/logsmith": "^0.1.8",
-    "@types/bun": "^1.2.10",
+    "@types/bun": "^1.2.20",
     "buddy-bot": "^0.8.8",
     "bun-git-hooks": "^0.2.19",
-    "bun-plugin-dtsx": "^0.21.9",
+    "bun-plugin-dtsx": "^0.21.12",
     "bunfig": "^0.8.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   },
   "overrides": {
     "unconfig": "0.3.10"
