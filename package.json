@@ -74,13 +74,13 @@
     "example:dead-letter-queue": "bun examples/dead-letter-queue.ts"
   },
   "devDependencies": {
-    "@stacksjs/bumpx": "^0.1.13",
+    "@stacksjs/bumpx": "^0.1.17",
     "@stacksjs/docs": "^0.70.23",
-    "@stacksjs/eslint-config": "^4.10.2-beta.3",
+    "@stacksjs/eslint-config": "^4.14.0-beta.3",
     "@stacksjs/gitlint": "^0.1.5",
     "@stacksjs/logsmith": "^0.1.8",
     "@types/bun": "^1.2.10",
-    "buddy-bot": "^0.8.8",
+    "buddy-bot": "^0.8.9",
     "bun-git-hooks": "^0.2.19",
     "bun-plugin-dtsx": "^0.21.9",
     "bunfig": "^0.14.1",
@@ -92,10 +92,10 @@
   "git-hooks": {
     "pre-commit": {
       "staged-lint": {
-        "*.{js,ts,json,yaml,yml,md}": "bun lint:fix"
+        "*.{js,ts,json,yaml,yml,md}": "bunx --bun eslint --fix"
       }
     },
-    "commit-msg": "bunx gitlint --edit $1"
+    "commit-msg": "bunx gitlint --edit .git/COMMIT_EDITMSG"
   },
   "workspaces": [
     "packages/*"
