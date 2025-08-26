@@ -92,10 +92,10 @@
   "git-hooks": {
     "pre-commit": {
       "staged-lint": {
-        "*.{js,ts,json,yaml,yml,md}": "bun lint:fix"
+        "*.{js,ts,json,yaml,yml,md}": "bunx --bun eslint --fix"
       }
     },
-    "commit-msg": "bunx gitlint --edit $1"
+    "commit-msg": "bunx gitlint --edit .git/COMMIT_EDITMSG"
   },
   "workspaces": [
     "packages/*"
