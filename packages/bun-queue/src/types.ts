@@ -19,7 +19,7 @@ export interface QueueConfig {
   stalledJobCheckInterval?: number
   maxStalledJobRetries?: number
   distributedLock?: boolean
-  defaultDeadLetterOptions?: DeadLetterQueueOptions // Default dead letter queue options
+  defaultDeadLetterOptions?: DeadLetterQueueOptions
   horizontalScaling?: {
     enabled?: boolean
     instanceId?: string
@@ -34,6 +34,26 @@ export interface QueueConfig {
       keyPrefix?: string
     }
   }
+}
+
+export interface QueueManagerConfig {
+  default?: string
+  connections?: Record<string, QueueConnectionConfig>
+  failed?: {
+    driver: 'redis' | 'database'
+    table?: string
+    prefix?: string
+  }
+  batching?: {
+    driver: 'redis' | 'database'
+    table?: string
+    prefix?: string
+  }
+}
+
+export interface QueueConnectionConfig extends QueueConfig {
+  driver: 'redis' | 'memory' | 'database'
+  table?: string
 }
 
 export type { RedisClient }

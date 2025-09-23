@@ -531,17 +531,20 @@ function splitFilename(filePath: string): {
 }
 
 // Determine the project root
-// https://stackoverflow.com/a/18721515
 function getPkgJsonDir(): string {
-  for (const modPath of module.paths || []) {
+  // Use Bun-compatible approach to find project root
+  let currentDir = process.cwd()
+  while (currentDir !== path.dirname(currentDir)) {
     try {
-      const prospectivePkgJsonDir = path.dirname(modPath)
-      fs.accessSync(modPath, fs.constants.F_OK)
-      return prospectivePkgJsonDir
+      const pkgJsonPath = path.join(currentDir, 'package.json')
+      fs.accessSync(pkgJsonPath, fs.constants.F_OK)
+      return currentDir
     }
-    catch (e) {}
+    catch (e) {
+      currentDir = path.dirname(currentDir)
+    }
   }
-  return ''
+  return process.cwd()
 }
 
 // https://stackoverflow.com/a/66842927

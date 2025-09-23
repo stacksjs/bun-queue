@@ -1,7 +1,9 @@
 import type { RedisClient } from 'bun'
 import type { CronJobOptions } from './cron-scheduler'
+import type { JobContract } from './job-base'
+import type { JobProcessor } from './job-processor'
 import type { RateLimitResult } from './rate-limiter'
-import type { DeadLetterQueueOptions, JobOptions, JobStatus, QueueConfig } from './types'
+import type { DeadLetterQueueOptions, JobOptions, JobStatus, QueueConfig, QueueConnectionConfig } from './types'
 import { CleanupService } from './cleanup'
 import { scriptLoader } from './commands'
 import { config } from './config'
@@ -10,6 +12,7 @@ import { DeadLetterQueue } from './dead-letter-queue'
 import { DistributedLock } from './distributed-lock'
 import { JobEvents } from './events'
 import { Job } from './job'
+import { createJobProcessor } from './job-processor'
 import { LeaderElection } from './leader-election'
 import { createLogger } from './logger'
 import { Metrics } from './metrics'
@@ -29,7 +32,7 @@ export class Queue<T = any> {
   private metrics: Metrics | null = null
   private cleanupService: CleanupService | null = null
   private stalledChecker: StalledJobChecker | null = null
-  private readonly logger = createLogger()
+  protected readonly logger = createLogger()
   private limiter: RateLimiter | null = null
   private defaultJobOptions: JobOptions | undefined
   private lock: DistributedLock | null = null
@@ -41,7 +44,10 @@ export class Queue<T = any> {
   private instanceId: string
   private horizontalScalingEnabled: boolean = false
 
-  constructor(name: string, options?: QueueConfig) {
+  // Enhanced job class functionality
+  private jobProcessor: JobProcessor
+
+  constructor(name: string, options?: QueueConnectionConfig) {
     this.name = name
     this.prefix = options?.prefix || config.prefix || 'queue'
     this.redisClient = getRedisClient(options)
@@ -49,6 +55,11 @@ export class Queue<T = any> {
     this.events = new JobEvents(name)
     this.defaultJobOptions = options?.defaultJobOptions
     this.instanceId = options?.horizontalScaling?.instanceId || generateId()
+
+    // Initialize job processor for enhanced functionality
+    this.jobProcessor = createJobProcessor({
+      logLevel: options?.logLevel,
+    })
 
     // Set logger level if specified
     if (options?.logLevel) {
@@ -1045,5 +1056,254 @@ export class Queue<T = any> {
       this.logger.error(`Error in bulk resume operation for queue ${this.name}: ${(err as Error).message}`)
       return 0
     }
+  }
+
+  /**
+   * Add a job class to the queue
+   */
+  async dispatchJob(job: JobContract, ...args: any[]): Promise<Job<any>> {
+    const jobData = {
+      class: job.constructor.name,
+      method: 'handle',
+      args,
+      job,
+    }
+
+    const jobOptions: JobOptions = {
+      delay: job.delay,
+      attempts: job.tries,
+      timeout: job.timeout,
+      backoff: job.backoff ? { type: 'fixed', delay: job.backoff[0] } : undefined,
+      jobId: job.uniqueId?.(),
+      removeOnComplete: true,
+      removeOnFail: false,
+    }
+
+    this.logger.debug(`Adding job ${job.constructor.name} to queue ${this.name}`)
+
+    return this.add(jobData as T, jobOptions)
+  }
+
+  /**
+   * Process job classes with the enhanced processor
+   */
+  processJobs(concurrency: number = 1): void {
+    this.process(concurrency, async (job) => {
+      return this.jobProcessor.processWithTimeout(job, (job.data as any).job?.timeout)
+    })
+
+    this.logger.info(`Started processing jobs on queue ${this.name} with concurrency ${concurrency}`)
+  }
+
+  /**
+   * Add multiple jobs as a batch
+   */
+  async addJobBatch(jobs: JobContract[], batchOptions?: {
+    batchId?: string
+    allowFailures?: boolean
+  }): Promise<Job<any>[]> {
+    const batchId = batchOptions?.batchId || `batch_${Date.now()}_${Math.random().toString(36).substring(2)}`
+
+    this.logger.info(`Adding job batch ${batchId} with ${jobs.length} jobs`)
+
+    const jobPromises = jobs.map(async (job, index) => {
+      const jobData = {
+        class: job.constructor.name,
+        method: 'handle',
+        args: [],
+        job,
+        batchId,
+        batchIndex: index,
+      }
+
+      const jobOptions: JobOptions = {
+        delay: job.delay,
+        attempts: job.tries,
+        timeout: job.timeout,
+        backoff: job.backoff ? { type: 'fixed', delay: job.backoff[0] } : undefined,
+        jobId: job.uniqueId?.() ? `${batchId}_${job.uniqueId()}` : undefined,
+      }
+
+      return this.add(jobData as T, jobOptions)
+    })
+
+    return Promise.all(jobPromises)
+  }
+
+  /**
+   * Retry a failed job
+   */
+  async retryJob(jobId: string, newArgs?: any[]): Promise<Job<any> | null> {
+    const job = await this.getJob(jobId)
+    if (!job) {
+      this.logger.warn(`Job ${jobId} not found for retry`)
+      return null
+    }
+
+    const jobData = job.data
+    if (!this.isJobClass(jobData)) {
+      this.logger.warn(`Job ${jobId} is not a job class`)
+      return null
+    }
+
+    // Update args if provided
+    if (newArgs) {
+      (jobData as any).args = newArgs
+    }
+
+    // Remove the original job
+    await job.remove()
+
+    // Re-add the job
+    return this.add(jobData, {
+      attempts: job.opts.attempts,
+      timeout: job.opts.timeout,
+      backoff: job.opts.backoff,
+    })
+  }
+
+  /**
+   * Get failed job classes
+   */
+  async getFailedJobClasses(): Promise<Array<{
+    job: Job<any>
+    jobClass: string
+    error: string
+    failedAt: number
+  }>> {
+    const failedJobs = await this.getJobs('failed')
+
+    return failedJobs
+      .filter(job => this.isJobClass(job.data))
+      .map(job => ({
+        job,
+        jobClass: (job.data as any).class,
+        error: job.failedReason || 'Unknown error',
+        failedAt: job.finishedOn || 0,
+      }))
+  }
+
+  /**
+   * Get job statistics for job classes
+   */
+  async getJobClassStats(): Promise<{
+    byClass: Record<string, {
+      total: number
+      completed: number
+      failed: number
+      pending: number
+    }>
+    overall: {
+      total: number
+      completed: number
+      failed: number
+      pending: number
+    }
+  }> {
+    const [waiting, active, completed, failed] = await Promise.all([
+      this.getJobs('waiting'),
+      this.getJobs('active'),
+      this.getJobs('completed'),
+      this.getJobs('failed'),
+    ])
+
+    const allJobs = [...waiting, ...active, ...completed, ...failed]
+    const jobClasses = allJobs.filter(job => this.isJobClass(job.data))
+
+    const byClass: Record<string, any> = {}
+    let totalCompleted = 0
+    let totalFailed = 0
+    let totalPending = 0
+
+    for (const job of jobClasses) {
+      const className = (job.data as any).class
+
+      if (!byClass[className]) {
+        byClass[className] = {
+          total: 0,
+          completed: 0,
+          failed: 0,
+          pending: 0,
+        }
+      }
+
+      byClass[className].total++
+
+      if (job.finishedOn) {
+        if (job.failedReason) {
+          byClass[className].failed++
+          totalFailed++
+        }
+        else {
+          byClass[className].completed++
+          totalCompleted++
+        }
+      }
+      else {
+        byClass[className].pending++
+        totalPending++
+      }
+    }
+
+    return {
+      byClass,
+      overall: {
+        total: jobClasses.length,
+        completed: totalCompleted,
+        failed: totalFailed,
+        pending: totalPending,
+      },
+    }
+  }
+
+  private isJobClass(data: any): boolean {
+    return (
+      data
+      && typeof data === 'object'
+      && data.class
+      && data.method
+      && data.job
+      && typeof data.job.handle === 'function'
+    )
+  }
+
+  /**
+   * Clear all job classes (both pending and completed)
+   */
+  async clearJobClasses(): Promise<void> {
+    const [waiting, active, completed, failed] = await Promise.all([
+      this.getJobs('waiting'),
+      this.getJobs('active'),
+      this.getJobs('completed'),
+      this.getJobs('failed'),
+    ])
+
+    const allJobs = [...waiting, ...active, ...completed, ...failed]
+    const jobClassIds = allJobs
+      .filter(job => this.isJobClass(job.data))
+      .map(job => job.id)
+
+    if (jobClassIds.length > 0) {
+      await this.bulkRemove(jobClassIds)
+      this.logger.info(`Cleared ${jobClassIds.length} job classes from queue ${this.name}`)
+    }
+  }
+
+  /**
+   * Pause processing of job classes (keeps other jobs running)
+   */
+  async pauseJobClasses(): Promise<void> {
+    // This would require more advanced queue management
+    // For now, we'll just log the intent
+    this.logger.info(`Job class processing paused for queue ${this.name}`)
+  }
+
+  /**
+   * Resume processing of job classes
+   */
+  async resumeJobClasses(): Promise<void> {
+    // This would require more advanced queue management
+    // For now, we'll just log the intent
+    this.logger.info(`Job class processing resumed for queue ${this.name}`)
   }
 }

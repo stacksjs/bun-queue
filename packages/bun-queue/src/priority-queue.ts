@@ -33,7 +33,7 @@ export class PriorityQueue<T = any> {
     queueOptions?: QueueConfig,
   ) {
     // Create the underlying queue
-    this.baseQueue = new Queue<T>(name, queueOptions)
+    this.baseQueue = new Queue<T>(name, queueOptions as any)
 
     // Copy basic properties from the underlying queue
     this.name = this.baseQueue.name
