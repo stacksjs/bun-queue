@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { JobDependencyGraph, JobLink, JobNode } from '../types/job'
+import type { JobDependencyGraph, JobNode } from '../types/job'
 import * as d3 from 'd3'
 import { onMounted, ref, watch } from 'vue'
 import { JobStatus } from '../types/job'

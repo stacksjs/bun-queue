@@ -24,6 +24,7 @@ interface ImageJob {
 async function main() {
   // Create queues for different job types
   const emailQueue = new Queue<EmailJob>('emails', {
+    driver: 'redis',
     verbose: true,
     logLevel: 'info',
     metrics: { enabled: true },

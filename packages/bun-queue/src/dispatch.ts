@@ -219,7 +219,7 @@ export class JobBatch implements Batch {
       if (this.options?.onConnection)
         jobClone.connection = this.options.onConnection
 
-      return jobClone.dispatch()
+      return jobClone.dispatch?.()
     })
 
     const dispatchedJobs = await Promise.all(jobPromises)

@@ -59,7 +59,6 @@
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
     "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
-    "postinstall": "bunx git-hooks",
     "dev:docs": "bun --bun vitepress dev docs",
     "build:docs": "bun --bun vitepress build docs",
     "preview:docs": "bun --bun vitepress preview docs",
@@ -74,17 +73,9 @@
     "example:dead-letter-queue": "bun examples/dead-letter-queue.ts"
   },
   "devDependencies": {
-    "@stacksjs/bumpx": "^0.1.17",
     "@stacksjs/docs": "^0.70.23",
     "@stacksjs/eslint-config": "^4.10.2-beta.3",
-    "@stacksjs/gitlint": "^0.1.5",
-    "@stacksjs/logsmith": "^0.1.8",
-    "@types/bun": "^1.2.10",
-    "buddy-bot": "^0.8.9",
-    "bun-git-hooks": "^0.2.19",
-    "bun-plugin-dtsx": "^0.21.9",
-    "bunfig": "^0.8.3",
-    "typescript": "^5.8.3"
+    "better-dx": "^0.1.4"
   },
   "overrides": {
     "unconfig": "0.3.10"

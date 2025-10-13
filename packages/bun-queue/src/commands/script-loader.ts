@@ -495,7 +495,8 @@ export class ScriptLoader {
       scripts.forEach((command: Command) => {
         // Only define the command if not already defined
         if (!(client as any)[command.name]) {
-          client.defineCommand(command.name, command.options)
+          // Type assertion: defineCommand is available on ioredis client but not typed in bun
+          (client as any).defineCommand(command.name, command.options)
         }
       })
     }
