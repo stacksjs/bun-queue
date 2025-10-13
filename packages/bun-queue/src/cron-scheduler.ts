@@ -248,7 +248,7 @@ export class CronScheduler {
         date.setFullYear(year, month, day)
         date.setHours(hour, minute, 0, 0)
       }
-      catch (error) {
+      catch {
         this.logger.warn(`Invalid timezone: ${timezone}, using system timezone`)
       }
     }

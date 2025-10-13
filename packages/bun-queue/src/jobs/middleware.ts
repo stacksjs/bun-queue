@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { JobContract as Job, JobMiddleware } from '../job-base'
 
 export class RateLimited implements JobMiddleware {

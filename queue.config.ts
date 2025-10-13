@@ -1,4 +1,5 @@
 import type { QueueConfig } from './packages/bun-queue/src/types'
+import process from 'node:process'
 
 // Standard queue configuration (existing bunfig approach) - default export for auto-loading
 export default {

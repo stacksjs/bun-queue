@@ -2,6 +2,7 @@ import type { RedisClient } from '../types'
 import { createHash } from 'node:crypto'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import process from 'node:process'
 import { promisify } from 'node:util'
 
 const readFile = promisify(fs.readFile)
@@ -541,7 +542,7 @@ function getPkgJsonDir(): string {
       fs.accessSync(pkgJsonPath, fs.constants.F_OK)
       return currentDir
     }
-    catch (e) {
+    catch {
       currentDir = path.dirname(currentDir)
     }
   }
@@ -571,7 +572,7 @@ function getCallerFile(): string {
       }
     }
   }
-  catch (e) {
+  catch {
   }
   finally {
     Error.prepareStackTrace = originalFunc

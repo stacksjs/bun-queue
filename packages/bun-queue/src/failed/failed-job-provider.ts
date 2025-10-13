@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 export interface FailedJob {
   id: string
   connection: string
