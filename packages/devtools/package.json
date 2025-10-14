@@ -19,12 +19,7 @@
   "devDependencies": {
     "@iconify-json/carbon": "^1.2.8",
     "@types/d3": "7.4.3",
-    "@unocss/preset-icons": "^66.1.0-beta.12",
-    "@unocss/preset-uno": "^66.1.0-beta.12",
-    "@unocss/preset-web-fonts": "^66.1.0-beta.12",
-    "@unocss/transformer-directives": "^66.1.0-beta.12",
     "@vitejs/plugin-vue": "^5.2.3",
-    "unocss": "^66.1.0-beta.12",
     "vite": "^7.1.9",
     "vue-tsc": "^2.2.10"
   }
