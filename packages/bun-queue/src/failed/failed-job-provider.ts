@@ -38,7 +38,7 @@ export class RedisFailedJobProvider implements FailedJobProvider {
     }
 
     // In a real implementation, store in Redis
-    console.log(`[FailedJobProvider] Logged failed job ${id} from queue ${queue}`)
+    console.log(`[FailedJobProvider] Logged failed job ${id} from queue ${_queue}`)
 
     return id
   }

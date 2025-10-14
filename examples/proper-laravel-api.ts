@@ -16,7 +16,6 @@ import {
 // Laravel-style Job Classes
 class SendEmailNotification extends JobBase implements ShouldQueue, ShouldBeUnique {
   public connection = 'redis'
-  public queue!: Queue<any>
   public tries = 3
   public timeout = 30 // seconds
   public backoff = [5, 10, 30] // seconds
@@ -62,7 +61,6 @@ class SendEmailNotification extends JobBase implements ShouldQueue, ShouldBeUniq
 
 class ProcessPayment extends JobBase implements ShouldQueue, ShouldBeUnique {
   public connection = 'priority'
-  public queue!: Queue<any>
   public tries = 5
   public timeout = 60 // seconds
   public backoff = [1, 5, 15, 30, 60] // seconds
@@ -114,7 +112,6 @@ class ProcessPayment extends JobBase implements ShouldQueue, ShouldBeUnique {
 
 class GenerateMonthlyReport extends JobBase implements ShouldQueue, ShouldBatch {
   public connection = 'redis'
-  public queue!: Queue<any>
   public tries = 2
   public timeout = 120 // seconds
   public batchId?: string

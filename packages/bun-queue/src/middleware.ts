@@ -107,10 +107,7 @@ export class UniqueJobMiddleware implements JobMiddleware {
 
     try {
       // Try to set a lock key with NX (only if not exists) and EX (expiration)
-      const lockAcquired = await redisClient.set(key, '1', {
-        NX: true,
-        EX: this.ttl,
-      })
+      const lockAcquired = await redisClient.send('SET', [key, '1', 'NX', 'EX', this.ttl.toString()])
 
       if (!lockAcquired) {
         // Job with this unique ID is already queued/processing
@@ -217,10 +214,7 @@ export class WithoutOverlappingMiddleware implements JobMiddleware {
 
     try {
       // Try to acquire a lock
-      const lockAcquired = await redisClient.set(key, Date.now().toString(), {
-        NX: true,
-        EX: this.ttl,
-      })
+      const lockAcquired = await redisClient.send('SET', [key, Date.now().toString(), 'NX', 'EX', this.ttl.toString()])
 
       if (!lockAcquired) {
         // Another instance of this job is already running

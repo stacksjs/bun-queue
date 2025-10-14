@@ -10,7 +10,6 @@ import {
 
 // Laravel-style Job
 class WelcomeEmailJob extends JobBase implements ShouldQueue {
-  public queue!: Queue<any>
   public tries = 3
 
   constructor(private email: string, private name: string) {
