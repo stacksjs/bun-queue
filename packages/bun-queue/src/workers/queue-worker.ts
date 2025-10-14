@@ -1,6 +1,7 @@
 import type { Job as QueueJob } from '../job'
 import type { JobBase as Job } from '../job-base'
 import type { QueueManagerConfig } from '../types'
+import process from 'node:process'
 import { FailedJobManager } from '../failed'
 import { createLogger } from '../logger'
 
@@ -27,6 +28,13 @@ export interface WorkerEvents {
   jobRetry: (job: QueueJob<any>) => void
   jobTimeout: (job: QueueJob<any>) => void
   workerStopping: (status: number) => void
+}
+
+export interface WorkerStats {
+  jobsProcessed: number
+  runtime: number
+  isRunning: boolean
+  lastRestart: number
 }
 
 export class QueueWorker {
@@ -238,7 +246,7 @@ export class QueueWorker {
     this.events.jobFailed?.(queueJob, error)
   }
 
-  private async retryJob(queueJob: QueueJob<any>, error: Error): Promise<void> {
+  private async retryJob(queueJob: QueueJob<any>, _error: Error): Promise<void> {
     const delay = this.calculateRetryDelay(queueJob)
 
     this.logger.info(`Retrying job ${queueJob.id} in ${delay}ms (attempt ${queueJob.attemptsMade + 1})`)
@@ -350,7 +358,7 @@ export class QueueWorker {
   }
 
   // Stats
-  getStats() {
+  getStats(): WorkerStats {
     return {
       jobsProcessed: this.jobsProcessed,
       runtime: Date.now() - this.startTime,

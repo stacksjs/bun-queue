@@ -46,8 +46,34 @@ export class RateLimitMiddleware implements JobMiddleware {
 
   async handle(job: JobContract, next: () => Promise<void>): Promise<void> {
     const key = this.getRateLimitKey(job)
-    // In a real implementation, you'd check Redis for rate limiting
-    // For now, we'll just pass through
+
+    const redisClient = job.job?.queue?.redisClient
+    if (!redisClient) {
+      // If no Redis client available, just pass through
+      return next()
+    }
+
+    const ttl = this.decayMinutes * 60
+
+    // Increment the counter
+    const current = await redisClient.incr(key)
+
+    // Set expiration on first increment
+    if (current === 1) {
+      await redisClient.expire(key, ttl)
+    }
+
+    // Check if rate limit exceeded
+    if (current > this.maxAttempts) {
+      const remaining = await redisClient.ttl(key)
+      throw new Error(
+        `Rate limit exceeded for ${job.constructor.name}. `
+        + `Max ${this.maxAttempts} attempts per ${this.decayMinutes} minute(s). `
+        + `Try again in ${remaining} seconds.`,
+      )
+    }
+
+    // Proceed with job execution
     await next()
   }
 
@@ -71,9 +97,49 @@ export class UniqueJobMiddleware implements JobMiddleware {
     }
 
     const key = this.getUniqueKey(job, uniqueId)
-    // In a real implementation, you'd check Redis for job uniqueness
-    // For now, we'll just pass through
-    await next()
+
+    // Get Redis client from the job's queue instance
+    const redisClient = job.job?.queue?.redisClient
+    if (!redisClient) {
+      // If no Redis client available, just pass through
+      return next()
+    }
+
+    try {
+      // Try to set a lock key with NX (only if not exists) and EX (expiration)
+      const lockAcquired = await redisClient.set(key, '1', {
+        NX: true,
+        EX: this.ttl,
+      })
+
+      if (!lockAcquired) {
+        // Job with this unique ID is already queued/processing
+        throw new Error(`Job with unique ID "${uniqueId}" is already queued or being processed`)
+      }
+
+      // Job is unique, proceed with execution
+      try {
+        await next()
+      }
+      finally {
+        // Release the lock after job completion (successful or failed)
+        await redisClient.del(key)
+      }
+    }
+    catch (error) {
+      // If it's our uniqueness error, rethrow it
+      if (error instanceof Error && error.message.includes('already queued')) {
+        throw error
+      }
+      // For other errors, still try to clean up the lock
+      try {
+        await redisClient.del(key)
+      }
+      catch {
+        // Ignore cleanup errors
+      }
+      throw error
+    }
   }
 
   private getUniqueKey(job: JobContract, uniqueId: string): string {
@@ -93,9 +159,41 @@ export class ThrottleMiddleware implements JobMiddleware {
   }
 
   async handle(job: JobContract, next: () => Promise<void>): Promise<void> {
-    // In a real implementation, you'd implement throttling logic
-    // For now, we'll just pass through
+    const key = this.getThrottleKey(job)
+
+    const redisClient = job.job?.queue?.redisClient
+    if (!redisClient) {
+      // If no Redis client available, just pass through
+      return next()
+    }
+
+    const ttl = Math.ceil(this.every / 1000) // Convert ms to seconds
+
+    // Get current count
+    const current = await redisClient.incr(key)
+
+    // Set expiration on first increment
+    if (current === 1) {
+      await redisClient.expire(key, ttl)
+    }
+
+    // Check if throttle limit exceeded
+    if (current > this.allows) {
+      const remaining = await redisClient.ttl(key)
+      throw new Error(
+        `Throttle limit exceeded for ${job.constructor.name}. `
+        + `Max ${this.allows} jobs per ${this.every}ms. `
+        + `Try again in ${remaining} seconds.`,
+      )
+    }
+
+    // Proceed with job execution
     await next()
+  }
+
+  private getThrottleKey(job: JobContract): string {
+    const uniqueId = job.uniqueId?.() || 'default'
+    return `${this.prefix}:${job.constructor.name}:${uniqueId}`
   }
 }
 
@@ -110,9 +208,57 @@ export class WithoutOverlappingMiddleware implements JobMiddleware {
 
   async handle(job: JobContract, next: () => Promise<void>): Promise<void> {
     const key = this.getOverlapKey(job)
-    // In a real implementation, you'd use distributed locks to prevent overlapping
-    // For now, we'll just pass through
-    await next()
+
+    const redisClient = job.job?.queue?.redisClient
+    if (!redisClient) {
+      // If no Redis client available, just pass through
+      return next()
+    }
+
+    try {
+      // Try to acquire a lock
+      const lockAcquired = await redisClient.set(key, Date.now().toString(), {
+        NX: true,
+        EX: this.ttl,
+      })
+
+      if (!lockAcquired) {
+        // Another instance of this job is already running
+        throw new Error(
+          `Job ${job.constructor.name} is already running. `
+          + `Cannot execute overlapping instances.`,
+        )
+      }
+
+      // Job can proceed
+      try {
+        await next()
+      }
+      finally {
+        // Release the lock after completion
+        // Use a delay if releaseAfter is specified
+        if (this.releaseAfter > 0) {
+          await redisClient.expire(key, this.releaseAfter)
+        }
+        else {
+          await redisClient.del(key)
+        }
+      }
+    }
+    catch (error) {
+      // If it's our overlapping error, rethrow it
+      if (error instanceof Error && error.message.includes('already running')) {
+        throw error
+      }
+      // For other errors, clean up the lock
+      try {
+        await redisClient.del(key)
+      }
+      catch {
+        // Ignore cleanup errors
+      }
+      throw error
+    }
   }
 
   private getOverlapKey(job: JobContract): string {
@@ -128,7 +274,7 @@ export class SkipIfMiddleware implements JobMiddleware {
     this.condition = condition
   }
 
-  async handle(job: JobContract, next: () => Promise<void>): Promise<void> {
+  async handle(_job: JobContract, next: () => Promise<void>): Promise<void> {
     const shouldSkip = await this.condition()
     if (shouldSkip) {
       // Skip the job by not calling next()
@@ -157,21 +303,21 @@ export class FailureMiddleware implements JobMiddleware {
 }
 
 export const middleware = {
-  rateLimit: (maxAttempts: number, decayMinutes?: number, prefix?: string) =>
+  rateLimit: (maxAttempts: number, decayMinutes?: number, prefix?: string): RateLimitMiddleware =>
     new RateLimitMiddleware(maxAttempts, decayMinutes, prefix),
 
-  unique: (ttl?: number) =>
+  unique: (ttl?: number): UniqueJobMiddleware =>
     new UniqueJobMiddleware(ttl),
 
-  throttle: (allows: number, every: number, prefix?: string) =>
+  throttle: (allows: number, every: number, prefix?: string): ThrottleMiddleware =>
     new ThrottleMiddleware(allows, every, prefix),
 
-  withoutOverlapping: (ttl?: number, releaseAfter?: number) =>
+  withoutOverlapping: (ttl?: number, releaseAfter?: number): WithoutOverlappingMiddleware =>
     new WithoutOverlappingMiddleware(ttl, releaseAfter),
 
-  skipIf: (condition: () => boolean | Promise<boolean>) =>
+  skipIf: (condition: () => boolean | Promise<boolean>): SkipIfMiddleware =>
     new SkipIfMiddleware(condition),
 
-  onFailure: (callback: (error: Error, job: JobContract) => Promise<void> | void) =>
+  onFailure: (callback: (error: Error, job: JobContract) => Promise<void> | void): FailureMiddleware =>
     new FailureMiddleware(callback),
 }

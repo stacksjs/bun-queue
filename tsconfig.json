@@ -6,7 +6,6 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
-    "types": ["bun"],
     "allowImportingTsExtensions": true,
     "strict": true,
     "strictNullChecks": true,

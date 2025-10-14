@@ -152,7 +152,7 @@ export class JobBatch implements PendingBatch {
     }
   }
 
-  private async monitorJob(queueJob: QueueJob<any>, batch: Batch, jobIndex: number): Promise<void> {
+  private async monitorJob(queueJob: QueueJob<any>, batch: Batch, _jobIndex: number): Promise<void> {
     // This is a simplified monitoring approach
     // In a real implementation, you'd want to use proper event listeners
 

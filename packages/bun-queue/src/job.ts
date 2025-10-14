@@ -92,7 +92,7 @@ export class Job<T = any> {
    */
   async moveToCompleted(returnvalue: any = null): Promise<void> {
     const jobKey = this.queue.getJobKey(this.id)
-    const multi = this.queue.redisClient.send('MULTI', [])
+    await this.queue.redisClient.send('MULTI', [])
 
     // Remove from active
     this.queue.redisClient.send('LREM', [this.queue.getKey('active'), '0', this.id])
@@ -129,7 +129,7 @@ export class Job<T = any> {
    */
   async moveToFailed(err: Error, failedReason?: string): Promise<void> {
     const jobKey = this.queue.getJobKey(this.id)
-    const multi = this.queue.redisClient.send('MULTI', [])
+    await this.queue.redisClient.send('MULTI', [])
 
     // Remove from active
     this.queue.redisClient.send('LREM', [this.queue.getKey('active'), '0', this.id])

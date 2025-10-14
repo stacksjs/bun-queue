@@ -161,6 +161,7 @@ export class ScriptLoader {
    * @param file - the parent file
    * @param cache - a cache for file metadata to increase efficiency. Since a file can be included
    * multiple times, we make sure to load it only once.
+   * @param isInclude - whether this is an include file
    * @param stack - internal stack to prevent circular references
    */
   private async resolveDependencies(
@@ -234,14 +235,15 @@ export class ScriptLoader {
     let res
     let content = file.content
 
+    // eslint-disable-next-line no-cond-assign
     while ((res = IncludeRegex.exec(content)) !== null) {
       const [match, , reference] = res
 
       const includeFilename = isPossiblyMappedPath(reference)
-        ? // mapped paths imply absolute reference
-          this.resolvePath(ensureExt(reference), stack)
-        : // include path is relative to the file being processed
-          path.resolve(path.dirname(file.path), ensureExt(reference))
+        // mapped paths imply absolute reference
+        ? this.resolvePath(ensureExt(reference), stack)
+        // include path is relative to the file being processed
+        : path.resolve(path.dirname(file.path), ensureExt(reference))
 
       let includePaths: string[]
 
@@ -561,7 +563,7 @@ function getCallerFile(): string {
   try {
     Error.prepareStackTrace = (_, stack) => stack
 
-    const sites = <NodeJS.CallSite[]>(<unknown> new Error().stack)
+    const sites = <NodeJS.CallSite[]>(<unknown> new Error('Stack trace').stack)
     const currentFile = sites.shift()?.getFileName()
 
     while (sites.length) {

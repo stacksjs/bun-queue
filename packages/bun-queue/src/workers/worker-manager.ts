@@ -21,7 +21,7 @@ export class WorkerManager {
       .on('jobProcessing', (job) => {
         this.logger.debug(`[${name}] Processing job ${job.id}`)
       })
-      .on('jobProcessed', (job, result) => {
+      .on('jobProcessed', (job, _result) => {
         this.logger.debug(`[${name}] Job ${job.id} completed`)
       })
       .on('jobFailed', (job, error) => {

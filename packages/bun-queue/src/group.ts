@@ -218,7 +218,7 @@ export class QueueGroup<T = any> {
   /**
    * Add a job to all queues in a group
    */
-  async addJobToGroup<R = any>(groupName: string, data: T): Promise<Job<T>[]> {
+  async addJobToGroup(groupName: string, data: T): Promise<Job<T>[]> {
     const group = await this.getGroup(groupName)
 
     if (!group) {
