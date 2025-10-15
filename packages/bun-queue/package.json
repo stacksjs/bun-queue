@@ -2,7 +2,6 @@
   "name": "bun-queue",
   "type": "module",
   "version": "0.0.0",
-  "private": true,
   "description": "A Redis-backed job queue built for Bun.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
@@ -23,6 +22,21 @@
     "scheduler",
     "bun",
     "typescript"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./*": {
+      "import": "./dist/*"
+    }
+  },
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "README.md",
+    "dist"
   ],
   "scripts": {
     "build": "bun --bun build.ts && bun run compile",
@@ -48,9 +62,6 @@
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
     "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
-    "dev:docs": "bun --bun vitepress dev docs",
-    "build:docs": "bun --bun vitepress build docs",
-    "preview:docs": "bun --bun vitepress preview docs",
     "typecheck": "bun --bun tsc --noEmit",
     "example:basic": "bun examples/basic.ts",
     "example:advanced": "bun examples/advanced.ts",
@@ -60,25 +71,5 @@
     "example:distributed-locks": "bun examples/distributed-locks.ts",
     "example:cron-jobs": "bun examples/cron-jobs.ts",
     "example:dead-letter-queue": "bun examples/dead-letter-queue.ts"
-  },
-  "devDependencies": {
-    "@stacksjs/docs": "^0.70.23",
-    "@stacksjs/eslint-config": "^4.14.0-beta.3",
-    "@types/bun": "^1.3.0",
-    "better-dx": "^0.1.4"
-  },
-  "overrides": {
-    "unconfig": "0.3.10"
-  },
-  "git-hooks": {
-    "pre-commit": {
-      "staged-lint": {
-        "*.{js,ts,json,yaml,yml,md}": "bunx --bun eslint --fix"
-      }
-    },
-    "commit-msg": "bunx gitlint --edit .git/COMMIT_EDITMSG"
-  },
-  "workspaces": [
-    "packages/*"
-  ]
+  }
 }

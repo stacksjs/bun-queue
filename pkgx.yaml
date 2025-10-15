@@ -1,3 +1,0 @@
-dependencies:
-  bun.sh: ^1.2.20
-  redis: ^7.4.5

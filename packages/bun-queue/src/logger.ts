@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { LogLevel } from './types'
 import { config } from './config'
 

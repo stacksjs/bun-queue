@@ -1,5 +1,4 @@
 import type { QueueConfig } from './types'
-import process from 'node:process'
 import { loadConfig } from 'bunfig'
 
 const defaultConfig: QueueConfig = {

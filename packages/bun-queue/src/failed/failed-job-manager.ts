@@ -1,6 +1,6 @@
 import type { FailedJob, FailedJobProvider } from './failed-job-provider'
-import { DatabaseFailedJobProvider, RedisFailedJobProvider } from './failed-job-provider'
 import { createLogger } from '../logger'
+import { DatabaseFailedJobProvider, RedisFailedJobProvider } from './failed-job-provider'
 
 export class FailedJobManager {
   private provider: FailedJobProvider

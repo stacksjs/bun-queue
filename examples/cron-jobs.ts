@@ -12,6 +12,7 @@ async function main() {
 
   // Create a queue for notifications
   const notificationQueue = new Queue<NotificationData>('notifications', {
+    driver: 'redis',
     verbose: true,
     logLevel: 'info',
   })

@@ -158,7 +158,7 @@ export class CronScheduler {
       if (part.includes('-')) {
         const [start, end] = part.split('-').map(n => Number.parseInt(n, 10))
 
-        if (isNaN(start) || isNaN(end) || start < min || end > max || start > end) {
+        if (Number.isNaN(start) || Number.isNaN(end) || start < min || end > max || start > end) {
           throw new Error(`Invalid range in cron expression: ${part}`)
         }
 
@@ -171,7 +171,7 @@ export class CronScheduler {
         const [range, step] = part.split('/')
         const stepValue = Number.parseInt(step, 10)
 
-        if (isNaN(stepValue) || stepValue <= 0) {
+        if (Number.isNaN(stepValue) || stepValue <= 0) {
           throw new Error(`Invalid step in cron expression: ${part}`)
         }
 
@@ -180,7 +180,7 @@ export class CronScheduler {
 
         if (range !== '*') {
           const rangeValue = Number.parseInt(range, 10)
-          if (!isNaN(rangeValue)) {
+          if (!Number.isNaN(rangeValue)) {
             start = rangeValue
           }
         }
@@ -193,7 +193,7 @@ export class CronScheduler {
       else {
         const value = Number.parseInt(part, 10)
 
-        if (isNaN(value) || value < min || value > max) {
+        if (Number.isNaN(value) || value < min || value > max) {
           throw new Error(`Invalid value in cron expression: ${part}`)
         }
 
@@ -248,7 +248,7 @@ export class CronScheduler {
         date.setFullYear(year, month, day)
         date.setHours(hour, minute, 0, 0)
       }
-      catch (error) {
+      catch {
         this.logger.warn(`Invalid timezone: ${timezone}, using system timezone`)
       }
     }

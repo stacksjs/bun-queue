@@ -8,7 +8,7 @@ class TestJob extends JobBase {
   }
 }
 
-class TestJobWithTries extends JobBase {
+class _TestJobWithTries extends JobBase {
   tries = 5
   timeout = 10000
 

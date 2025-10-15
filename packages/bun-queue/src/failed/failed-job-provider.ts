@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 export interface FailedJob {
   id: string
   connection: string
@@ -23,20 +25,20 @@ export class RedisFailedJobProvider implements FailedJobProvider {
     this.prefix = prefix
   }
 
-  async log(connection: string, queue: string, payload: string, exception: Error): Promise<string> {
+  async log(_connection: string, _queue: string, _payload: string, _exception: Error): Promise<string> {
     const id = `failed_${Date.now()}_${Math.random().toString(36).substring(2)}`
 
-    const failedJob: FailedJob = {
+    const _failedJob: FailedJob = {
       id,
-      connection,
-      queue,
-      payload,
-      exception: exception.stack || exception.message,
+      connection: _connection,
+      queue: _queue,
+      payload: _payload,
+      exception: _exception.stack || _exception.message,
       failed_at: new Date(),
     }
 
     // In a real implementation, store in Redis
-    console.log(`[FailedJobProvider] Logged failed job ${id} from queue ${queue}`)
+    console.log(`[FailedJobProvider] Logged failed job ${id} from queue ${_queue}`)
 
     return id
   }
@@ -79,7 +81,7 @@ export class DatabaseFailedJobProvider implements FailedJobProvider {
     this.table = table
   }
 
-  async log(connection: string, queue: string, payload: string, exception: Error): Promise<string> {
+  async log(_connection: string, _queue: string, _payload: string, _exception: Error): Promise<string> {
     const id = `failed_${Date.now()}_${Math.random().toString(36).substring(2)}`
 
     // In a real implementation, insert into database

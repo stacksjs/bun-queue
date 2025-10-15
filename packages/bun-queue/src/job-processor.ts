@@ -103,7 +103,7 @@ export class JobProcessor {
     }
   }
 
-  private shouldSkipJob(jobInstance: JobContract): boolean {
+  private shouldSkipJob(_jobInstance: JobContract): boolean {
     // This would be where you'd implement unique job logic, rate limiting checks, etc.
     // For now, we'll just return false to process all jobs
     return false
