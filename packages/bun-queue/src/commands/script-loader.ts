@@ -2,6 +2,7 @@ import type { RedisClient } from '../types'
 import { createHash } from 'node:crypto'
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import process from 'node:process'
 import { promisify } from 'node:util'
 
 const readFile = promisify(fs.readFile)
@@ -160,6 +161,7 @@ export class ScriptLoader {
    * @param file - the parent file
    * @param cache - a cache for file metadata to increase efficiency. Since a file can be included
    * multiple times, we make sure to load it only once.
+   * @param isInclude - whether this is an include file
    * @param stack - internal stack to prevent circular references
    */
   private async resolveDependencies(
@@ -233,14 +235,15 @@ export class ScriptLoader {
     let res
     let content = file.content
 
+    // eslint-disable-next-line no-cond-assign
     while ((res = IncludeRegex.exec(content)) !== null) {
       const [match, , reference] = res
 
       const includeFilename = isPossiblyMappedPath(reference)
-        ? // mapped paths imply absolute reference
-          this.resolvePath(ensureExt(reference), stack)
-        : // include path is relative to the file being processed
-          path.resolve(path.dirname(file.path), ensureExt(reference))
+        // mapped paths imply absolute reference
+        ? this.resolvePath(ensureExt(reference), stack)
+        // include path is relative to the file being processed
+        : path.resolve(path.dirname(file.path), ensureExt(reference))
 
       let includePaths: string[]
 
@@ -495,7 +498,8 @@ export class ScriptLoader {
       scripts.forEach((command: Command) => {
         // Only define the command if not already defined
         if (!(client as any)[command.name]) {
-          client.defineCommand(command.name, command.options)
+          // Type assertion: defineCommand is available on ioredis client but not typed in bun
+          (client as any).defineCommand(command.name, command.options)
         }
       })
     }
@@ -531,17 +535,20 @@ function splitFilename(filePath: string): {
 }
 
 // Determine the project root
-// https://stackoverflow.com/a/18721515
 function getPkgJsonDir(): string {
-  for (const modPath of module.paths || []) {
+  // Use Bun-compatible approach to find project root
+  let currentDir = process.cwd()
+  while (currentDir !== path.dirname(currentDir)) {
     try {
-      const prospectivePkgJsonDir = path.dirname(modPath)
-      fs.accessSync(modPath, fs.constants.F_OK)
-      return prospectivePkgJsonDir
+      const pkgJsonPath = path.join(currentDir, 'package.json')
+      fs.accessSync(pkgJsonPath, fs.constants.F_OK)
+      return currentDir
     }
-    catch (e) {}
+    catch {
+      currentDir = path.dirname(currentDir)
+    }
   }
-  return ''
+  return process.cwd()
 }
 
 // https://stackoverflow.com/a/66842927
@@ -556,7 +563,7 @@ function getCallerFile(): string {
   try {
     Error.prepareStackTrace = (_, stack) => stack
 
-    const sites = <NodeJS.CallSite[]>(<unknown> new Error().stack)
+    const sites = <NodeJS.CallSite[]>(<unknown> new Error('Stack trace').stack)
     const currentFile = sites.shift()?.getFileName()
 
     while (sites.length) {
@@ -567,7 +574,7 @@ function getCallerFile(): string {
       }
     }
   }
-  catch (e) {
+  catch {
   }
   finally {
     Error.prepareStackTrace = originalFunc

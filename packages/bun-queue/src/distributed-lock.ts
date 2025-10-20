@@ -1,4 +1,5 @@
 import type { RedisClient } from 'bun'
+import process from 'node:process'
 import { createLogger } from './logger'
 import { generateId } from './utils'
 

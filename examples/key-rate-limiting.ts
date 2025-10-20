@@ -12,6 +12,7 @@ async function main() {
 
   // Create an email queue with key-based rate limiting
   const emailQueue = new Queue<EmailData>('emails', {
+    driver: 'redis',
     verbose: true,
     logLevel: 'info',
   })

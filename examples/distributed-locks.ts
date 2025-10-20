@@ -24,6 +24,7 @@ async function main() {
 
   // Create a task queue with distributed lock support enabled
   const taskQueue = new Queue<TaskData>('tasks', {
+    driver: 'redis',
     verbose: true,
     logLevel: 'info',
     distributedLock: true  // Enable distributed locks

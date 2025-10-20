@@ -1,5 +1,4 @@
 import type { JobGroup } from '../types/jobGroup'
-import axios from 'axios'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { JobStatus } from '../types/job'
