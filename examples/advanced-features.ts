@@ -5,14 +5,17 @@ async function main() {
 
   // Create a few queues
   const emailQueue = new Queue<{ to: string, subject: string, body: string }>('email', {
+    driver: 'redis',
     redis: { url: 'redis://localhost:6379' },
   })
 
   const notificationQueue = new Queue<{ userId: string, message: string }>('notification', {
+    driver: 'redis',
     redis: { url: 'redis://localhost:6379' },
   })
 
   const imageProcessingQueue = new Queue<{ imageUrl: string, filters: string[] }>('image-processing', {
+    driver: 'redis',
     redis: { url: 'redis://localhost:6379' },
   })
 

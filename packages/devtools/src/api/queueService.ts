@@ -1,7 +1,7 @@
 import axios from 'axios'
 
-// Create a configured axios instance
-const api = axios.create({
+// Create a configured axios instance (for future use with real API)
+const _api = axios.create({
   baseURL: '/api',
   timeout: 10000,
   headers: {

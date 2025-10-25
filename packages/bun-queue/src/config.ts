@@ -1,7 +1,7 @@
 import type { QueueConfig } from './types'
 import { loadConfig } from 'bunfig'
 
-export const defaultConfig: QueueConfig = {
+const defaultConfig: QueueConfig = {
   verbose: true,
   logLevel: 'info',
   prefix: 'queue',
@@ -23,6 +23,7 @@ export const defaultConfig: QueueConfig = {
   maxStalledJobRetries: 3,
 }
 
+// Load unified config using bunfig
 // eslint-disable-next-line antfu/no-top-level-await
 export const config: QueueConfig = await loadConfig({
   name: 'queue',
