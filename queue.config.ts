@@ -2,7 +2,7 @@ import type { QueueConfig } from './packages/bun-queue/src/types'
 import process from 'node:process'
 
 // Standard queue configuration (existing bunfig approach) - default export for auto-loading
-export default {
+const config: QueueConfig = {
   verbose: true,
   logLevel: 'info',
   prefix: 'bun_queues',
@@ -27,4 +27,6 @@ export default {
   stalledJobCheckInterval: 30000,
   maxStalledJobRetries: 3,
   distributedLock: true,
-} satisfies QueueConfig
+}
+
+export default config

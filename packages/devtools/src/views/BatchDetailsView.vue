@@ -141,12 +141,12 @@ async function refreshData() {
 
 function cancelBatch() {
   // In a real implementation, this would call an API to cancel the batch
-  alert('Cancel batch operation would happen here')
+  // TODO: Implement cancel batch API call
 }
 
 function retryBatch() {
   // In a real implementation, this would call an API to retry the batch
-  alert('Retry batch operation would happen here')
+  // TODO: Implement retry batch API call
 }
 </script>
 

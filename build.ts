@@ -5,6 +5,10 @@ await Bun.build({
   outdir: './dist',
   target: 'bun',
   plugins: [dts({
-    root: 'packages/bun-queue/src',
+    build: {
+      config: {
+        root: 'packages/bun-queue/src',
+      },
+    },
   })],
 })

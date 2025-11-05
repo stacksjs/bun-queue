@@ -5,6 +5,6 @@ export { ScriptLoader }
 export type { Command, ScriptMetadata }
 export { ScriptLoaderError }
 
-const scriptLoader = new ScriptLoader()
+const scriptLoader: ScriptLoader = new ScriptLoader()
 
 export { scriptLoader }

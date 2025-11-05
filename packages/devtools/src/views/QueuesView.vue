@@ -12,7 +12,7 @@ onMounted(async () => {
     await queueStore.fetchQueues()
     isLoading.value = false
   }
-  catch (err) {
+  catch {
     error.value = 'Failed to load queues'
     isLoading.value = false
   }
@@ -26,7 +26,7 @@ async function refreshQueues() {
     await queueStore.fetchQueues()
     isLoading.value = false
   }
-  catch (err) {
+  catch {
     error.value = 'Failed to refresh queues'
     isLoading.value = false
   }

@@ -32,7 +32,7 @@ export class Queue<T = any> {
   private metrics: Metrics | null = null
   private cleanupService: CleanupService | null = null
   private stalledChecker: StalledJobChecker | null = null
-  protected readonly logger = createLogger()
+  protected readonly logger: ReturnType<typeof createLogger> = createLogger()
   private limiter: RateLimiter | null = null
   private defaultJobOptions: JobOptions | undefined
   private lock: DistributedLock | null = null

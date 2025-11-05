@@ -34,7 +34,7 @@ onMounted(async () => {
     await queueStore.fetchJobs()
     isLoading.value = false
   }
-  catch (err) {
+  catch {
     error.value = 'Failed to load jobs'
     isLoading.value = false
   }
@@ -52,7 +52,7 @@ async function refreshJobs() {
     await queueStore.fetchJobs()
     isLoading.value = false
   }
-  catch (err) {
+  catch {
     error.value = 'Failed to refresh jobs'
     isLoading.value = false
   }

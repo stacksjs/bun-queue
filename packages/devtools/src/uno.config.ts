@@ -1,6 +1,6 @@
 import { defineConfig } from 'unocss'
 
-export default defineConfig({
+const config = defineConfig({
   theme: {
     colors: {
       primary: '#4f46e5',
@@ -26,3 +26,5 @@ export default defineConfig({
     'badge-info': 'bg-info/20 text-info',
   },
 })
+
+export default config

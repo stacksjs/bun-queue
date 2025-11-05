@@ -46,7 +46,7 @@ const mockQueues = [
     processedCount: 37,
     failedCount: 2,
   },
-]
+] as const
 
 const mockJobs = [
   {
@@ -89,7 +89,7 @@ const mockJobs = [
     processedOn: Date.now() - 7150000,
     attemptsMade: 3,
   },
-]
+] as const
 
 // Generate mock metrics data
 function generateMockMetrics(timeRange: string) {
@@ -142,7 +142,7 @@ export const QueueService = {
   /**
    * Get queue statistics
    */
-  async getStats() {
+  async getStats(): Promise<typeof mockStats> {
     try {
       // In a real app, this would be:
       // const response = await api.get('/stats')
@@ -161,7 +161,7 @@ export const QueueService = {
   /**
    * Get all queues
    */
-  async getQueues() {
+  async getQueues(): Promise<typeof mockQueues> {
     try {
       // In a real app, this would be:
       // const response = await api.get('/queues')
@@ -180,7 +180,7 @@ export const QueueService = {
   /**
    * Get all jobs
    */
-  async getJobs() {
+  async getJobs(): Promise<typeof mockJobs> {
     try {
       // In a real app, this would be:
       // const response = await api.get('/jobs')
@@ -199,7 +199,7 @@ export const QueueService = {
   /**
    * Get metrics data
    */
-  async getMetrics(timeRange: string) {
+  async getMetrics(timeRange: string): Promise<ReturnType<typeof generateMockMetrics>> {
     try {
       // In a real app, this would be:
       // const response = await api.get(`/metrics?timeRange=${timeRange}`)

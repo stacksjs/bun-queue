@@ -1,6 +1,6 @@
 import { defineConfig, presetIcons, presetUno, presetWebFonts, transformerDirectives } from 'unocss'
 
-export default defineConfig({
+const config = defineConfig({
   presets: [
     presetUno(),
     presetIcons({
@@ -46,3 +46,5 @@ export default defineConfig({
     'badge-danger': 'bg-red-100 text-red-800',
   },
 })
+
+export default config

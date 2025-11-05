@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useQueueStore } from '@/store/queueStore'
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -23,8 +22,6 @@ ChartJS.register(
   Tooltip,
   Legend,
 )
-
-const queueStore = useQueueStore()
 
 const chartData = computed(() => {
   // Generate some mock data for now

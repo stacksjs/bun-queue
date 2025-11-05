@@ -90,14 +90,14 @@ export class ThrottlesExceptions implements JobMiddleware {
 
 // Job middleware factory
 export const Middleware = {
-  rateLimited: (key: string, maxAttempts: number, decaySeconds?: number) =>
+  rateLimited: (key: string, maxAttempts: number, decaySeconds?: number): RateLimited =>
     new RateLimited(key, maxAttempts, decaySeconds),
 
-  withoutOverlapping: (key?: string, releaseAfterSeconds?: number, expireAfterSeconds?: number) =>
+  withoutOverlapping: (key?: string, releaseAfterSeconds?: number, expireAfterSeconds?: number): WithoutOverlapping =>
     new WithoutOverlapping(key, releaseAfterSeconds, expireAfterSeconds),
 
-  skipIfBatchCancelled: () => new SkipIfBatchCancelled(),
+  skipIfBatchCancelled: (): SkipIfBatchCancelled => new SkipIfBatchCancelled(),
 
-  throttlesExceptions: (maxAttempts?: number, decaySeconds?: number, by?: (job: Job) => string) =>
+  throttlesExceptions: (maxAttempts?: number, decaySeconds?: number, by?: (job: Job) => string): ThrottlesExceptions =>
     new ThrottlesExceptions(maxAttempts, decaySeconds, by),
 }

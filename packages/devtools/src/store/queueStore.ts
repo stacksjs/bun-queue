@@ -21,7 +21,7 @@ interface Job {
   queue: string
   created: string
   updated: string
-  data?: Record<string, any>
+  data?: any
 }
 
 interface QueueStats {
@@ -33,7 +33,7 @@ interface QueueStats {
   processingRate: number // jobs per minute
 }
 
-export const useQueueStore = defineStore('queue', () => {
+export const useQueueStore: ReturnType<typeof defineStore<'queue', any>> = defineStore('queue', () => {
   // Data
   const queues = ref<Queue[]>([])
   const jobs = ref<Job[]>([])
@@ -89,7 +89,7 @@ export const useQueueStore = defineStore('queue', () => {
   }
 
   // Fetch only if needed or forced
-  async function fetchQueues(forceRefresh = false) {
+  async function fetchQueues(forceRefresh: boolean = false): Promise<Queue[]> {
     if (!forceRefresh && hasQueues.value && !needsRefresh(queuesFetchedAt.value)) {
       return queues.value
     }
@@ -189,7 +189,7 @@ export const useQueueStore = defineStore('queue', () => {
     }
   }
 
-  async function fetchJobs(forceRefresh = false) {
+  async function fetchJobs(forceRefresh: boolean = false): Promise<Job[]> {
     if (!forceRefresh && hasJobs.value && !needsRefresh(jobsFetchedAt.value)) {
       return jobs.value
     }
@@ -378,7 +378,7 @@ export const useQueueStore = defineStore('queue', () => {
     }
   }
 
-  async function fetchQueueStats(forceRefresh = false) {
+  async function fetchQueueStats(forceRefresh: boolean = false): Promise<QueueStats> {
     if (!forceRefresh && hasStats.value && !needsRefresh(statsFetchedAt.value)) {
       return stats.value
     }
@@ -414,7 +414,7 @@ export const useQueueStore = defineStore('queue', () => {
     }
   }
 
-  async function fetchMetrics(timeRange = '24h', forceRefresh = false) {
+  async function fetchMetrics(timeRange: string = '24h', forceRefresh: boolean = false): Promise<unknown> {
     if (!forceRefresh && metricsFetchedAt.value && !needsRefresh(metricsFetchedAt.value)) {
       return metrics.value
     }
@@ -513,7 +513,7 @@ export const useQueueStore = defineStore('queue', () => {
   }
 
   // Fetch job groups
-  async function fetchJobGroups(forceRefresh = false) {
+  async function fetchJobGroups(forceRefresh: boolean = false): Promise<JobGroup[]> {
     if (!forceRefresh && hasJobGroups.value && !needsRefresh(jobGroupsFetchedAt.value)) {
       return jobGroups.value
     }
@@ -599,7 +599,7 @@ export const useQueueStore = defineStore('queue', () => {
   }
 
   // Clear stored data (for logout, etc)
-  function clearData() {
+  function clearData(): void {
     queues.value = []
     jobs.value = []
     jobGroups.value = []

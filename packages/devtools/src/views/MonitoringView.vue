@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useQueueStore } from '../store/queueStore'
 
-const queueStore = useQueueStore()
 const isLoading = ref(false)
 const error = ref<string | null>(null)
 

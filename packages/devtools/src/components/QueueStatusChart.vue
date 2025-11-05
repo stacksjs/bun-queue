@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { useQueueStore } from '@/store/queueStore'
 import { ArcElement, Chart as ChartJS, Legend, Tooltip } from 'chart.js'
 import { computed } from 'vue'
 import { Doughnut } from 'vue-chartjs'
+
+import { useQueueStore } from '@/store/queueStore'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
