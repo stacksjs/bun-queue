@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@unocss/reset": "^66.5.4",
+    "@unocss/reset": "^66.5.5",
     "axios": "^1.13.2",
     "d3": "7.9.0",
     "pinia": "^3.0.4",
