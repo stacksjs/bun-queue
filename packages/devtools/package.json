@@ -20,7 +20,7 @@
     "@iconify-json/carbon": "^1.2.14",
     "@types/d3": "7.4.3",
     "@vitejs/plugin-vue": "^5.2.4",
-    "vite": "^7.2.1",
+    "vite": "^7.2.2",
     "vue-tsc": "^2.2.12"
   }
 }
