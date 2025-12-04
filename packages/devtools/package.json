@@ -17,7 +17,7 @@
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
-    "@iconify-json/carbon": "^1.2.14",
+    "@iconify-json/carbon": "^1.2.15",
     "@types/d3": "7.4.3",
     "@vitejs/plugin-vue": "^5.2.4",
     "vite": "^7.2.6",
