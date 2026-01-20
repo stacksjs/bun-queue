@@ -30,9 +30,9 @@ let _config: QueueConfig | null = null
 export async function getConfig(): Promise<QueueConfig> {
   if (!_config) {
     _config = await loadConfig({
-  name: 'queue',
-  defaultConfig,
-})
+      name: 'queue',
+      defaultConfig,
+    })
   }
   return _config
 }
