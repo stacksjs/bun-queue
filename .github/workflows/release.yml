@@ -28,9 +28,6 @@ jobs:
       - name: Install Dependencies
         run: bun install
 
-      - name: Build
-        run: bun run build
-
       - name: Publish
         run: pantry npm:publish --access public
         env:
