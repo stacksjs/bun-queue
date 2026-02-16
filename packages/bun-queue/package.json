@@ -1,5 +1,5 @@
 {
-  "name": "bun-queue",
+  "name": "@stacksjs/bun-queue",
   "type": "module",
   "version": "0.0.1",
   "description": "A Redis-backed job queue built for Bun.",

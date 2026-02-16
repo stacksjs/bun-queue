@@ -1,5 +1,5 @@
 {
-  "name": "bun-queue-dashboard",
+  "name": "@stacksjs/bun-queue-dashboard",
   "type": "module",
   "version": "0.0.1",
   "private": true,
