@@ -1,7 +1,7 @@
 {
   "name": "bun-queue",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A Redis-backed job queue built for Bun.",
   "author": "Chris Breuer <chris@stacksjs.org>",
   "license": "MIT",
@@ -61,7 +61,7 @@
     "lint:fix": "bunx --bun eslint . --fix",
     "changelog": "bunx logsmith --verbose",
     "changelog:generate": "bunx logsmith --output CHANGELOG.md",
-    "release": "bun run changelog:generate && bunx bumpx prompt --recursive",
+    "release": "bun --bun run changelog:generate && bunx --bun bumpx prompt --recursive",
     "typecheck": "bun --bun tsc --noEmit",
     "example:basic": "bun examples/basic.ts",
     "example:advanced": "bun examples/advanced.ts",
