@@ -105,7 +105,7 @@ export class ScriptLoader {
    * defined path
    * @param name - the name of the mapping. Note: do not include angle brackets
    * @param mappedPath - if a relative path is passed, it's relative to the *caller* of this function.
-   * Mapped paths are also accepted, e.g. "~/server/scripts/lua" or "<base>/includes"
+   * Mapped paths are also accepted, e.g. '~/server/scripts/lua' or '<base>/includes'
    */
   addPathMapping(name: string, mappedPath: string): void {
     let resolved: string
@@ -275,9 +275,9 @@ export class ScriptLoader {
         if (hasInclude) {
           /**
            * We have something like
-           * --- \@include "a"
+           * --- \@include 'a'
            * ...
-           * --- \@include "a"
+           * --- \@include 'a'
            */
           raiseError(
             `file "${reference}" already included in "${file.path}"`,
@@ -453,7 +453,7 @@ export class ScriptLoader {
 
     if (luaFiles.length === 0) {
       /**
-       * To prevent unclarified runtime error "updateDelayset is not a function
+       * To prevent unclarified runtime error 'updateDelayset is not a function'
        * @see https://github.com/OptimalBits/bull/issues/920
        */
       throw new ScriptLoaderError('No .lua files found!', dir, [])
