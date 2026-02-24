@@ -8,7 +8,6 @@ import { promisify } from 'node:util'
 const readFile = promisify(fs.readFile)
 const readdir = promisify(fs.readdir)
 
-const GlobOptions = { dot: true, silent: false }
 const IncludeRegex = /^-{2,3}[ \t]*@include[ \t]+(["'])(.+?)\1[; \t\n]*$/m
 const EmptyLineRegex = /^\s*[\r\n]/gm
 
@@ -195,41 +194,17 @@ export class ScriptLoader {
       throw new ScriptLoaderError(msg, file.path, stack, pos.line, pos.column)
     }
 
-    const minimatch = await import('minimatch')
-
-    if (!minimatch) {
-      console.warn('Install minimatch as dev-dependency')
+    const hasFilenamePattern = (filePath: string): boolean => {
+      return /[*?[\]{}]/.test(filePath)
     }
-
-    const Minimatch = minimatch.Minimatch || class Empty {}
-
-    const fg = await import('fast-glob')
-
-    if (!fg) {
-      console.warn('Install fast-glob as dev-dependency')
-    }
-
-    const nonOp = () => {
-      return ['']
-    }
-    const glob = (fg as any)?.default.glob || nonOp
-
-    const hasMagic = (pattern: string | string[]): boolean => {
-      if (!Array.isArray(pattern)) {
-        pattern = [pattern]
-      }
-      for (const p of pattern) {
-        if ((new Minimatch(p, GlobOptions) as any).hasMagic()) {
-          return true
-        }
-      }
-      return false
-    }
-
-    const hasFilenamePattern = (path: string) => hasMagic(path)
 
     async function getFilenamesByPattern(pattern: string): Promise<string[]> {
-      return glob(pattern, { dot: true })
+      const glob = new Bun.Glob(pattern)
+      const results: string[] = []
+      for await (const match of glob.scan({ dot: true })) {
+        results.push(match)
+      }
+      return results
     }
 
     let res
