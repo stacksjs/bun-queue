@@ -90,7 +90,7 @@ export interface JobOptions {
 export interface RateLimiter {
   max: number
   duration: number
-  keyPrefix?: string | ((data: any) => string)
+  keyPrefix?: string | ((_data: any) => string)
 }
 
 export interface Job<T = any> {
