@@ -1,0 +1,180 @@
+<script>
+const title = 'Metrics & Analytics'
+const metrics = {
+  throughputPerMinute: 0,
+  avgLatency: 0,
+  errorRate: 0,
+  uptime: 0,
+}
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} — bun-queue</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #141419;
+      --bg3: #1e1e26;
+      --text: #f5f5f7;
+      --text2: #a1a1aa;
+      --muted: #71717a;
+      --border: #27272a;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 1.5rem; }
+    .header-title { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+    .header-nav { display: flex; gap: 0.25rem; }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text2);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .nav-btn:hover { background: var(--bg3); color: var(--text); }
+    .nav-btn.active { background: var(--accent); color: white; }
+
+    .main-content { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .page-title { font-size: 1.125rem; font-weight: 600; color: var(--text); }
+    .page-subtitle { font-size: 0.8125rem; color: var(--muted); margin-top: 0.25rem; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem;
+      transition: border-color 0.15s;
+    }
+
+    .stat-card:hover { border-color: var(--accent); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-top: 0.25rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-value.accent { color: var(--accent); }
+    .stat-value.success { color: var(--success); }
+    .stat-value.error { color: var(--error); }
+    .stat-unit { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+
+    .chart-placeholder {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8125rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title">bun-queue</span>
+      <nav class="header-nav">
+        <a href="/" class="nav-btn">Overview</a>
+        <a href="/queues" class="nav-btn">Queues</a>
+        <a href="/jobs" class="nav-btn">Jobs</a>
+        <a href="/metrics" class="nav-btn active">Metrics</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">Performance insights and trends</p>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Throughput</div>
+        <div class="stat-value accent">{{ metrics.throughputPerMinute }}</div>
+        <div class="stat-unit">jobs/min</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Latency</div>
+        <div class="stat-value accent">{{ metrics.avgLatency }}</div>
+        <div class="stat-unit">ms</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Error Rate</div>
+        <div class="stat-value error">{{ metrics.errorRate }}</div>
+        <div class="stat-unit">%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Uptime</div>
+        <div class="stat-value success">{{ metrics.uptime }}</div>
+        <div class="stat-unit">seconds</div>
+      </div>
+    </div>
+
+    <div class="chart-placeholder">
+      Charts and time-series visualizations will be rendered here.
+    </div>
+  </div>
+</body>
+</html>

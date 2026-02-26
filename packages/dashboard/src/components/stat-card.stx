@@ -1,0 +1,10 @@
+<script>
+const label = ''
+const value = 0
+const variant = ''
+</script>
+
+<div class="stat-card">
+  <div class="stat-label">{{ label }}</div>
+  <div class="stat-value {{ variant === 'active' ? 'accent' : variant === 'completed' ? 'success' : variant === 'failed' ? 'error' : '' }}">{{ value }}</div>
+</div>

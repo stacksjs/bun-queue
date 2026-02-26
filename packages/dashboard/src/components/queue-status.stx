@@ -1,0 +1,27 @@
+<script>
+const queue = {
+  name: '',
+  paused: false,
+  waiting: 0,
+  active: 0,
+  completed: 0,
+  failed: 0,
+}
+</script>
+
+<div class="stat-card" style="padding: 1.25rem;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+    <span style="font-size: 0.875rem; font-weight: 600; color: var(--text);">{{ queue.name }}</span>
+    @if(queue.paused)
+      <span class="badge badge-muted">Paused</span>
+    @else
+      <span class="badge badge-success">Active</span>
+    @endif
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+    <div style="font-size: 0.75rem; color: var(--muted);">Waiting <span style="color: var(--text2); font-weight: 500;" class="tabular-nums">{{ queue.waiting }}</span></div>
+    <div style="font-size: 0.75rem; color: var(--muted);">Active <span style="color: var(--accent); font-weight: 500;" class="tabular-nums">{{ queue.active }}</span></div>
+    <div style="font-size: 0.75rem; color: var(--muted);">Completed <span style="color: var(--success); font-weight: 500;" class="tabular-nums">{{ queue.completed }}</span></div>
+    <div style="font-size: 0.75rem; color: var(--muted);">Failed <span style="color: var(--error); font-weight: 500;" class="tabular-nums">{{ queue.failed }}</span></div>
+  </div>
+</div>

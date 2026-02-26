@@ -1,0 +1,211 @@
+<script>
+const title = 'Jobs'
+const jobs = []
+const statuses = ['all', 'waiting', 'active', 'completed', 'failed', 'delayed']
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} — bun-queue</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #141419;
+      --bg3: #1e1e26;
+      --text: #f5f5f7;
+      --text2: #a1a1aa;
+      --muted: #71717a;
+      --border: #27272a;
+      --accent: #6366f1;
+      --accent2: #818cf8;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --error: #ef4444;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 1.5rem; }
+    .header-title { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+    .header-nav { display: flex; gap: 0.25rem; }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text2);
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .nav-btn:hover { background: var(--bg3); color: var(--text); }
+    .nav-btn.active { background: var(--accent); color: white; }
+
+    .main-content { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+    .page-title { font-size: 1.125rem; font-weight: 600; color: var(--text); }
+    .page-subtitle { font-size: 0.8125rem; color: var(--muted); margin-top: 0.25rem; }
+
+    .panel {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .form-select {
+      padding: 0.375rem 2rem 0.375rem 0.75rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.8125rem;
+      outline: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%2371717a' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+      background-position: right 0.5rem center;
+      background-repeat: no-repeat;
+      background-size: 1.25rem 1.25rem;
+    }
+
+    .form-select:focus { border-color: var(--accent); }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    td {
+      padding: 0.625rem 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    tr:hover td { background: var(--bg3); }
+    tr:last-child td { border-bottom: none; }
+
+    .text-right { text-align: right; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    .mono { font-family: 'SF Mono', SFMono-Regular, ui-monospace, Menlo, monospace; }
+    .text-name { color: var(--text); font-weight: 500; }
+    .text-sm { font-size: 0.75rem; }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+    }
+
+    .badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+    .badge-error { background: rgba(239, 68, 68, 0.15); color: var(--error); }
+    .badge-info { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+    .badge-muted { background: rgba(113, 113, 122, 0.15); color: var(--muted); }
+
+    .empty-state { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.8125rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title">bun-queue</span>
+      <nav class="header-nav">
+        <a href="/" class="nav-btn">Overview</a>
+        <a href="/queues" class="nav-btn">Queues</a>
+        <a href="/jobs" class="nav-btn active">Jobs</a>
+        <a href="/metrics" class="nav-btn">Metrics</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">Browse and filter job history</p>
+      </div>
+      <div>
+        <select id="status-filter" class="form-select">
+          @foreach(statuses as status)
+            <option value="{{ status }}">{{ status }}</option>
+          @endforeach
+        </select>
+      </div>
+    </div>
+
+    <div class="panel">
+      @if(jobs.length === 0)
+        <div class="empty-state">No jobs found matching the current filters.</div>
+      @else
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Queue</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th class="text-right">Attempts</th>
+              <th>Created</th>
+              <th class="text-right">Duration</th>
+            </tr>
+          </thead>
+          <tbody>
+            @foreach(jobs as job)
+              <tr>
+                <td class="mono text-sm">{{ job.id }}</td>
+                <td>{{ job.queue }}</td>
+                <td class="text-name">{{ job.name }}</td>
+                <td>
+                  <span class="badge {{ job.status === 'completed' ? 'badge-success' : job.status === 'failed' ? 'badge-error' : job.status === 'active' ? 'badge-info' : job.status === 'waiting' ? 'badge-warning' : 'badge-muted' }}">{{ job.status }}</span>
+                </td>
+                <td class="text-right tabular-nums">{{ job.attempts }}/{{ job.maxAttempts }}</td>
+                <td class="text-sm">{{ job.createdAt }}</td>
+                <td class="text-right mono tabular-nums text-sm">{{ job.duration ? job.duration + 'ms' : '—' }}</td>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+      @endif
+    </div>
+  </div>
+</body>
+</html>
