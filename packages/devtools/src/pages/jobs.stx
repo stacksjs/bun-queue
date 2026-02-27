@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'Jobs'
 </script>
 
@@ -98,7 +98,7 @@ const title = 'Jobs'
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')

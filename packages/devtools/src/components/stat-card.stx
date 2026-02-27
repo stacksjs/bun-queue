@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const label = ''
 const value = 0
 const variant = ''

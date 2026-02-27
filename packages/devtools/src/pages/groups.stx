@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'Job Groups'
 const groups = []
 </script>
@@ -80,7 +80,7 @@ const groups = []
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     // Sidebar toggle
     const sidebar = useRef('sidebar');
     const mainWrapper = useRef('main-wrapper');

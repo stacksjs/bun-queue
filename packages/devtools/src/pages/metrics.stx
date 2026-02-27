@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'Performance Metrics'
 </script>
 
@@ -138,7 +138,7 @@ const title = 'Performance Metrics'
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'Queue Details'
 const queue = {
   id: '',
@@ -144,7 +144,7 @@ const throughputData = { labels: [], values: [] }
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     // Sidebar toggle
     const sidebar = useRef('sidebar');
     const mainWrapper = useRef('main-wrapper');

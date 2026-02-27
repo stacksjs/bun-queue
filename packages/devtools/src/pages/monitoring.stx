@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'Real-time Monitoring'
 </script>
 
@@ -168,7 +168,7 @@ const title = 'Real-time Monitoring'
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')

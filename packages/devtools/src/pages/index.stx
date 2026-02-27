@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'bun-queue Dashboard'
 </script>
 
@@ -151,7 +151,7 @@ const title = 'bun-queue Dashboard'
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')

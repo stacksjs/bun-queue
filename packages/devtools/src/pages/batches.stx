@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'Batches'
 const batches = []
 </script>
@@ -75,7 +75,7 @@ const batches = []
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     // Sidebar toggle
     const sidebar = useRef('sidebar');
     const mainWrapper = useRef('main-wrapper');

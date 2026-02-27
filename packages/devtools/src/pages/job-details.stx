@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'Job Details'
 const job = {
   id: '',
@@ -163,7 +163,7 @@ const job = {
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     const pageTitle = useTitle();
 
     // Sidebar toggle

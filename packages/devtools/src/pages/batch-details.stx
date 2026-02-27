@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 const title = 'Batch Details'
 const batch = {
   id: '',
@@ -157,7 +157,7 @@ const jobs = []
     </div>
   </div>
 
-  <script>
+  <script lang="ts">
     const pageTitle = useTitle();
 
     // Sidebar toggle
