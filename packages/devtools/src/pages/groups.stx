@@ -1,0 +1,171 @@
+<script>
+const title = 'Job Groups'
+const groups = []
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} &mdash; bun-queue</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .sidebar.collapsed { width: 60px !important; }
+    .sidebar.collapsed .sidebar-text { display: none; }
+    .sidebar-collapsed { margin-left: 60px !important; }
+  </style>
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-normal min-h-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar fixed inset-y-0 left-0 z-50 bg-[#141419] border-r border-zinc-800 transition-all duration-300 flex flex-col overflow-hidden" id="sidebar" ref="sidebar" style="width: 240px;">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
+      <span class="sidebar-text text-sm font-bold text-indigo-400 whitespace-nowrap overflow-hidden">bun-queue</span>
+      <button class="bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center hover:text-zinc-50 hover:bg-[#1e1e26]" id="sidebar-toggle" title="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+    <nav class="flex-1 p-2 flex flex-col gap-0.5">
+      <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+        <span class="sidebar-text">Dashboard</span>
+      </a>
+      <a href="/monitoring" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+        <span class="sidebar-text">Monitoring</span>
+      </a>
+      <a href="/metrics" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+        <span class="sidebar-text">Metrics</span>
+      </a>
+      <a href="/groups" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-indigo-500 text-white no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="sidebar-text">Groups</span>
+      </a>
+      <a href="/batches" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
+        <span class="sidebar-text">Batches</span>
+      </a>
+      <a href="/jobs" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        <span class="sidebar-text">Jobs</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <div class="min-h-screen transition-all duration-300" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    <div class="max-w-[1200px] mx-auto p-6">
+      <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <h1 class="text-xl font-semibold text-zinc-50">{{ title }}</h1>
+          <p class="text-[0.8125rem] text-zinc-500 mt-1">Browse and manage job groups</p>
+        </div>
+        <div class="flex gap-3 items-center">
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-[0.8125rem] outline-none w-[260px] transition-colors duration-150 placeholder:text-zinc-500 focus:border-indigo-500" id="search-input" placeholder="Search groups..." />
+          </div>
+          <button class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50" id="refresh-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <div id="groups-container" ref="groups-container">
+        <div class="text-center py-12 text-zinc-500 text-[0.8125rem]">Loading groups...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = useRef('sidebar');
+    const mainWrapper = useRef('main-wrapper');
+    useEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      mainWrapper.classList.toggle('sidebar-collapsed');
+    }, { target: '#sidebar-toggle' });
+
+    let allGroups = [];
+
+    // Refs
+    const groupsContainer = useRef('groups-container');
+    const searchInput = useRef('search-input');
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function renderGroups(groups) {
+      if (!groups || groups.length === 0) {
+        groupsContainer.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No groups found. Jobs assigned to groups will appear here.</div>';
+        return;
+      }
+
+      let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
+      groups.forEach(group => {
+        const jobCount = group.jobCount || group.total || 0;
+        const active = group.active || 0;
+        const completed = group.completed || 0;
+        const failed = group.failed || 0;
+
+        html += '<div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500 flex flex-col">';
+        html += '<div class="flex items-center justify-between mb-4">';
+        html += '<span class="text-[0.9375rem] font-semibold text-zinc-50">' + escapeHtml(group.name || group.id || 'Unknown') + '</span>';
+        html += '<span class="bg-indigo-500/15 text-indigo-400 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tabular-nums">' + jobCount + ' jobs</span>';
+        html += '</div>';
+
+        html += '<div class="flex gap-4 mb-4 flex-wrap">';
+        html += '<div class="flex items-center gap-1.5 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span><span class="text-zinc-500">Active</span><span class="text-zinc-400 font-semibold tabular-nums">' + active + '</span></div>';
+        html += '<div class="flex items-center gap-1.5 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="text-zinc-500">Completed</span><span class="text-zinc-400 font-semibold tabular-nums">' + completed + '</span></div>';
+        html += '<div class="flex items-center gap-1.5 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span><span class="text-zinc-500">Failed</span><span class="text-zinc-400 font-semibold tabular-nums">' + failed + '</span></div>';
+        html += '</div>';
+
+        html += '<div class="mt-auto flex justify-end pt-3 border-t border-zinc-800">';
+        html += '<a href="/groups/' + encodeURIComponent(group.id || group.name) + '" class="text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline">View Details \u2192</a>';
+        html += '</div>';
+        html += '</div>';
+      });
+      html += '</div>';
+
+      groupsContainer.innerHTML = html;
+    }
+
+    async function loadGroups() {
+      try {
+        const res = await fetch('/api/groups');
+        allGroups = await res.json();
+        filterAndRender();
+      } catch (e) {
+        console.error('Failed to load groups:', e);
+        groupsContainer.innerHTML =
+          '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">Failed to load groups.</div>';
+      }
+    }
+
+    function filterAndRender() {
+      const query = searchInput.value.toLowerCase().trim();
+      if (!query) {
+        renderGroups(allGroups);
+        return;
+      }
+      const filtered = allGroups.filter(g => {
+        const name = (g.name || g.id || '').toLowerCase();
+        return name.includes(query);
+      });
+      renderGroups(filtered);
+    }
+
+    useEventListener('input', filterAndRender, { target: '#search-input' });
+    useEventListener('click', loadGroups, { target: '#refresh-btn' });
+
+    loadGroups();
+
+    // Auto-refresh every 15 seconds
+    setInterval(loadGroups, 15000);
+  </script>
+</body>
+</html>

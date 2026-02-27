@@ -1,0 +1,337 @@
+<script>
+const title = 'Real-time Monitoring'
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} — bun-queue</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* Keyframe animation for pulse dot */
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+    }
+    .status-dot-pulse { animation: pulse-dot 2s ease-in-out infinite; }
+    .status-dot-pulse.disconnected { animation: none; }
+
+    /* Toggle switch (requires pseudo-element positioning) */
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #1e1e26;
+      border-radius: 10px;
+      border: 1px solid #27272a;
+      transition: all 0.2s;
+    }
+    .toggle-slider::before {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      left: 2px;
+      bottom: 2px;
+      background: #71717a;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider { background: #6366f1; border-color: #6366f1; }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(16px); background: white; }
+
+    /* Sidebar collapsed state overrides */
+    .sidebar.collapsed { width: 56px !important; }
+    .sidebar.collapsed .sidebar-brand-text { display: none; }
+    .sidebar.collapsed .sidebar-toggle-btn { margin-left: auto; margin-right: auto; }
+    .sidebar.collapsed .nav-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
+    .sidebar.collapsed .nav-item-text { display: none; }
+    .main-wrapper.sidebar-collapsed { margin-left: 56px !important; }
+
+    /* Custom scrollbar for event log */
+    .event-log-scroll::-webkit-scrollbar { width: 4px; }
+    .event-log-scroll::-webkit-scrollbar-track { background: transparent; }
+    .event-log-scroll::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
+  </style>
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar fixed top-0 left-0 bottom-0 flex flex-col z-[100] overflow-hidden bg-[#141419] border-r border-zinc-800 transition-all duration-200 ease-in-out" id="sidebar" ref="sidebar" style="width: 240px;">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
+      <a href="/" class="flex items-center gap-2.5 no-underline text-zinc-50 font-bold text-[0.9375rem] whitespace-nowrap overflow-hidden">
+        <div class="w-6 h-6 bg-indigo-500 rounded-md flex items-center justify-center shrink-0 text-xs text-white font-extrabold">Q</div>
+        <span class="sidebar-brand-text">bun-queue</span>
+      </a>
+      <button class="sidebar-toggle-btn bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center transition-colors duration-150 shrink-0 hover:text-zinc-50" id="sidebar-toggle" title="Toggle sidebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+      </button>
+    </div>
+    <nav class="flex-1 p-2 overflow-y-auto overflow-x-hidden">
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Navigation</div>
+      <a href="/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+      <a href="/monitoring" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px bg-indigo-500 text-white transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Monitoring</span>
+      </a>
+      <a href="/metrics" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-text">Metrics</span>
+      </a>
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Management</div>
+      <a href="/groups" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Groups</span>
+      </a>
+      <a href="/batches" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
+        <span class="nav-item-text">Batches</span>
+      </a>
+      <a href="/jobs" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">Jobs</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-wrapper min-h-screen transition-all duration-200 ease-in-out" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    <div class="max-w-[1200px] mx-auto p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-lg font-semibold text-zinc-50">Real-time Monitoring</h1>
+          <p class="text-sm text-zinc-500 mt-1">Live event stream and system health</p>
+        </div>
+      </div>
+
+      <!-- Connection Status Bar -->
+      <div class="flex items-center gap-6 px-4 py-3 bg-[#141419] border border-zinc-800 rounded-lg mb-6">
+        <div class="flex items-center gap-2 text-sm font-medium">
+          <div class="w-2 h-2 rounded-full bg-emerald-500 status-dot-pulse" id="connection-dot" ref="connection-dot"></div>
+          <span id="connection-label" ref="connection-label" style="color: #10b981;">Connected</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-zinc-400 ml-auto">
+          <span>Auto-refresh</span>
+          <label class="toggle-switch relative w-9 h-5 cursor-pointer">
+            <input type="checkbox" id="auto-refresh-toggle" ref="auto-refresh-toggle" checked class="opacity-0 w-0 h-0">
+            <span class="toggle-slider"></span>
+          </label>
+          <span class="text-xs text-zinc-500" id="refresh-interval-label" ref="refresh-interval-label">every 3s</span>
+        </div>
+      </div>
+
+      <!-- Real-time Stat Cards -->
+      <div class="grid grid-cols-4 gap-4 mb-6 max-md:grid-cols-2">
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Jobs / sec</div>
+          <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-jobs-sec" ref="stat-jobs-sec">--</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Latency</div>
+          <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums" id="stat-avg-latency" ref="stat-avg-latency">--<span class="text-xs text-zinc-500 font-normal"> ms</span></div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Error Rate</div>
+          <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-error-rate" ref="stat-error-rate">--<span class="text-xs text-zinc-500 font-normal"> %</span></div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Active Workers</div>
+          <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-active-workers" ref="stat-active-workers">--</div>
+        </div>
+      </div>
+
+      <!-- Live Event Log -->
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-zinc-50">Live Event Log</span>
+          <button class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" id="clear-log-btn" ref="clear-log-btn">Clear</button>
+        </div>
+        <div class="event-log-scroll max-h-[360px] overflow-y-auto flex flex-col gap-1" id="event-log" ref="event-log">
+          <!-- Events will be injected here -->
+        </div>
+      </div>
+
+      <!-- Queue Health Indicators -->
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-zinc-50">Queue Health</span>
+        </div>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3" id="queue-health-grid" ref="queue-health-grid">
+          <!-- Queue health cards will be injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = useRef('sidebar')
+    const mainWrapper = useRef('main-wrapper')
+    const sidebarStorage = useLocalStorage('sidebar-collapsed', 'false')
+
+    if (sidebarStorage.value === 'true') {
+      sidebar.classList.add('collapsed')
+      mainWrapper.classList.add('sidebar-collapsed')
+    }
+
+    useEventListener('click', () => {
+      sidebar.classList.toggle('collapsed')
+      mainWrapper.classList.toggle('sidebar-collapsed')
+      sidebarStorage.set(sidebar.classList.contains('collapsed'))
+    }, { target: '#sidebar-toggle' })
+
+    // Auto-refresh
+    let autoRefreshEnabled = true
+    let refreshTimer = null
+    const REFRESH_INTERVAL = 3000
+
+    useEventListener('change', (e) => {
+      autoRefreshEnabled = e.target.checked
+      if (autoRefreshEnabled) {
+        startAutoRefresh()
+      } else {
+        stopAutoRefresh()
+      }
+    }, { target: '#auto-refresh-toggle' })
+
+    function startAutoRefresh() {
+      if (refreshTimer) clearInterval(refreshTimer)
+      refreshTimer = setInterval(refreshMonitoring, REFRESH_INTERVAL)
+      useRef('refresh-interval-label').textContent = 'every 3s'
+    }
+
+    function stopAutoRefresh() {
+      if (refreshTimer) {
+        clearInterval(refreshTimer)
+        refreshTimer = null
+      }
+      useRef('refresh-interval-label').textContent = 'paused'
+    }
+
+    // Mock event types
+    const eventTypes = [
+      { type: 'completed', message: 'Job <strong>{name}</strong> completed successfully', dot: 'completed' },
+      { type: 'started', message: 'Job <strong>{name}</strong> started processing', dot: 'started' },
+      { type: 'failed', message: 'Job <strong>{name}</strong> failed: timeout exceeded', dot: 'failed' },
+      { type: 'queued', message: 'Job <strong>{name}</strong> added to queue', dot: 'queued' },
+      { type: 'completed', message: 'Job <strong>{name}</strong> completed in {dur}ms', dot: 'completed' },
+    ]
+
+    const jobNames = [
+      'Send Welcome Email', 'Process Profile Picture', 'Import Customer Data',
+      'Generate Monthly Report', 'Send Push Notification', 'Daily Database Backup',
+      'Process Analytics Data', 'Optimize Product Images', 'Send Weekly Newsletter',
+      'Generate Sales Report'
+    ]
+
+    let events = []
+    const MAX_EVENTS = 50
+
+    function generateEvent() {
+      const template = eventTypes[Math.floor(Math.random() * eventTypes.length)]
+      const name = jobNames[Math.floor(Math.random() * jobNames.length)]
+      const dur = Math.floor(Math.random() * 2000 + 100)
+      const now = new Date()
+      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      return {
+        type: template.type,
+        dot: template.dot,
+        message: template.message.replace('{name}', name).replace('{dur}', dur),
+        time: time,
+      }
+    }
+
+    function dotColor(dot) {
+      const map = { completed: 'bg-emerald-500', started: 'bg-indigo-500', failed: 'bg-red-500', queued: 'bg-amber-500' }
+      return map[dot] || 'bg-zinc-500'
+    }
+
+    function renderEvents() {
+      const container = useRef('event-log')
+      let html = ''
+      events.forEach(ev => {
+        html += '<div class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-[#1e1e26] transition-colors duration-100">'
+        html += '<div class="w-1.5 h-1.5 rounded-full shrink-0 ' + dotColor(ev.dot) + '"></div>'
+        html += '<div class="text-zinc-400 flex-1">' + ev.message + '</div>'
+        html += '<div class="text-[0.6875rem] text-zinc-500 font-mono whitespace-nowrap">' + ev.time + '</div>'
+        html += '</div>'
+      })
+      container.innerHTML = html
+    }
+
+    useEventListener('click', () => {
+      events = []
+      renderEvents()
+    }, { target: '#clear-log-btn' })
+
+    async function refreshMonitoring() {
+      try {
+        // Fetch live stats
+        const statsRes = await fetch('/api/stats')
+        const stats = await statsRes.json()
+
+        // Simulate real-time values with slight randomness
+        const jobsSec = (stats.throughputPerMinute / 60).toFixed(1)
+        useRef('stat-jobs-sec').textContent = jobsSec
+        useRef('stat-avg-latency').innerHTML = stats.avgLatency + '<span class="text-xs text-zinc-500 font-normal"> ms</span>'
+        const errRate = ((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2)
+        useRef('stat-error-rate').innerHTML = errRate + '<span class="text-xs text-zinc-500 font-normal"> %</span>'
+        useRef('stat-active-workers').textContent = stats.activeJobs
+
+        // Add new event
+        const newEvent = generateEvent()
+        events.unshift(newEvent)
+        if (events.length > MAX_EVENTS) events = events.slice(0, MAX_EVENTS)
+        renderEvents()
+
+        // Fetch queue health
+        const queuesRes = await fetch('/api/queues/metrics')
+        const queues = await queuesRes.json()
+
+        const healthGrid = useRef('queue-health-grid')
+        let html = ''
+        queues.forEach(q => {
+          const healthColor = q.errorRate > 5 ? 'bg-red-500' : q.errorRate > 1 ? 'bg-amber-500' : 'bg-emerald-500'
+          html += '<div class="bg-[#1e1e26] rounded-md p-4">'
+          html += '<div class="flex items-center justify-between mb-3">'
+          html += '<span class="text-sm font-medium text-zinc-50">' + q.name + '</span>'
+          html += '<div class="w-2 h-2 rounded-full ' + healthColor + '"></div>'
+          html += '</div>'
+          html += '<div class="grid grid-cols-2 gap-2 text-xs">'
+          html += '<span class="text-zinc-500">Active</span><span class="text-zinc-400 font-medium text-right tabular-nums">' + q.active + '</span>'
+          html += '<span class="text-zinc-500">Waiting</span><span class="text-zinc-400 font-medium text-right tabular-nums">' + q.waiting + '</span>'
+          html += '<span class="text-zinc-500">Throughput</span><span class="text-zinc-400 font-medium text-right tabular-nums">' + q.throughput + '/min</span>'
+          html += '<span class="text-zinc-500">Avg Time</span><span class="text-zinc-400 font-medium text-right tabular-nums">' + q.avgProcessingTime + 'ms</span>'
+          html += '</div>'
+          html += '</div>'
+        })
+        healthGrid.innerHTML = html
+      } catch (err) {
+        console.error('Monitoring refresh failed:', err)
+        const connectionDot = useRef('connection-dot')
+        connectionDot.classList.add('disconnected')
+        connectionDot.classList.remove('bg-emerald-500')
+        connectionDot.classList.add('bg-red-500')
+        const connectionLabel = useRef('connection-label')
+        connectionLabel.textContent = 'Disconnected'
+        connectionLabel.style.color = '#ef4444'
+      }
+    }
+
+    // Initialize with some events
+    onMount(() => {
+      for (let i = 0; i < 12; i++) {
+        events.push(generateEvent())
+      }
+      renderEvents()
+      refreshMonitoring()
+      startAutoRefresh()
+    })
+  </script>
+</body>
+</html>

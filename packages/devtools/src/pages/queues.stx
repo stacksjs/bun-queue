@@ -1,0 +1,182 @@
+<script>
+const title = 'Queues'
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} — bun-queue</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* Sidebar collapsed state overrides */
+    .sidebar.collapsed { width: 56px !important; }
+    .sidebar.collapsed .sidebar-brand-text { display: none; }
+    .sidebar.collapsed .sidebar-toggle-btn { margin-left: auto; margin-right: auto; }
+    .sidebar.collapsed .nav-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
+    .sidebar.collapsed .nav-item-text { display: none; }
+    .main-wrapper.sidebar-collapsed { margin-left: 56px !important; }
+
+    /* Search input placeholder */
+    .search-input::placeholder { color: #71717a; }
+  </style>
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar fixed top-0 left-0 bottom-0 flex flex-col z-[100] overflow-hidden bg-[#141419] border-r border-zinc-800 transition-all duration-200 ease-in-out" id="sidebar" ref="sidebar" style="width: 240px;">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
+      <a href="/" class="flex items-center gap-2.5 no-underline text-zinc-50 font-bold text-[0.9375rem] whitespace-nowrap overflow-hidden">
+        <div class="w-6 h-6 bg-indigo-500 rounded-md flex items-center justify-center shrink-0 text-xs text-white font-extrabold">Q</div>
+        <span class="sidebar-brand-text">bun-queue</span>
+      </a>
+      <button class="sidebar-toggle-btn bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center transition-colors duration-150 shrink-0 hover:text-zinc-50" id="sidebar-toggle" title="Toggle sidebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+      </button>
+    </div>
+    <nav class="flex-1 p-2 overflow-y-auto overflow-x-hidden">
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Navigation</div>
+      <a href="/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+      <a href="/monitoring" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Monitoring</span>
+      </a>
+      <a href="/metrics" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-text">Metrics</span>
+      </a>
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Management</div>
+      <a href="/groups" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Groups</span>
+      </a>
+      <a href="/batches" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
+        <span class="nav-item-text">Batches</span>
+      </a>
+      <a href="/jobs" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">Jobs</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-wrapper min-h-screen transition-all duration-200 ease-in-out" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    <div class="max-w-[1200px] mx-auto p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-lg font-semibold text-zinc-50">Queues</h1>
+          <p class="text-sm text-zinc-500 mt-1">Monitor queue health and throughput</p>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="flex items-center gap-3 mb-6">
+        <div class="relative flex-1 max-w-[320px]">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input w-full py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-sm outline-none focus:border-indigo-500 transition-colors duration-150" id="search-input" ref="search-input" placeholder="Search queues...">
+        </div>
+        <button class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" id="refresh-btn" onclick="loadQueues()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+
+      <!-- Queue Cards Container -->
+      <div id="queues-container" ref="queues-container">
+        <div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">Loading queues...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = useRef('sidebar')
+    const mainWrapper = useRef('main-wrapper')
+    const sidebarStorage = useLocalStorage('sidebar-collapsed', false)
+
+    if (sidebarStorage.value === true || sidebarStorage.value === 'true') {
+      sidebar.classList.add('collapsed')
+      mainWrapper.classList.add('sidebar-collapsed')
+    }
+
+    useEventListener('click', () => {
+      sidebar.classList.toggle('collapsed')
+      mainWrapper.classList.toggle('sidebar-collapsed')
+      sidebarStorage.set(sidebar.classList.contains('collapsed'))
+    }, { target: '#sidebar-toggle' })
+
+    let allQueues = []
+
+    function statusBadge(status) {
+      const map = {
+        active: { cls: 'bg-emerald-500/15 text-emerald-500', label: 'Active' },
+        paused: { cls: 'bg-amber-500/15 text-amber-500', label: 'Paused' },
+        stopped: { cls: 'bg-red-500/15 text-red-500', label: 'Stopped' },
+      }
+      const info = map[status] || { cls: 'bg-zinc-500/15 text-zinc-500', label: status }
+      return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + info.cls + '">' + info.label + '</span>'
+    }
+
+    function renderQueues(queues) {
+      const container = useRef('queues-container')
+      if (queues.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">No queues found matching your search.</div>'
+        return
+      }
+
+      let html = '<div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">'
+      queues.forEach(q => {
+        html += '<div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 hover:border-indigo-500 transition-colors duration-150">'
+        html += '<div class="flex items-center justify-between mb-4">'
+        html += '<span class="text-[0.9375rem] font-semibold text-zinc-50">' + q.name + '</span>'
+        html += statusBadge(q.status)
+        html += '</div>'
+        html += '<div class="grid grid-cols-2 gap-3 mb-4">'
+        html += '<div class="flex flex-col"><span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Total</span><span class="text-lg font-bold text-zinc-50 tabular-nums">' + q.jobCount + '</span></div>'
+        html += '<div class="flex flex-col"><span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Pending</span><span class="text-lg font-bold text-zinc-50 tabular-nums">' + q.pendingJobs + '</span></div>'
+        html += '<div class="flex flex-col"><span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Active</span><span class="text-lg font-bold text-zinc-50 tabular-nums">' + q.activeJobs + '</span></div>'
+        html += '<div class="flex flex-col"><span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Completed</span><span class="text-lg font-bold text-zinc-50 tabular-nums">' + q.completedJobs + '</span></div>'
+        html += '</div>'
+        html += '<div class="pt-3 border-t border-zinc-800">'
+        html += '<a href="/queues/' + q.id + '" class="text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details &rarr;</a>'
+        html += '</div>'
+        html += '</div>'
+      })
+      html += '</div>'
+      container.innerHTML = html
+    }
+
+    async function loadQueues() {
+      try {
+        const res = await fetch('/api/queues')
+        allQueues = await res.json()
+        filterQueues()
+      } catch (err) {
+        console.error('Failed to load queues:', err)
+        useRef('queues-container').innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">Failed to load queues. Please try again.</div>'
+      }
+    }
+
+    function filterQueues() {
+      const query = useRef('search-input').value.toLowerCase().trim()
+      if (!query) {
+        renderQueues(allQueues)
+      } else {
+        const filtered = allQueues.filter(q => q.name.toLowerCase().includes(query) || q.id.toLowerCase().includes(query))
+        renderQueues(filtered)
+      }
+    }
+
+    useEventListener('input', filterQueues, { target: '#search-input' })
+
+    onMount(loadQueues)
+  </script>
+</body>
+</html>

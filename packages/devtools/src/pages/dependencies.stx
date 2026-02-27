@@ -1,0 +1,284 @@
+<script>
+const title = 'Job Dependencies'
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} &mdash; bun-queue</title>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .sidebar.collapsed { width: 60px !important; }
+    .sidebar.collapsed .sidebar-text { display: none; }
+    .sidebar-collapsed { margin-left: 60px !important; }
+    /* D3/SVG-specific styles */
+    .graph-container svg { width: 100%; height: 100%; }
+    .link { stroke: #27272a; stroke-width: 1.5; fill: none; }
+    .link-arrow { fill: #27272a; }
+    .node-circle { stroke: rgba(255,255,255,0.15); stroke-width: 2; cursor: grab; }
+    .node-circle:active { cursor: grabbing; }
+    .node-label { font-size: 10px; fill: #a1a1aa; text-anchor: middle; pointer-events: none; user-select: none; }
+  </style>
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-normal min-h-screen overflow-hidden">
+  <!-- Sidebar -->
+  <aside class="sidebar fixed inset-y-0 left-0 z-50 bg-[#141419] border-r border-zinc-800 transition-all duration-300 flex flex-col overflow-hidden" id="sidebar" ref="sidebar" style="width: 240px;">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
+      <span class="sidebar-text text-sm font-bold text-indigo-400 whitespace-nowrap overflow-hidden">bun-queue</span>
+      <button class="bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center hover:text-zinc-50 hover:bg-[#1e1e26]" id="sidebar-toggle" title="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+    <nav class="flex-1 p-2 flex flex-col gap-0.5">
+      <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+        <span class="sidebar-text">Dashboard</span>
+      </a>
+      <a href="/monitoring" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-indigo-500 text-white no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+        <span class="sidebar-text">Monitoring</span>
+      </a>
+      <a href="/metrics" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+        <span class="sidebar-text">Metrics</span>
+      </a>
+      <a href="/groups" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="sidebar-text">Groups</span>
+      </a>
+      <a href="/batches" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
+        <span class="sidebar-text">Batches</span>
+      </a>
+      <a href="/jobs" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        <span class="sidebar-text">Jobs</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <div class="h-screen flex flex-col transition-all duration-300" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    <!-- Top bar -->
+    <div class="flex items-center justify-between px-6 py-3 bg-[#141419] border-b border-zinc-800 shrink-0">
+      <div class="flex items-center gap-4">
+        <h1 class="text-base font-semibold text-zinc-50">{{ title }}</h1>
+      </div>
+      <div class="flex gap-5 items-center">
+        <div class="flex items-center gap-1.5 text-xs text-zinc-400">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+          Completed
+        </div>
+        <div class="flex items-center gap-1.5 text-xs text-zinc-400">
+          <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></span>
+          Active
+        </div>
+        <div class="flex items-center gap-1.5 text-xs text-zinc-400">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+          Waiting
+        </div>
+        <div class="flex items-center gap-1.5 text-xs text-zinc-400">
+          <span class="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"></span>
+          Failed
+        </div>
+      </div>
+    </div>
+
+    <!-- Graph -->
+    <div class="graph-container flex-1 relative overflow-hidden" id="graph-container" ref="graph-container">
+      <div class="flex items-center justify-center h-full text-zinc-500 text-sm" id="graph-empty" ref="graph-empty">Loading dependency graph...</div>
+    </div>
+
+    <!-- Tooltip -->
+    <div class="absolute pointer-events-none bg-[#141419] border border-zinc-800 rounded-md px-3.5 py-2.5 text-xs text-zinc-50 shadow-lg z-[200] opacity-0 transition-opacity duration-150" id="tooltip" ref="tooltip">
+      <div class="font-semibold mb-1" id="tooltip-name" ref="tooltip-name"></div>
+      <div class="font-mono text-zinc-500 text-[0.6875rem]" id="tooltip-id" ref="tooltip-id"></div>
+      <div class="mt-1" id="tooltip-status" ref="tooltip-status"></div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebarEl = useRef('sidebar');
+    const mainWrapperEl = useRef('main-wrapper');
+    useEventListener('click', () => {
+      sidebarEl.classList.toggle('collapsed');
+      mainWrapperEl.classList.toggle('sidebar-collapsed');
+      // Resize graph if needed
+      if (simulation) simulation.alpha(0.3).restart();
+    }, { target: '#sidebar-toggle' });
+
+    const statusColors = {
+      completed: '#10b981',
+      active: '#6366f1',
+      waiting: '#f59e0b',
+      pending: '#f59e0b',
+      failed: '#ef4444',
+    };
+
+    function getStatusColor(status) {
+      return statusColors[status] || '#71717a';
+    }
+
+    const tooltipEl = useRef('tooltip');
+    let simulation = null;
+
+    async function loadDependencies() {
+      try {
+        const res = await fetch('/api/dependencies');
+        const data = await res.json();
+
+        if (!data || !data.nodes || data.nodes.length === 0) {
+          useRef('graph-empty').textContent = 'No job dependencies found.';
+          return;
+        }
+
+        useRef('graph-empty').style.display = 'none';
+        buildGraph(data);
+      } catch (e) {
+        console.error('Failed to load dependencies:', e);
+        useRef('graph-empty').textContent = 'Failed to load dependency graph.';
+      }
+    }
+
+    function buildGraph(data) {
+      const container = useRef('graph-container');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      // Create SVG
+      const svg = d3.select('#graph-container')
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+
+      // Arrow marker definition
+      svg.append('defs').append('marker')
+        .attr('id', 'arrowhead')
+        .attr('viewBox', '0 -5 10 10')
+        .attr('refX', 20)
+        .attr('refY', 0)
+        .attr('markerWidth', 6)
+        .attr('markerHeight', 6)
+        .attr('orient', 'auto')
+        .append('path')
+        .attr('d', 'M0,-5L10,0L0,5')
+        .attr('class', 'link-arrow');
+
+      // Zoom behavior
+      const g = svg.append('g');
+
+      const zoom = d3.zoom()
+        .scaleExtent([0.1, 4])
+        .on('zoom', (event) => {
+          g.attr('transform', event.transform);
+        });
+
+      svg.call(zoom);
+
+      // Center the initial view
+      svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2));
+
+      // Build links
+      const nodes = data.nodes.map(d => ({ ...d }));
+      const links = (data.links || data.edges || []).map(d => ({ ...d }));
+
+      // Simulation
+      simulation = d3.forceSimulation(nodes)
+        .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+        .force('charge', d3.forceManyBody().strength(-300))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('collision', d3.forceCollide().radius(30));
+
+      // Draw links
+      const link = g.append('g')
+        .selectAll('line')
+        .data(links)
+        .join('line')
+        .attr('class', 'link')
+        .attr('marker-end', 'url(#arrowhead)');
+
+      // Draw nodes
+      const node = g.append('g')
+        .selectAll('g')
+        .data(nodes)
+        .join('g');
+
+      node.append('circle')
+        .attr('class', 'node-circle')
+        .attr('r', 12)
+        .attr('fill', d => getStatusColor(d.status))
+        .on('mouseover', function(event, d) {
+          d3.select(this).attr('r', 16).attr('stroke-width', 3);
+
+          useRef('tooltip-name').textContent = d.name || d.label || 'Job';
+          useRef('tooltip-id').textContent = 'ID: ' + d.id;
+
+          const badgeStatus = d.status || 'waiting';
+          const badgeColors = {
+            completed: 'background: rgba(16, 185, 129, 0.2); color: #10b981;',
+            active: 'background: rgba(99, 102, 241, 0.2); color: #6366f1;',
+            waiting: 'background: rgba(245, 158, 11, 0.2); color: #f59e0b;',
+            failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
+          };
+          useRef('tooltip-status').innerHTML =
+            '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>';
+
+          tooltipEl.style.left = (event.pageX + 12) + 'px';
+          tooltipEl.style.top = (event.pageY - 10) + 'px';
+          tooltipEl.style.opacity = '1';
+        })
+        .on('mousemove', function(event) {
+          tooltipEl.style.left = (event.pageX + 12) + 'px';
+          tooltipEl.style.top = (event.pageY - 10) + 'px';
+        })
+        .on('mouseout', function() {
+          d3.select(this).attr('r', 12).attr('stroke-width', 2);
+          tooltipEl.style.opacity = '0';
+        })
+        .call(d3.drag()
+          .on('start', (event, d) => {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on('drag', (event, d) => {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on('end', (event, d) => {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          })
+        );
+
+      // Node labels
+      node.append('text')
+        .attr('class', 'node-label')
+        .attr('dy', 28)
+        .text(d => {
+          const name = d.name || d.label || d.id || '';
+          return name.length > 16 ? name.slice(0, 14) + '...' : name;
+        });
+
+      // Tick
+      simulation.on('tick', () => {
+        link
+          .attr('x1', d => d.source.x)
+          .attr('y1', d => d.source.y)
+          .attr('x2', d => d.target.x)
+          .attr('y2', d => d.target.y);
+
+        node.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
+      });
+    }
+
+    loadDependencies();
+  </script>
+</body>
+</html>

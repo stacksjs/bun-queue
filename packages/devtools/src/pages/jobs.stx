@@ -1,0 +1,217 @@
+<script>
+const title = 'Jobs'
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} — bun-queue</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* Sidebar collapsed state overrides */
+    .sidebar.collapsed { width: 56px !important; }
+    .sidebar.collapsed .sidebar-brand-text { display: none; }
+    .sidebar.collapsed .sidebar-toggle-btn { margin-left: auto; margin-right: auto; }
+    .sidebar.collapsed .nav-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
+    .sidebar.collapsed .nav-item-text { display: none; }
+    .main-wrapper.sidebar-collapsed { margin-left: 56px !important; }
+
+    /* Search input placeholder */
+    .search-input::placeholder { color: #71717a; }
+  </style>
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar fixed top-0 left-0 bottom-0 flex flex-col z-[100] overflow-hidden bg-[#141419] border-r border-zinc-800 transition-all duration-200 ease-in-out" id="sidebar" ref="sidebar" style="width: 240px;">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
+      <a href="/" class="flex items-center gap-2.5 no-underline text-zinc-50 font-bold text-[0.9375rem] whitespace-nowrap overflow-hidden">
+        <div class="w-6 h-6 bg-indigo-500 rounded-md flex items-center justify-center shrink-0 text-xs text-white font-extrabold">Q</div>
+        <span class="sidebar-brand-text">bun-queue</span>
+      </a>
+      <button class="sidebar-toggle-btn bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center transition-colors duration-150 shrink-0 hover:text-zinc-50" id="sidebar-toggle" title="Toggle sidebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+      </button>
+    </div>
+    <nav class="flex-1 p-2 overflow-y-auto overflow-x-hidden">
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Navigation</div>
+      <a href="/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+      <a href="/monitoring" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Monitoring</span>
+      </a>
+      <a href="/metrics" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-text">Metrics</span>
+      </a>
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Management</div>
+      <a href="/groups" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Groups</span>
+      </a>
+      <a href="/batches" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
+        <span class="nav-item-text">Batches</span>
+      </a>
+      <a href="/jobs" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px bg-indigo-500 text-white transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">Jobs</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-wrapper min-h-screen transition-all duration-200 ease-in-out" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    <div class="max-w-[1200px] mx-auto p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-lg font-semibold text-zinc-50">Jobs</h1>
+          <p class="text-sm text-zinc-500 mt-1">Browse and filter job history</p>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="flex items-center gap-3 mb-6 flex-wrap">
+        <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="filter-bar">
+          <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-indigo-500 !text-white active" data-status="all">All</button>
+          <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-status="waiting">Waiting</button>
+          <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-status="active">Active</button>
+          <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-status="completed">Completed</button>
+          <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-status="failed">Failed</button>
+        </div>
+        <div class="relative flex-1 max-w-[280px]">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="search-input w-full py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-sm outline-none focus:border-indigo-500 transition-colors duration-150" id="search-input" ref="search-input" placeholder="Search jobs...">
+        </div>
+      </div>
+
+      <!-- Jobs Table -->
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg overflow-hidden" id="jobs-panel" ref="jobs-panel">
+        <div class="text-center py-12 text-zinc-500 text-sm">Loading jobs...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = useRef('sidebar')
+    const mainWrapper = useRef('main-wrapper')
+    const sidebarStorage = useLocalStorage('sidebar-collapsed', false)
+
+    if (sidebarStorage.value === true || sidebarStorage.value === 'true') {
+      sidebar.classList.add('collapsed')
+      mainWrapper.classList.add('sidebar-collapsed')
+    }
+
+    useEventListener('click', () => {
+      sidebar.classList.toggle('collapsed')
+      mainWrapper.classList.toggle('sidebar-collapsed')
+      sidebarStorage.set(sidebar.classList.contains('collapsed'))
+    }, { target: '#sidebar-toggle' })
+
+    let allJobs = []
+    let currentStatus = 'all'
+
+    function badgeClass(status) {
+      const map = {
+        completed: 'bg-emerald-500/15 text-emerald-500',
+        failed: 'bg-red-500/15 text-red-500',
+        active: 'bg-indigo-500/15 text-indigo-500',
+        waiting: 'bg-amber-500/15 text-amber-500',
+        delayed: 'bg-zinc-500/15 text-zinc-500'
+      }
+      return map[status] || 'bg-zinc-500/15 text-zinc-500'
+    }
+
+    function renderJobs(jobs) {
+      const panel = useRef('jobs-panel')
+      if (jobs.length === 0) {
+        panel.innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>'
+        return
+      }
+
+      let html = '<table class="w-full border-collapse"><thead><tr>'
+      html += '<th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Name</th>'
+      html += '<th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">ID</th>'
+      html += '<th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Queue</th>'
+      html += '<th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Status</th>'
+      html += '<th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Created</th>'
+      html += '<th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Updated</th>'
+      html += '<th class="px-4 py-2.5 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Actions</th>'
+      html += '</tr></thead><tbody>'
+
+      jobs.forEach(job => {
+        const updated = job.completedAt || job.failedAt || job.processedAt || job.createdAt
+        html += '<tr class="hover:bg-[#1e1e26]">'
+        html += '<td class="px-4 py-2.5 text-sm text-zinc-50 font-medium border-b border-zinc-800 last:border-b-0">' + job.name + '</td>'
+        html += '<td class="px-4 py-2.5 font-mono text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + job.id + '</td>'
+        html += '<td class="px-4 py-2.5 text-sm text-zinc-400 border-b border-zinc-800 last:border-b-0">' + job.queue + '</td>'
+        html += '<td class="px-4 py-2.5 border-b border-zinc-800 last:border-b-0"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + badgeClass(job.status) + '">' + job.status + '</span></td>'
+        html += '<td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + job.createdAt + '</td>'
+        html += '<td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + updated + '</td>'
+        html += '<td class="px-4 py-2.5 text-right border-b border-zinc-800 last:border-b-0"><a href="/jobs/' + job.id + '" class="text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details</a></td>'
+        html += '</tr>'
+      })
+
+      html += '</tbody></table>'
+      panel.innerHTML = html
+    }
+
+    function filterJobs() {
+      const query = useRef('search-input').value.toLowerCase().trim()
+      let filtered = allJobs
+
+      if (currentStatus !== 'all') {
+        filtered = filtered.filter(j => j.status === currentStatus)
+      }
+
+      if (query) {
+        filtered = filtered.filter(j =>
+          j.name.toLowerCase().includes(query) ||
+          j.id.toLowerCase().includes(query) ||
+          j.queue.toLowerCase().includes(query)
+        )
+      }
+
+      renderJobs(filtered)
+    }
+
+    async function loadJobs() {
+      try {
+        const res = await fetch('/api/jobs')
+        allJobs = await res.json()
+        filterJobs()
+      } catch (err) {
+        console.error('Failed to load jobs:', err)
+        useRef('jobs-panel').innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm">Failed to load jobs. Please try again.</div>'
+      }
+    }
+
+    // Status filter buttons
+    useRef('filter-bar').querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        useRef('filter-bar').querySelectorAll('.filter-btn').forEach(b => {
+          b.classList.remove('active')
+          b.classList.remove('bg-indigo-500', '!text-white')
+          b.classList.add('bg-transparent')
+        })
+        e.target.classList.add('active', 'bg-indigo-500', '!text-white')
+        e.target.classList.remove('bg-transparent')
+        currentStatus = e.target.dataset.status
+        filterJobs()
+      })
+    })
+
+    // Search input
+    useEventListener('input', filterJobs, { target: '#search-input' })
+
+    onMount(loadJobs)
+  </script>
+</body>
+</html>

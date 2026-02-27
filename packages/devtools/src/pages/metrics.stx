@@ -1,0 +1,292 @@
+<script>
+const title = 'Performance Metrics'
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} — bun-queue</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* Chart containers need explicit height for Chart.js */
+    .chart-container { position: relative; height: 280px; width: 100%; }
+
+    /* Sidebar collapsed state overrides */
+    .sidebar.collapsed { width: 56px !important; }
+    .sidebar.collapsed .sidebar-brand-text { display: none; }
+    .sidebar.collapsed .sidebar-toggle-btn { margin-left: auto; margin-right: auto; }
+    .sidebar.collapsed .nav-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
+    .sidebar.collapsed .nav-item-text { display: none; }
+    .main-wrapper.sidebar-collapsed { margin-left: 56px !important; }
+  </style>
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar fixed top-0 left-0 bottom-0 flex flex-col z-[100] overflow-hidden bg-[#141419] border-r border-zinc-800 transition-all duration-200 ease-in-out" id="sidebar" ref="sidebar" style="width: 240px;">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
+      <a href="/" class="flex items-center gap-2.5 no-underline text-zinc-50 font-bold text-[0.9375rem] whitespace-nowrap overflow-hidden">
+        <div class="w-6 h-6 bg-indigo-500 rounded-md flex items-center justify-center shrink-0 text-xs text-white font-extrabold">Q</div>
+        <span class="sidebar-brand-text">bun-queue</span>
+      </a>
+      <button class="sidebar-toggle-btn bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center transition-colors duration-150 shrink-0 hover:text-zinc-50" id="sidebar-toggle" title="Toggle sidebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+      </button>
+    </div>
+    <nav class="flex-1 p-2 overflow-y-auto overflow-x-hidden">
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Navigation</div>
+      <a href="/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+      <a href="/monitoring" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Monitoring</span>
+      </a>
+      <a href="/metrics" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px bg-indigo-500 text-white transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-text">Metrics</span>
+      </a>
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Management</div>
+      <a href="/groups" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Groups</span>
+      </a>
+      <a href="/batches" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
+        <span class="nav-item-text">Batches</span>
+      </a>
+      <a href="/jobs" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">Jobs</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-wrapper min-h-screen transition-all duration-200 ease-in-out" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    <div class="max-w-[1200px] mx-auto p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-lg font-semibold text-zinc-50">Performance Metrics</h1>
+          <p class="text-sm text-zinc-500 mt-1">Job throughput, latency, and error analysis</p>
+        </div>
+        <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="time-range-bar">
+          <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-indigo-500 !text-white active" data-range="24h">24h</button>
+          <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-range="7d">7d</button>
+          <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-range="30d">30d</button>
+        </div>
+      </div>
+
+      <!-- Summary Stats -->
+      <div class="grid grid-cols-4 gap-4 mb-6 max-sm:grid-cols-2">
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Throughput</div>
+          <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-throughput" ref="stat-throughput">--</div>
+          <div class="text-xs text-zinc-500 font-normal">jobs/min</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Latency</div>
+          <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-latency" ref="stat-latency">--</div>
+          <div class="text-xs text-zinc-500 font-normal">ms</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Error Rate</div>
+          <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-error-rate" ref="stat-error-rate">--</div>
+          <div class="text-xs text-zinc-500 font-normal">%</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Uptime</div>
+          <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-uptime" ref="stat-uptime">--</div>
+          <div class="text-xs text-zinc-500 font-normal">hours</div>
+        </div>
+      </div>
+
+      <!-- Throughput Chart -->
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-zinc-50">Job Throughput</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="throughput-chart" ref="throughput-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Latency Chart -->
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-zinc-50">Job Latency</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="latency-chart" ref="latency-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Error Rate Chart -->
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-zinc-50">Error Rate</span>
+        </div>
+        <div class="chart-container">
+          <canvas id="error-rate-chart" ref="error-rate-chart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = useRef('sidebar')
+    const mainWrapper = useRef('main-wrapper')
+    const sidebarStorage = useLocalStorage('sidebar-collapsed', 'false')
+
+    if (sidebarStorage.value === 'true') {
+      sidebar.classList.add('collapsed')
+      mainWrapper.classList.add('sidebar-collapsed')
+    }
+
+    useEventListener('click', () => {
+      sidebar.classList.toggle('collapsed')
+      mainWrapper.classList.toggle('sidebar-collapsed')
+      sidebarStorage.set(sidebar.classList.contains('collapsed'))
+    }, { target: '#sidebar-toggle' })
+
+    // Chart instances
+    let throughputChart = null
+    let latencyChart = null
+    let errorRateChart = null
+
+    // Common chart options
+    function chartOptions(color) {
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            grid: { color: 'rgba(39,39,42,0.5)' },
+            ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 10 }
+          },
+          y: {
+            grid: { color: 'rgba(39,39,42,0.5)' },
+            ticks: { color: '#71717a', font: { size: 10 } },
+            beginAtZero: true
+          }
+        },
+        interaction: { intersect: false, mode: 'index' },
+      }
+    }
+
+    function createLineDataset(label, data, color) {
+      return {
+        label: label,
+        data: data,
+        borderColor: color,
+        backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'),
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+        pointHitRadius: 10,
+        borderWidth: 2,
+      }
+    }
+
+    let currentRange = '24h'
+
+    async function loadMetrics(timeRange) {
+      currentRange = timeRange
+      try {
+        const [metricsRes, statsRes] = await Promise.all([
+          fetch('/api/metrics?timeRange=' + timeRange),
+          fetch('/api/stats'),
+        ])
+        const metrics = await metricsRes.json()
+        const stats = await statsRes.json()
+
+        // Update summary stats
+        const avgThroughput = metrics.throughput.length > 0 ? Math.round(metrics.throughput.reduce((a, b) => a + b, 0) / metrics.throughput.length) : 0
+        const avgLatency = metrics.latency.length > 0 ? Math.round(metrics.latency.reduce((a, b) => a + b, 0) / metrics.latency.length) : 0
+        const avgError = metrics.errorRate.length > 0 ? (metrics.errorRate.reduce((a, b) => a + b, 0) / metrics.errorRate.length).toFixed(2) : '0.00'
+
+        useRef('stat-throughput').textContent = avgThroughput
+        useRef('stat-latency').textContent = avgLatency
+        useRef('stat-error-rate').textContent = avgError
+        useRef('stat-uptime').textContent = Math.round(stats.uptime / 3600)
+
+        // Throughput chart
+        if (throughputChart) throughputChart.destroy()
+        throughputChart = new Chart(useRef('throughput-chart').getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: metrics.timestamps,
+            datasets: [createLineDataset('Throughput (jobs/min)', metrics.throughput, 'rgb(99, 102, 241)')]
+          },
+          options: chartOptions()
+        })
+
+        // Latency chart
+        if (latencyChart) latencyChart.destroy()
+        latencyChart = new Chart(useRef('latency-chart').getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: metrics.timestamps,
+            datasets: [createLineDataset('Latency (ms)', metrics.latency, 'rgb(245, 158, 11)')]
+          },
+          options: chartOptions()
+        })
+
+        // Error rate chart
+        if (errorRateChart) errorRateChart.destroy()
+        errorRateChart = new Chart(useRef('error-rate-chart').getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: metrics.timestamps,
+            datasets: [createLineDataset('Error Rate (%)', metrics.errorRate, 'rgb(239, 68, 68)')]
+          },
+          options: chartOptions()
+        })
+      } catch (err) {
+        console.error('Failed to load metrics:', err)
+      }
+    }
+
+    // Time range button handling
+    useRef('time-range-bar').querySelectorAll('.time-range-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        useRef('time-range-bar').querySelectorAll('.time-range-btn').forEach(b => {
+          b.classList.remove('active')
+          b.classList.remove('bg-indigo-500', '!text-white')
+          b.classList.add('bg-transparent')
+        })
+        e.target.classList.add('active', 'bg-indigo-500', '!text-white')
+        e.target.classList.remove('bg-transparent')
+        loadMetrics(e.target.dataset.range)
+      })
+    })
+
+    // Read initial time range from URL
+    onMount(() => {
+      const route = useRoute()
+      const range = route.query.timeRange || '24h'
+
+      useRef('time-range-bar').querySelectorAll('.time-range-btn').forEach(b => {
+        const isActive = b.dataset.range === range
+        b.classList.toggle('active', isActive)
+        if (isActive) {
+          b.classList.add('bg-indigo-500', '!text-white')
+          b.classList.remove('bg-transparent')
+        } else {
+          b.classList.remove('bg-indigo-500', '!text-white')
+          b.classList.add('bg-transparent')
+        }
+      })
+
+      loadMetrics(range)
+    })
+  </script>
+</body>
+</html>

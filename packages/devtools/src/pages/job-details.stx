@@ -1,0 +1,273 @@
+<script>
+const title = 'Job Details'
+const job = {
+  id: '',
+  name: '',
+  queue: '',
+  status: 'waiting',
+  attempts: 0,
+  maxAttempts: 3,
+  data: null,
+  error: null,
+  createdAt: null,
+  processedAt: null,
+  completedAt: null,
+  failedAt: null,
+  duration: null,
+}
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }} &mdash; bun-queue</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    .sidebar.collapsed { width: 60px !important; }
+    .sidebar.collapsed .sidebar-text { display: none; }
+    .sidebar-collapsed { margin-left: 60px !important; }
+  </style>
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-normal min-h-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar fixed inset-y-0 left-0 z-50 bg-[#141419] border-r border-zinc-800 transition-all duration-300 flex flex-col overflow-hidden" id="sidebar" ref="sidebar" style="width: 240px;">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
+      <span class="sidebar-text text-sm font-bold text-indigo-400 whitespace-nowrap overflow-hidden">bun-queue</span>
+      <button class="bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center hover:text-zinc-50 hover:bg-[#1e1e26]" id="sidebar-toggle" title="Toggle sidebar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+    <nav class="flex-1 p-2 flex flex-col gap-0.5">
+      <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+        <span class="sidebar-text">Dashboard</span>
+      </a>
+      <a href="/monitoring" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+        <span class="sidebar-text">Monitoring</span>
+      </a>
+      <a href="/metrics" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+        <span class="sidebar-text">Metrics</span>
+      </a>
+      <a href="/groups" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+        <span class="sidebar-text">Groups</span>
+      </a>
+      <a href="/batches" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
+        <span class="sidebar-text">Batches</span>
+      </a>
+      <a href="/jobs" class="flex items-center gap-3 px-3 py-2.5 rounded-md bg-indigo-500 text-white no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden">
+        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
+        <span class="sidebar-text">Jobs</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main content -->
+  <div class="min-h-screen transition-all duration-300" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    <div class="max-w-[1200px] mx-auto p-6">
+      <a href="/jobs" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Jobs
+      </a>
+
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
+            <span id="job-name" ref="job-name">{{ job.name }}</span>
+            <span id="job-badge" ref="job-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-zinc-500/15 text-zinc-500">{{ job.status }}</span>
+          </h1>
+          <p class="text-[0.8125rem] text-zinc-500 mt-1">Job details and execution information</p>
+        </div>
+        <div class="inline-flex items-baseline gap-1 tabular-nums" id="duration-display" ref="duration-display" style="display: none;">
+          <span class="text-2xl font-bold text-indigo-500" id="duration-value" ref="duration-value">0</span>
+          <span class="text-sm text-zinc-500">ms</span>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex gap-3 mb-6">
+        <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[0.8125rem] font-medium border border-transparent cursor-pointer transition-all duration-150 bg-indigo-500 text-white hover:bg-indigo-400" id="btn-retry" title="Retry this job">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Retry
+        </button>
+        <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-red-500/15 border border-red-500/30 text-red-500 hover:bg-red-500/25" id="btn-delete" title="Delete this job">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          Delete
+        </button>
+      </div>
+
+      <!-- Error panel (hidden by default) -->
+      <div class="bg-red-500/[0.08] border border-red-500/25 rounded-lg p-5 mb-6" id="error-panel" ref="error-panel" style="display: none;">
+        <div class="flex items-center gap-2 text-sm font-semibold text-red-500 mb-3">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          Error
+        </div>
+        <div class="font-mono text-[0.8125rem] text-red-300 whitespace-pre-wrap break-words" id="error-message" ref="error-message"></div>
+      </div>
+
+      <!-- Metadata grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6" id="meta-grid">
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Job ID</div>
+          <div class="text-sm text-zinc-50 font-medium break-all font-mono text-[0.8125rem]" id="meta-id" ref="meta-id">&mdash;</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Queue</div>
+          <div class="text-sm text-zinc-50 font-medium break-all" id="meta-queue" ref="meta-queue">&mdash;</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Status</div>
+          <div class="text-sm text-zinc-50 font-medium break-all" id="meta-status" ref="meta-status">&mdash;</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Attempts</div>
+          <div class="text-sm text-zinc-50 font-medium break-all" id="meta-attempts" ref="meta-attempts">&mdash;</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Created</div>
+          <div class="text-sm text-zinc-50 font-medium break-all" id="meta-created" ref="meta-created">&mdash;</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Processed</div>
+          <div class="text-sm text-zinc-50 font-medium break-all" id="meta-processed" ref="meta-processed">&mdash;</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Completed</div>
+          <div class="text-sm text-zinc-50 font-medium break-all" id="meta-completed" ref="meta-completed">&mdash;</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Failed At</div>
+          <div class="text-sm text-zinc-50 font-medium break-all" id="meta-failed" ref="meta-failed">&mdash;</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+          <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Duration</div>
+          <div class="text-sm text-zinc-50 font-medium break-all" id="meta-duration" ref="meta-duration">&mdash;</div>
+        </div>
+      </div>
+
+      <!-- Job Data -->
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-sm font-semibold text-zinc-50">Job Data</span>
+        </div>
+        <div id="job-data-container" ref="job-data-container">
+          <div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading job data...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const pageTitle = useTitle();
+
+    // Sidebar toggle
+    const sidebar = useRef('sidebar');
+    const mainWrapper = useRef('main-wrapper');
+    useEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      mainWrapper.classList.toggle('sidebar-collapsed');
+    }, { target: '#sidebar-toggle' });
+
+    // Get job ID from URL
+    const pathParts = useRoute().path.split('/');
+    const jobId = decodeURIComponent(pathParts[pathParts.length - 1]);
+
+    function statusBadgeClass(status) {
+      if (status === 'completed') return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-emerald-500/15 text-emerald-500';
+      if (status === 'failed') return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-red-500/15 text-red-500';
+      if (status === 'active') return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-indigo-500/15 text-indigo-400';
+      if (status === 'waiting' || status === 'pending') return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-amber-500/15 text-amber-500';
+      return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-zinc-500/15 text-zinc-500';
+    }
+
+    function formatTime(ts) {
+      if (!ts) return '\u2014';
+      return new Date(ts).toLocaleString();
+    }
+
+    async function loadJob() {
+      try {
+        const res = await fetch('/api/jobs/' + encodeURIComponent(jobId));
+        const job = await res.json();
+
+        // Header
+        useRef('job-name').textContent = job.name || 'Job ' + job.id;
+        const badge = useRef('job-badge');
+        badge.textContent = job.status;
+        badge.className = statusBadgeClass(job.status);
+
+        pageTitle.set((job.name || 'Job ' + job.id) + ' \u2014 bun-queue');
+
+        // Duration
+        if (job.duration) {
+          useRef('duration-display').style.display = 'flex';
+          useRef('duration-value').textContent = job.duration;
+        }
+
+        // Error
+        if (job.status === 'failed' && job.error) {
+          useRef('error-panel').style.display = 'block';
+          useRef('error-message').textContent =
+            typeof job.error === 'string' ? job.error : JSON.stringify(job.error, null, 2);
+        }
+
+        // Metadata
+        useRef('meta-id').textContent = job.id;
+        useRef('meta-queue').textContent = job.queue || '\u2014';
+        useRef('meta-status').textContent = job.status;
+        useRef('meta-attempts').textContent = (job.attempts || 0) + ' / ' + (job.maxAttempts || 3);
+        useRef('meta-created').textContent = formatTime(job.createdAt);
+        useRef('meta-processed').textContent = formatTime(job.processedAt);
+        useRef('meta-completed').textContent = formatTime(job.completedAt);
+        useRef('meta-failed').textContent = formatTime(job.failedAt);
+        useRef('meta-duration').textContent = job.duration ? job.duration + 'ms' : '\u2014';
+
+        // Job data
+        const dataContainer = useRef('job-data-container');
+        if (job.data && Object.keys(job.data).length > 0) {
+          dataContainer.innerHTML = '<pre class="bg-[#0a0a0f] border border-zinc-800 rounded-md p-4 overflow-x-auto font-mono text-[0.8125rem] leading-relaxed text-zinc-400 whitespace-pre-wrap break-words max-h-[400px] overflow-y-auto">' +
+            escapeHtml(JSON.stringify(job.data, null, 2)) + '</pre>';
+        } else {
+          dataContainer.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No job data available.</div>';
+        }
+      } catch (e) {
+        console.error('Failed to load job:', e);
+        useRef('job-data-container').innerHTML =
+          '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load job details.</div>';
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Button handlers
+    useEventListener('click', async () => {
+      try {
+        await fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' });
+        loadJob();
+      } catch (e) {
+        console.error('Retry failed:', e);
+      }
+    }, { target: '#btn-retry' });
+
+    useEventListener('click', async () => {
+      if (!confirm('Are you sure you want to delete this job?')) return;
+      try {
+        await fetch('/api/jobs/' + encodeURIComponent(jobId), { method: 'DELETE' });
+        navigate('/jobs');
+      } catch (e) {
+        console.error('Delete failed:', e);
+      }
+    }, { target: '#btn-delete' });
+
+    loadJob();
+  </script>
+</body>
+</html>

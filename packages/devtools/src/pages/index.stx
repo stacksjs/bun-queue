@@ -1,0 +1,317 @@
+<script>
+const title = 'bun-queue Dashboard'
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ title }}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* Chart containers need explicit height for Chart.js */
+    .chart-container { position: relative; height: 220px; width: 100%; }
+    .chart-container-sm { position: relative; height: 180px; width: 100%; }
+
+    /* Sidebar collapsed state overrides (toggled via JS) */
+    .sidebar.collapsed { width: 56px !important; }
+    .sidebar.collapsed .sidebar-brand-text { display: none; }
+    .sidebar.collapsed .sidebar-toggle-btn { margin-left: auto; margin-right: auto; }
+    .sidebar.collapsed .nav-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
+    .sidebar.collapsed .nav-item-text { display: none; }
+    .main-wrapper.sidebar-collapsed { margin-left: 56px !important; }
+  </style>
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen">
+  <!-- Sidebar -->
+  <aside class="sidebar fixed top-0 left-0 bottom-0 flex flex-col z-[100] overflow-hidden bg-[#141419] border-r border-zinc-800 transition-all duration-200 ease-in-out" id="sidebar" ref="sidebar" style="width: 240px;">
+    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
+      <a href="/" class="flex items-center gap-2.5 no-underline text-zinc-50 font-bold text-[0.9375rem] whitespace-nowrap overflow-hidden">
+        <div class="w-6 h-6 bg-indigo-500 rounded-md flex items-center justify-center shrink-0 text-xs text-white font-extrabold">Q</div>
+        <span class="sidebar-brand-text">bun-queue</span>
+      </a>
+      <button class="sidebar-toggle-btn bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center transition-colors duration-150 shrink-0 hover:text-zinc-50" id="sidebar-toggle" title="Toggle sidebar">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+      </button>
+    </div>
+    <nav class="flex-1 p-2 overflow-y-auto overflow-x-hidden">
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Navigation</div>
+      <a href="/" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px bg-indigo-500 text-white transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-100" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-item-text">Dashboard</span>
+      </a>
+      <a href="/monitoring" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span class="nav-item-text">Monitoring</span>
+      </a>
+      <a href="/metrics" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="nav-item-text">Metrics</span>
+      </a>
+      <div class="nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden">Management</div>
+      <a href="/groups" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="nav-item-text">Groups</span>
+      </a>
+      <a href="/batches" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
+        <span class="nav-item-text">Batches</span>
+      </a>
+      <a href="/jobs" class="nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150">
+        <svg class="w-[18px] h-[18px] shrink-0 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-item-text">Jobs</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main-wrapper min-h-screen transition-all duration-200 ease-in-out" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    <div class="max-w-[1200px] mx-auto p-6">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-lg font-semibold text-zinc-50">Dashboard Overview</h1>
+          <p class="text-sm text-zinc-500 mt-1">Real-time job queue monitoring</p>
+        </div>
+        <button class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" id="refresh-btn" onclick="loadDashboard()">Refresh</button>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="grid grid-cols-6 gap-4 mb-6 max-lg:grid-cols-3 max-sm:grid-cols-2">
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Active Queues</div>
+          <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-active-queues" ref="stat-active-queues">--</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Waiting Jobs</div>
+          <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums" id="stat-waiting-jobs" ref="stat-waiting-jobs">--</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Active Jobs</div>
+          <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-active-jobs" ref="stat-active-jobs">--</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Completed Jobs</div>
+          <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-completed-jobs" ref="stat-completed-jobs">--</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Failed Jobs</div>
+          <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-failed-jobs" ref="stat-failed-jobs">--</div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Processing Rate</div>
+          <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums" id="stat-processing-rate" ref="stat-processing-rate">--<span class="text-xs text-zinc-500 font-normal"> /min</span></div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="grid grid-cols-2 gap-6 mb-6 max-lg:grid-cols-1">
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-semibold text-zinc-50">Job Throughput</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="throughput-chart" ref="throughput-chart"></canvas>
+          </div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-semibold text-zinc-50">Queue Status</span>
+          </div>
+          <div class="chart-container">
+            <canvas id="queue-status-chart" ref="queue-status-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Jobs + Queue List -->
+      <div class="grid grid-cols-2 gap-6 mb-6 max-lg:grid-cols-1">
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-semibold text-zinc-50">Recent Jobs</span>
+            <a href="/jobs" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</a>
+          </div>
+          <div id="recent-jobs-container" ref="recent-jobs-container">
+            <div class="text-center py-8 text-zinc-500 text-sm">Loading recent jobs...</div>
+          </div>
+        </div>
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-sm font-semibold text-zinc-50">Queue List</span>
+            <a href="/queues" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</a>
+          </div>
+          <div id="queue-list-container" ref="queue-list-container">
+            <div class="text-center py-8 text-zinc-500 text-sm">Loading queues...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = useRef('sidebar')
+    const mainWrapper = useRef('main-wrapper')
+    const sidebarStorage = useLocalStorage('sidebar-collapsed', false)
+
+    if (sidebarStorage.value === true || sidebarStorage.value === 'true') {
+      sidebar.classList.add('collapsed')
+      mainWrapper.classList.add('sidebar-collapsed')
+    }
+
+    useEventListener('click', () => {
+      sidebar.classList.toggle('collapsed')
+      mainWrapper.classList.toggle('sidebar-collapsed')
+      sidebarStorage.set(sidebar.classList.contains('collapsed'))
+    }, { target: '#sidebar-toggle' })
+
+    // Chart instances
+    let throughputChart = null
+    let queueStatusChart = null
+
+    function badgeClass(status) {
+      const map = {
+        completed: 'bg-emerald-500/15 text-emerald-500',
+        failed: 'bg-red-500/15 text-red-500',
+        active: 'bg-indigo-500/15 text-indigo-500',
+        waiting: 'bg-amber-500/15 text-amber-500',
+        delayed: 'bg-zinc-500/15 text-zinc-500'
+      }
+      return map[status] || 'bg-zinc-500/15 text-zinc-500'
+    }
+
+    async function loadDashboard() {
+      try {
+        // Fetch stats
+        const statsRes = await fetch('/api/stats')
+        const stats = await statsRes.json()
+
+        useRef('stat-active-queues').textContent = stats.totalQueues
+        useRef('stat-waiting-jobs').textContent = stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs
+        useRef('stat-active-jobs').textContent = stats.activeJobs
+        useRef('stat-completed-jobs').textContent = stats.completedJobs
+        useRef('stat-failed-jobs').textContent = stats.failedJobs
+        useRef('stat-processing-rate').innerHTML = stats.throughputPerMinute + '<span class="text-xs text-zinc-500 font-normal"> /min</span>'
+
+        // Fetch metrics for throughput chart
+        const metricsRes = await fetch('/api/metrics?timeRange=24h')
+        const metrics = await metricsRes.json()
+
+        if (throughputChart) throughputChart.destroy()
+        const ctx1 = useRef('throughput-chart').getContext('2d')
+        throughputChart = new Chart(ctx1, {
+          type: 'line',
+          data: {
+            labels: metrics.timestamps,
+            datasets: [{
+              label: 'Jobs/min',
+              data: metrics.throughput,
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHitRadius: 10,
+              borderWidth: 2,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 } },
+              y: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 } }, beginAtZero: true }
+            }
+          }
+        })
+
+        // Queue status doughnut chart
+        if (queueStatusChart) queueStatusChart.destroy()
+        const ctx2 = useRef('queue-status-chart').getContext('2d')
+        queueStatusChart = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: ['Completed', 'Active', 'Waiting', 'Failed'],
+            datasets: [{
+              data: [stats.completedJobs, stats.activeJobs, stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs, stats.failedJobs],
+              backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
+              borderColor: '#141419',
+              borderWidth: 2,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: '#a1a1aa', font: { size: 11 }, padding: 16, usePointStyle: true, pointStyleWidth: 8 }
+              }
+            },
+            cutout: '65%',
+          }
+        })
+
+        // Fetch recent jobs
+        const jobsRes = await fetch('/api/jobs')
+        const jobs = await jobsRes.json()
+        const recent = jobs.slice(0, 5)
+
+        const jobsContainer = useRef('recent-jobs-container')
+        if (recent.length === 0) {
+          jobsContainer.innerHTML = '<div class="text-center py-8 text-zinc-500 text-sm">No recent jobs to display.</div>'
+        } else {
+          let html = '<table class="w-full border-collapse"><thead><tr>'
+          html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Name</th>'
+          html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Queue</th>'
+          html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Status</th>'
+          html += '<th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Duration</th>'
+          html += '</tr></thead><tbody>'
+          recent.forEach(job => {
+            const dur = job.duration ? (job.duration / 1000).toFixed(1) + 's' : '\u2014'
+            html += '<tr class="hover:bg-[#1e1e26]">'
+            html += '<td class="px-3 py-2.5 text-sm text-zinc-50 font-medium border-b border-zinc-800 last:border-b-0">' + job.name + '</td>'
+            html += '<td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + job.queue + '</td>'
+            html += '<td class="px-3 py-2.5 border-b border-zinc-800 last:border-b-0"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + badgeClass(job.status) + '">' + job.status + '</span></td>'
+            html += '<td class="px-3 py-2.5 text-right font-mono tabular-nums text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + dur + '</td>'
+            html += '</tr>'
+          })
+          html += '</tbody></table>'
+          jobsContainer.innerHTML = html
+        }
+
+        // Fetch queues
+        const queuesRes = await fetch('/api/queues')
+        const queues = await queuesRes.json()
+
+        const queueContainer = useRef('queue-list-container')
+        if (queues.length === 0) {
+          queueContainer.innerHTML = '<div class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>'
+        } else {
+          let html = '<div class="flex flex-col gap-3">'
+          queues.forEach(q => {
+            html += '<div class="bg-[#1e1e26] rounded-md px-4 py-3 flex items-center justify-between hover:bg-indigo-500/[0.08] transition-colors duration-150">'
+            html += '<div><div class="text-sm font-medium text-zinc-50">' + q.name + '</div></div>'
+            html += '<div class="flex gap-4 text-xs text-zinc-500 tabular-nums">'
+            html += '<span>Active <strong class="text-zinc-400">' + q.activeJobs + '</strong></span>'
+            html += '<span>Pending <strong class="text-zinc-400">' + q.pendingJobs + '</strong></span>'
+            html += '<span>Failed <strong class="text-zinc-400">' + q.failedJobs + '</strong></span>'
+            html += '</div>'
+            html += '</div>'
+          })
+          html += '</div>'
+          queueContainer.innerHTML = html
+        }
+      } catch (err) {
+        console.error('Failed to load dashboard:', err)
+      }
+    }
+
+    onMount(loadDashboard)
+  </script>
+</body>
+</html>
