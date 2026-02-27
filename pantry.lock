@@ -1,61 +1,26 @@
 {
   "version": "1.0.0",
   "lockfileVersion": 1,
-  "generatedAt": "1771975510",
+  "generatedAt": "1772234882",
   "packages": {
-    "vue@^3.5.28": {
-      "name": "vue",
-      "version": "^3.5.28",
+    "npm:@stacksjs/bun-queue@^0.0.1": {
+      "name": "npm:@stacksjs/bun-queue",
+      "version": "^0.0.1",
       "source": "pkgx"
     },
-    "vite@^7.3.1": {
-      "name": "vite",
-      "version": "^7.3.1",
+    "bun-plugin-stx@^0.2.5": {
+      "name": "bun-plugin-stx",
+      "version": "^0.2.5",
       "source": "pkgx"
     },
-    "vue-router@^5.0.2": {
-      "name": "vue-router",
-      "version": "^5.0.2",
+    "npm:@stacksjs/stx@^0.2.5": {
+      "name": "npm:@stacksjs/stx",
+      "version": "^0.2.5",
       "source": "pkgx"
     },
-    "axios@^1.13.5": {
-      "name": "axios",
-      "version": "^1.13.5",
-      "source": "pkgx"
-    },
-    "pinia@^3.0.4": {
-      "name": "pinia",
-      "version": "^3.0.4",
-      "source": "pkgx"
-    },
-    "npm:@iconify-json/carbon@^1.2.18": {
-      "name": "npm:@iconify-json/carbon",
-      "version": "^1.2.18",
-      "source": "pkgx"
-    },
-    "npm:@vitejs/plugin-vue@^6.0.4": {
-      "name": "npm:@vitejs/plugin-vue",
-      "version": "^6.0.4",
-      "source": "pkgx"
-    },
-    "npm:@unocss/reset@^66.6.0": {
-      "name": "npm:@unocss/reset",
-      "version": "^66.6.0",
-      "source": "pkgx"
-    },
-    "d3@7.9.0": {
-      "name": "d3",
-      "version": "7.9.0",
-      "source": "pkgx"
-    },
-    "npm:@types/d3@7.4.3": {
-      "name": "npm:@types/d3",
-      "version": "7.4.3",
-      "source": "pkgx"
-    },
-    "vue-tsc@^3.2.4": {
-      "name": "vue-tsc",
-      "version": "^3.2.4",
+    "npm:@cwcss/crosswind@^0.1.6": {
+      "name": "npm:@cwcss/crosswind",
+      "version": "^0.1.6",
       "source": "pkgx"
     }
   }
