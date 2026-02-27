@@ -107,16 +107,16 @@ export class DeadLetterQueue<T = any> {
           // Convert array to object
           const jobObj: Record<string, string> = {}
           for (let i = 0; i < jobData.length; i += 2) {
-            jobObj[jobData[i]] = jobData[i + 1]
+            jobObj[jobData[i] as string] = jobData[i + 1] as string
           }
 
           // Create job instance
           const job = new Job<T>(this.queue, jobId as string)
-          job.data = JSON.parse(jobObj.data || '{}')
+          job.data = JSON.parse(jobObj.data || '{}') as T
           job.name = jobObj.originalQueue
           job.timestamp = Number.parseInt(jobObj.timestamp || '0', 10)
           job.attemptsMade = Number.parseInt(jobObj.attemptsMade || '0', 10)
-          job.stacktrace = JSON.parse(jobObj.stacktrace || '[]')
+          job.stacktrace = JSON.parse(jobObj.stacktrace || '[]') as string[]
           job.failedReason = jobObj.failedReason
 
           jobs.push(job)
@@ -149,11 +149,11 @@ export class DeadLetterQueue<T = any> {
       // Convert array to object
       const jobObj: Record<string, string> = {}
       for (let i = 0; i < jobData.length; i += 2) {
-        jobObj[jobData[i]] = jobData[i + 1]
+        jobObj[jobData[i] as string] = jobData[i + 1] as string
       }
 
       // Parse job data
-      const data = JSON.parse(jobObj.data || '{}')
+      const data = JSON.parse(jobObj.data || '{}') as T
       const queueName = jobObj.originalQueue
 
       // Add job back to original queue

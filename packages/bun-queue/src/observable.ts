@@ -195,7 +195,7 @@ export class QueueObservable {
    * Get an observable by id
    */
   async getObservable(observableId: string): Promise<Observable | null> {
-    const data = await this.redisClient.send('HGETALL', [this.getObservableKey(observableId)])
+    const data = await this.redisClient.send('HGETALL', [this.getObservableKey(observableId)]) as Record<string, string> | null
 
     if (!data || Object.keys(data).length === 0) {
       return null
@@ -203,7 +203,7 @@ export class QueueObservable {
 
     return {
       id: observableId,
-      queues: JSON.parse(data.queues || '[]'),
+      queues: JSON.parse(data.queues || '[]') as string[],
       interval: Number.parseInt(data.interval || '5000'),
       running: data.running === 'true',
     }

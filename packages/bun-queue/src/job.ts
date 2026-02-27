@@ -48,7 +48,7 @@ export class Job<T = any> {
     // Convert array to object
     const jobObj: Record<string, string> = {}
     for (let i = 0; i < jobData.length; i += 2) {
-      jobObj[jobData[i]] = jobData[i + 1]
+      jobObj[jobData[i] as string] = jobData[i + 1] as string
     }
 
     const parsed = parseJob(jobObj)

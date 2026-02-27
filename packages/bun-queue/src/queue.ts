@@ -1110,7 +1110,7 @@ export class Queue<T = any> {
       const jobData = {
         class: job.constructor.name,
         method: 'handle',
-        args: [],
+        args: [] as any[],
         job,
         batchId,
         batchIndex: index,

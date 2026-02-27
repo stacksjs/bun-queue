@@ -192,7 +192,7 @@ export class WorkCoordinator {
       }
 
       // Update the heartbeat time
-      const instanceInfo = JSON.parse(instanceInfoJson)
+      const instanceInfo = JSON.parse(instanceInfoJson) as Record<string, any>
       instanceInfo.lastHeartbeat = Date.now()
 
       // Save updated info
@@ -239,10 +239,10 @@ export class WorkCoordinator {
           continue // Instance data missing
         }
 
-        const info = JSON.parse(infoJson)
+        const info = JSON.parse(infoJson) as Record<string, any>
 
         // Check if instance is still active (heartbeat not too old)
-        const lastHeartbeat = info.lastHeartbeat || 0
+        const lastHeartbeat = (info.lastHeartbeat as number) || 0
         if (Date.now() - lastHeartbeat > this.pollInterval * 3) {
           // Instance considered dead, remove it
           await this.redisClient.send('SREM', [instancesKey, instanceId])
@@ -252,8 +252,8 @@ export class WorkCoordinator {
 
         instanceInfo[instanceId] = info
         activeInstances.push(instanceId)
-        totalWorkers += info.workersAssigned || 0
-        totalMaxWorkers += info.maxWorkers || this.maxWorkersPerInstance
+        totalWorkers += (info.workersAssigned as number) || 0
+        totalMaxWorkers += (info.maxWorkers as number) || this.maxWorkersPerInstance
       }
 
       if (activeInstances.length === 0) {

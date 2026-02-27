@@ -191,7 +191,7 @@ export abstract class JobBase implements JobContract, Queueable, Dispatchable, I
       const jobData = {
         class: this.constructor.name,
         method: 'handle',
-        args: [],
+        args: [] as any[],
         job: this,
       }
 

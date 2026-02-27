@@ -308,7 +308,7 @@ export class QueueWorker {
     if (this.isJobClass(jobData) && jobData.job.backoff) {
       const backoff = jobData.job.backoff
       if (Array.isArray(backoff)) {
-        return backoff[Math.min(queueJob.attemptsMade, backoff.length - 1)] * 1000
+        return (backoff[Math.min(queueJob.attemptsMade, backoff.length - 1)] as number) * 1000
       }
       return backoff * 1000
     }
