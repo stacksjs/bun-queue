@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "@cwcss/crosswind": "^0.1.6",
-    "@stacksjs/bun-queue": "^0.0.1"
+    "@stacksjs/bun-queue": "^0.1.0"
   },
   "devDependencies": {
     "@stacksjs/stx": "^0.2.5",
