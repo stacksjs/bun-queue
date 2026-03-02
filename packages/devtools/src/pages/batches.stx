@@ -76,6 +76,21 @@ const batches = []
   </div>
 
   <script lang="ts">
+    interface BatchData {
+      id: string
+      name: string
+      status: string
+      totalJobs?: number
+      total?: number
+      processedJobs?: number
+      processed?: number
+      failedJobs?: number
+      failed?: number
+      progress: number
+      createdAt: string
+      finishedAt?: string
+    }
+
     // Sidebar toggle
     const sidebar = useRef('sidebar');
     const mainWrapper = useRef('main-wrapper');
@@ -87,11 +102,11 @@ const batches = []
     // Refs
     const batchesContainer = useRef('batches-container');
 
-    function escapeHtml(str) {
+    function escapeHtml(str: string): string {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function statusBadgeClass(status) {
+    function statusBadgeClass(status: string): string {
       if (status === 'completed' || status === 'finished') return 'bg-emerald-500/15 text-emerald-500';
       if (status === 'failed') return 'bg-red-500/15 text-red-500';
       if (status === 'processing' || status === 'active') return 'bg-indigo-500/15 text-indigo-400';
@@ -99,7 +114,7 @@ const batches = []
       return 'bg-zinc-500/15 text-zinc-500';
     }
 
-    function progressBarColorClass(status) {
+    function progressBarColorClass(status: string): string {
       if (status === 'completed' || status === 'finished') return 'bg-emerald-500';
       if (status === 'failed') return 'bg-red-500';
       if (status === 'processing' || status === 'active') return 'bg-indigo-500';
@@ -107,15 +122,15 @@ const batches = []
       return 'bg-indigo-500';
     }
 
-    function formatTime(ts) {
+    function formatTime(ts: string | null | undefined): string {
       if (!ts) return '\u2014';
       return new Date(ts).toLocaleString();
     }
 
-    async function loadBatches() {
+    async function loadBatches(): Promise<void> {
       try {
         const res = await fetch('/api/batches');
-        const batches = await res.json();
+        const batches: BatchData[] = await res.json();
 
         if (!batches || batches.length === 0) {
           batchesContainer.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No batches found. Create a batch to see it here.</div>';
@@ -123,13 +138,13 @@ const batches = []
         }
 
         let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
-        batches.forEach(batch => {
-          const total = batch.totalJobs || batch.total || 0;
-          const processed = batch.processedJobs || batch.processed || 0;
-          const failed = batch.failedJobs || batch.failed || 0;
-          const pending = total - processed - failed;
-          const pct = total > 0 ? Math.round((processed / total) * 100) : 0;
-          const status = batch.status || 'pending';
+        batches.forEach((batch: BatchData) => {
+          const total: number = batch.totalJobs || batch.total || 0;
+          const processed: number = batch.processedJobs || batch.processed || 0;
+          const failed: number = batch.failedJobs || batch.failed || 0;
+          const pending: number = total - processed - failed;
+          const pct: number = total > 0 ? Math.round((processed / total) * 100) : 0;
+          const status: string = batch.status || 'pending';
 
           html += '<div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500">';
           html += '<div class="flex items-center justify-between mb-4">';

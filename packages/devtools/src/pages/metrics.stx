@@ -139,6 +139,26 @@ const title = 'Performance Metrics'
   </div>
 
   <script lang="ts">
+    declare const Chart: any
+
+    interface MetricsData {
+      throughput: number[]
+      latency: number[]
+      errorRate: number[]
+      timestamps: string[]
+    }
+
+    interface DashboardStats {
+      totalQueues: number
+      totalJobs: number
+      activeJobs: number
+      completedJobs: number
+      failedJobs: number
+      throughputPerMinute: number
+      avgLatency: number
+      uptime: number
+    }
+
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')
@@ -156,12 +176,12 @@ const title = 'Performance Metrics'
     }, { target: '#sidebar-toggle' })
 
     // Chart instances
-    let throughputChart = null
-    let latencyChart = null
-    let errorRateChart = null
+    let throughputChart: any = null
+    let latencyChart: any = null
+    let errorRateChart: any = null
 
     // Common chart options
-    function chartOptions(color) {
+    function chartOptions(color?: string): Record<string, any> {
       return {
         responsive: true,
         maintainAspectRatio: false,
@@ -181,7 +201,7 @@ const title = 'Performance Metrics'
       }
     }
 
-    function createLineDataset(label, data, color) {
+    function createLineDataset(label: string, data: number[], color: string): Record<string, any> {
       return {
         label: label,
         data: data,
@@ -195,22 +215,22 @@ const title = 'Performance Metrics'
       }
     }
 
-    let currentRange = '24h'
+    let currentRange: string = '24h'
 
-    async function loadMetrics(timeRange) {
+    async function loadMetrics(timeRange: string): Promise<void> {
       currentRange = timeRange
       try {
         const [metricsRes, statsRes] = await Promise.all([
           fetch('/api/metrics?timeRange=' + timeRange),
           fetch('/api/stats'),
         ])
-        const metrics = await metricsRes.json()
-        const stats = await statsRes.json()
+        const metrics: MetricsData = await metricsRes.json()
+        const stats: DashboardStats = await statsRes.json()
 
         // Update summary stats
-        const avgThroughput = metrics.throughput.length > 0 ? Math.round(metrics.throughput.reduce((a, b) => a + b, 0) / metrics.throughput.length) : 0
-        const avgLatency = metrics.latency.length > 0 ? Math.round(metrics.latency.reduce((a, b) => a + b, 0) / metrics.latency.length) : 0
-        const avgError = metrics.errorRate.length > 0 ? (metrics.errorRate.reduce((a, b) => a + b, 0) / metrics.errorRate.length).toFixed(2) : '0.00'
+        const avgThroughput: number = metrics.throughput.length > 0 ? Math.round(metrics.throughput.reduce((a, b) => a + b, 0) / metrics.throughput.length) : 0
+        const avgLatency: number = metrics.latency.length > 0 ? Math.round(metrics.latency.reduce((a, b) => a + b, 0) / metrics.latency.length) : 0
+        const avgError: string = metrics.errorRate.length > 0 ? (metrics.errorRate.reduce((a, b) => a + b, 0) / metrics.errorRate.length).toFixed(2) : '0.00'
 
         useRef('stat-throughput').textContent = avgThroughput
         useRef('stat-latency').textContent = avgLatency
@@ -256,22 +276,23 @@ const title = 'Performance Metrics'
 
     // Time range button handling
     useRef('time-range-bar').querySelectorAll('.time-range-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', (e: Event) => {
+        const target = e.target as HTMLButtonElement
         useRef('time-range-bar').querySelectorAll('.time-range-btn').forEach(b => {
           b.classList.remove('active')
           b.classList.remove('bg-indigo-500', '!text-white')
           b.classList.add('bg-transparent')
         })
-        e.target.classList.add('active', 'bg-indigo-500', '!text-white')
-        e.target.classList.remove('bg-transparent')
-        loadMetrics(e.target.dataset.range)
+        target.classList.add('active', 'bg-indigo-500', '!text-white')
+        target.classList.remove('bg-transparent')
+        loadMetrics(target.dataset.range)
       })
     })
 
     // Read initial time range from URL
     onMount(() => {
       const route = useRoute()
-      const range = route.query.timeRange || '24h'
+      const range: string = route.query.timeRange || '24h'
 
       useRef('time-range-bar').querySelectorAll('.time-range-btn').forEach(b => {
         const isActive = b.dataset.range === range

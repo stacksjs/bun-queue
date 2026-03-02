@@ -145,6 +145,33 @@ const throughputData = { labels: [], values: [] }
   </div>
 
   <script lang="ts">
+    declare const Chart: any;
+
+    interface QueueData {
+      id: string
+      name: string
+      status: string
+      paused: boolean
+      waiting: number
+      active: number
+      completed: number
+      failed: number
+    }
+
+    interface JobData {
+      id: string
+      name: string
+      status: string
+      attempts: number
+      maxAttempts: number
+      createdAt: string
+      duration?: number
+    }
+
+    interface ThroughputData {
+      throughput: Array<{ label?: string; time?: string; value?: number; count?: number }>
+    }
+
     // Sidebar toggle
     const sidebar = useRef('sidebar');
     const mainWrapper = useRef('main-wrapper');
@@ -154,12 +181,12 @@ const throughputData = { labels: [], values: [] }
     }, { target: '#sidebar-toggle' });
 
     // Get queue ID from URL
-    const pathParts = useRoute().path.split('/');
-    const queueId = decodeURIComponent(pathParts[pathParts.length - 1]);
+    const pathParts: string[] = useRoute().path.split('/');
+    const queueId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
-    let throughputChart = null;
+    let throughputChart: any = null;
 
-    function statusBadgeClass(status) {
+    function statusBadgeClass(status: string): string {
       if (status === 'completed') return 'bg-emerald-500/15 text-emerald-500';
       if (status === 'failed') return 'bg-red-500/15 text-red-500';
       if (status === 'active') return 'bg-indigo-500/15 text-indigo-400';
@@ -167,16 +194,16 @@ const throughputData = { labels: [], values: [] }
       return 'bg-zinc-500/15 text-zinc-500';
     }
 
-    function formatTime(ts) {
+    function formatTime(ts: string | null | undefined): string {
       if (!ts) return '\u2014';
       return new Date(ts).toLocaleString();
     }
 
-    async function loadQueue() {
+    async function loadQueue(): Promise<void> {
       try {
         const res = await fetch('/api/queues');
-        const queues = await res.json();
-        const q = queues.find(q => q.id === queueId || q.name === queueId);
+        const queues: QueueData[] = await res.json();
+        const q: QueueData | undefined = queues.find(q => q.id === queueId || q.name === queueId);
         if (!q) return;
 
         useRef('queue-name').textContent = q.name || queueId;
@@ -189,14 +216,14 @@ const throughputData = { labels: [], values: [] }
           badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-emerald-500/15 text-emerald-500';
         }
 
-        const total = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0);
+        const total: number = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0);
         useRef('stat-total').textContent = total;
         useRef('stat-pending').textContent = q.waiting || 0;
         useRef('stat-active').textContent = q.active || 0;
         useRef('stat-completed').textContent = q.completed || 0;
         useRef('stat-failed').textContent = q.failed || 0;
 
-        const pct = total > 0 ? Math.round(((q.completed || 0) / total) * 100) : 0;
+        const pct: number = total > 0 ? Math.round(((q.completed || 0) / total) * 100) : 0;
         useRef('progress-pct').textContent = pct + '%';
         useRef('progress-fill').style.width = pct + '%';
       } catch (e) {
@@ -204,10 +231,10 @@ const throughputData = { labels: [], values: [] }
       }
     }
 
-    async function loadJobs() {
+    async function loadJobs(): Promise<void> {
       try {
         const res = await fetch('/api/jobs?queue=' + encodeURIComponent(queueId));
-        const jobs = await res.json();
+        const jobs: JobData[] = await res.json();
 
         const container = useRef('jobs-table-container');
         if (!jobs || jobs.length === 0) {
@@ -225,7 +252,7 @@ const throughputData = { labels: [], values: [] }
         html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>';
         html += '</tr></thead><tbody>';
 
-        jobs.forEach(job => {
+        jobs.forEach((job: JobData) => {
           html += '<tr class="hover:bg-[#1e1e26]">';
           html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 font-mono text-xs">' + job.id + '</td>';
           html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">' + (job.name || '\u2014') + '</td>';
@@ -246,13 +273,13 @@ const throughputData = { labels: [], values: [] }
       }
     }
 
-    async function loadThroughput() {
+    async function loadThroughput(): Promise<void> {
       try {
         const res = await fetch('/api/metrics?queue=' + encodeURIComponent(queueId));
-        const data = await res.json();
+        const data: ThroughputData = await res.json();
 
-        const labels = data.throughput ? data.throughput.map(d => d.label || d.time) : [];
-        const values = data.throughput ? data.throughput.map(d => d.value || d.count) : [];
+        const labels: string[] = data.throughput ? data.throughput.map(d => d.label || d.time) : [];
+        const values: number[] = data.throughput ? data.throughput.map(d => d.value || d.count) : [];
 
         const ctx = useRef('throughput-chart').getContext('2d');
 

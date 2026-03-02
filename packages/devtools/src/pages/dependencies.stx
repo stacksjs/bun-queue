@@ -102,6 +102,30 @@ const title = 'Job Dependencies'
   </div>
 
   <script lang="ts">
+    declare const d3: any
+
+    interface DependencyNode {
+      id: string
+      name?: string
+      label?: string
+      status: string
+      x?: number
+      y?: number
+      fx?: number | null
+      fy?: number | null
+    }
+
+    interface DependencyLink {
+      source: string | DependencyNode
+      target: string | DependencyNode
+    }
+
+    interface DependencyGraph {
+      nodes: DependencyNode[]
+      links?: DependencyLink[]
+      edges?: DependencyLink[]
+    }
+
     // Sidebar toggle
     const sidebarEl = useRef('sidebar');
     const mainWrapperEl = useRef('main-wrapper');
@@ -112,7 +136,7 @@ const title = 'Job Dependencies'
       if (simulation) simulation.alpha(0.3).restart();
     }, { target: '#sidebar-toggle' });
 
-    const statusColors = {
+    const statusColors: Record<string, string> = {
       completed: '#10b981',
       active: '#6366f1',
       waiting: '#f59e0b',
@@ -120,17 +144,17 @@ const title = 'Job Dependencies'
       failed: '#ef4444',
     };
 
-    function getStatusColor(status) {
+    function getStatusColor(status: string): string {
       return statusColors[status] || '#71717a';
     }
 
     const tooltipEl = useRef('tooltip');
-    let simulation = null;
+    let simulation: any = null;
 
-    async function loadDependencies() {
+    async function loadDependencies(): Promise<void> {
       try {
         const res = await fetch('/api/dependencies');
-        const data = await res.json();
+        const data: DependencyGraph = await res.json();
 
         if (!data || !data.nodes || data.nodes.length === 0) {
           useRef('graph-empty').textContent = 'No job dependencies found.';
@@ -145,10 +169,10 @@ const title = 'Job Dependencies'
       }
     }
 
-    function buildGraph(data) {
+    function buildGraph(data: DependencyGraph): void {
       const container = useRef('graph-container');
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+      const width: number = container.clientWidth;
+      const height: number = container.clientHeight;
 
       // Create SVG
       const svg = d3.select('#graph-container')
@@ -184,8 +208,8 @@ const title = 'Job Dependencies'
       svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2));
 
       // Build links
-      const nodes = data.nodes.map(d => ({ ...d }));
-      const links = (data.links || data.edges || []).map(d => ({ ...d }));
+      const nodes: DependencyNode[] = data.nodes.map((d: DependencyNode) => ({ ...d }));
+      const links: DependencyLink[] = (data.links || data.edges || []).map((d: DependencyLink) => ({ ...d }));
 
       // Simulation
       simulation = d3.forceSimulation(nodes)

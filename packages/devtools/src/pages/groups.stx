@@ -81,6 +81,16 @@ const groups = []
   </div>
 
   <script lang="ts">
+    interface GroupData {
+      id: string
+      name: string
+      jobCount?: number
+      total?: number
+      active: number
+      completed: number
+      failed: number
+    }
+
     // Sidebar toggle
     const sidebar = useRef('sidebar');
     const mainWrapper = useRef('main-wrapper');
@@ -89,28 +99,28 @@ const groups = []
       mainWrapper.classList.toggle('sidebar-collapsed');
     }, { target: '#sidebar-toggle' });
 
-    let allGroups = [];
+    let allGroups: GroupData[] = [];
 
     // Refs
     const groupsContainer = useRef('groups-container');
     const searchInput = useRef('search-input');
 
-    function escapeHtml(str) {
+    function escapeHtml(str: string): string {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function renderGroups(groups) {
+    function renderGroups(groups: GroupData[]): void {
       if (!groups || groups.length === 0) {
         groupsContainer.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No groups found. Jobs assigned to groups will appear here.</div>';
         return;
       }
 
       let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
-      groups.forEach(group => {
-        const jobCount = group.jobCount || group.total || 0;
-        const active = group.active || 0;
-        const completed = group.completed || 0;
-        const failed = group.failed || 0;
+      groups.forEach((group: GroupData) => {
+        const jobCount: number = group.jobCount || group.total || 0;
+        const active: number = group.active || 0;
+        const completed: number = group.completed || 0;
+        const failed: number = group.failed || 0;
 
         html += '<div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500 flex flex-col">';
         html += '<div class="flex items-center justify-between mb-4">';
@@ -134,10 +144,10 @@ const groups = []
       groupsContainer.innerHTML = html;
     }
 
-    async function loadGroups() {
+    async function loadGroups(): Promise<void> {
       try {
         const res = await fetch('/api/groups');
-        allGroups = await res.json();
+        allGroups = await res.json() as GroupData[];
         filterAndRender();
       } catch (e) {
         console.error('Failed to load groups:', e);
@@ -146,13 +156,13 @@ const groups = []
       }
     }
 
-    function filterAndRender() {
-      const query = searchInput.value.toLowerCase().trim();
+    function filterAndRender(): void {
+      const query: string = searchInput.value.toLowerCase().trim();
       if (!query) {
         renderGroups(allGroups);
         return;
       }
-      const filtered = allGroups.filter(g => {
+      const filtered: GroupData[] = allGroups.filter(g => {
         const name = (g.name || g.id || '').toLowerCase();
         return name.includes(query);
       });

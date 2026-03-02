@@ -164,6 +164,22 @@ const job = {
   </div>
 
   <script lang="ts">
+    interface JobData {
+      id: string
+      name: string
+      queue: string
+      status: string
+      data: Record<string, unknown>
+      error?: string | Record<string, unknown>
+      attempts: number
+      maxAttempts: number
+      createdAt: string
+      processedAt?: string
+      completedAt?: string
+      failedAt?: string
+      duration?: number
+    }
+
     const pageTitle = useTitle();
 
     // Sidebar toggle
@@ -175,10 +191,10 @@ const job = {
     }, { target: '#sidebar-toggle' });
 
     // Get job ID from URL
-    const pathParts = useRoute().path.split('/');
-    const jobId = decodeURIComponent(pathParts[pathParts.length - 1]);
+    const pathParts: string[] = useRoute().path.split('/');
+    const jobId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
-    function statusBadgeClass(status) {
+    function statusBadgeClass(status: string): string {
       if (status === 'completed') return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-emerald-500/15 text-emerald-500';
       if (status === 'failed') return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-red-500/15 text-red-500';
       if (status === 'active') return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-indigo-500/15 text-indigo-400';
@@ -186,15 +202,15 @@ const job = {
       return 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-zinc-500/15 text-zinc-500';
     }
 
-    function formatTime(ts) {
+    function formatTime(ts: string | null | undefined): string {
       if (!ts) return '\u2014';
       return new Date(ts).toLocaleString();
     }
 
-    async function loadJob() {
+    async function loadJob(): Promise<void> {
       try {
         const res = await fetch('/api/jobs/' + encodeURIComponent(jobId));
-        const job = await res.json();
+        const job: JobData = await res.json();
 
         // Header
         useRef('job-name').textContent = job.name || 'Job ' + job.id;
@@ -243,7 +259,7 @@ const job = {
       }
     }
 
-    function escapeHtml(str) {
+    function escapeHtml(str: string): string {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 

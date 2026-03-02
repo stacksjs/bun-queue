@@ -115,10 +115,22 @@ const title = 'Jobs'
       sidebarStorage.set(sidebar.classList.contains('collapsed'))
     }, { target: '#sidebar-toggle' })
 
-    let allJobs = []
-    let currentStatus = 'all'
+    interface JobData {
+      id: string
+      name: string
+      queue: string
+      status: string
+      duration?: number
+      createdAt: string
+      completedAt?: string
+      failedAt?: string
+      processedAt?: string
+    }
 
-    function badgeClass(status) {
+    let allJobs: JobData[] = []
+    let currentStatus: string = 'all'
+
+    function badgeClass(status: string): string {
       const map = {
         completed: 'bg-emerald-500/15 text-emerald-500',
         failed: 'bg-red-500/15 text-red-500',
@@ -129,7 +141,7 @@ const title = 'Jobs'
       return map[status] || 'bg-zinc-500/15 text-zinc-500'
     }
 
-    function renderJobs(jobs) {
+    function renderJobs(jobs: JobData[]): void {
       const panel = useRef('jobs-panel')
       if (jobs.length === 0) {
         panel.innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>'
@@ -146,8 +158,8 @@ const title = 'Jobs'
       html += '<th class="px-4 py-2.5 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Actions</th>'
       html += '</tr></thead><tbody>'
 
-      jobs.forEach(job => {
-        const updated = job.completedAt || job.failedAt || job.processedAt || job.createdAt
+      jobs.forEach((job: JobData) => {
+        const updated: string = job.completedAt || job.failedAt || job.processedAt || job.createdAt
         html += '<tr class="hover:bg-[#1e1e26]">'
         html += '<td class="px-4 py-2.5 text-sm text-zinc-50 font-medium border-b border-zinc-800 last:border-b-0">' + job.name + '</td>'
         html += '<td class="px-4 py-2.5 font-mono text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + job.id + '</td>'
@@ -163,9 +175,9 @@ const title = 'Jobs'
       panel.innerHTML = html
     }
 
-    function filterJobs() {
+    function filterJobs(): void {
       const query = useRef('search-input').value.toLowerCase().trim()
-      let filtered = allJobs
+      let filtered: JobData[] = allJobs
 
       if (currentStatus !== 'all') {
         filtered = filtered.filter(j => j.status === currentStatus)
@@ -182,10 +194,10 @@ const title = 'Jobs'
       renderJobs(filtered)
     }
 
-    async function loadJobs() {
+    async function loadJobs(): Promise<void> {
       try {
         const res = await fetch('/api/jobs')
-        allJobs = await res.json()
+        allJobs = await res.json() as JobData[]
         filterJobs()
       } catch (err) {
         console.error('Failed to load jobs:', err)
@@ -196,14 +208,15 @@ const title = 'Jobs'
     // Status filter buttons
     useRef('filter-bar').querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
+        const target = e.target as HTMLButtonElement
         useRef('filter-bar').querySelectorAll('.filter-btn').forEach(b => {
           b.classList.remove('active')
           b.classList.remove('bg-indigo-500', '!text-white')
           b.classList.add('bg-transparent')
         })
-        e.target.classList.add('active', 'bg-indigo-500', '!text-white')
-        e.target.classList.remove('bg-transparent')
-        currentStatus = e.target.dataset.status
+        target.classList.add('active', 'bg-indigo-500', '!text-white')
+        target.classList.remove('bg-transparent')
+        currentStatus = target.dataset.status
         filterJobs()
       })
     })

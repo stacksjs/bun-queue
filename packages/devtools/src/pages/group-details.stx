@@ -131,6 +131,28 @@ const jobs = []
   </div>
 
   <script lang="ts">
+    interface GroupData {
+      id: string
+      name: string
+      totalJobs?: number
+      jobCount?: number
+      total?: number
+      active: number
+      waiting: number
+      completed: number
+      failed: number
+      createdAt: string
+      updatedAt: string
+    }
+
+    interface JobData {
+      id: string
+      name: string
+      status: string
+      createdAt: string
+      updatedAt?: string
+    }
+
     // Sidebar toggle
     const sidebar = useRef('sidebar');
     const mainWrapper = useRef('main-wrapper');
@@ -144,8 +166,8 @@ const jobs = []
 
     // Get group ID from URL
     const route = useRoute();
-    const pathParts = route.path.split('/');
-    const groupId = decodeURIComponent(pathParts[pathParts.length - 1]);
+    const pathParts: string[] = route.path.split('/');
+    const groupId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
     // Refs
     const groupNameEl = useRef('group-name');
@@ -158,7 +180,7 @@ const jobs = []
     const metaUpdatedEl = useRef('meta-updated');
     const jobsTableContainer = useRef('jobs-table-container');
 
-    function statusBadgeClass(status) {
+    function statusBadgeClass(status: string): string {
       if (status === 'completed') return 'bg-emerald-500/15 text-emerald-500';
       if (status === 'failed') return 'bg-red-500/15 text-red-500';
       if (status === 'active') return 'bg-indigo-500/15 text-indigo-400';
@@ -166,22 +188,22 @@ const jobs = []
       return 'bg-zinc-500/15 text-zinc-500';
     }
 
-    function formatTime(ts) {
+    function formatTime(ts: string | null | undefined): string {
       if (!ts) return '\u2014';
       return new Date(ts).toLocaleString();
     }
 
-    async function loadGroup() {
+    async function loadGroup(): Promise<void> {
       try {
         const res = await fetch('/api/groups/' + encodeURIComponent(groupId));
-        const group = await res.json();
+        const group: GroupData = await res.json();
 
         // Header
         groupNameEl.textContent = group.name || groupId;
         pageTitle.set((group.name || groupId) + ' \u2014 bun-queue');
 
         // Stats
-        const total = group.totalJobs || group.jobCount || group.total || 0;
+        const total: number = group.totalJobs || group.jobCount || group.total || 0;
         statTotalEl.textContent = total;
         statActiveEl.textContent = group.active || 0;
         statWaitingEl.textContent = group.waiting || 0;
@@ -196,10 +218,10 @@ const jobs = []
       }
     }
 
-    async function loadJobs() {
+    async function loadJobs(): Promise<void> {
       try {
         const res = await fetch('/api/groups/' + encodeURIComponent(groupId) + '/jobs');
-        const jobs = await res.json();
+        const jobs: JobData[] = await res.json();
 
         if (!jobs || jobs.length === 0) {
           jobsTableContainer.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this group.</div>';
@@ -213,7 +235,7 @@ const jobs = []
         html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>';
         html += '</tr></thead><tbody>';
 
-        jobs.forEach(job => {
+        jobs.forEach((job: JobData) => {
           html += '<tr class="hover:bg-[#1e1e26]">';
           html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">' + (job.name || job.id || '\u2014') + '</td>';
           html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + statusBadgeClass(job.status) + '">' + job.status + '</span></td>';

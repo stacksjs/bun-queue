@@ -112,19 +112,34 @@ const title = 'Queues'
       sidebarStorage.set(sidebar.classList.contains('collapsed'))
     }, { target: '#sidebar-toggle' })
 
-    let allQueues = []
+    interface Queue {
+      id: string
+      name: string
+      status: string
+      jobCount: number
+      pendingJobs: number
+      activeJobs: number
+      completedJobs: number
+    }
 
-    function statusBadge(status) {
-      const map = {
+    interface StatusBadgeInfo {
+      cls: string
+      label: string
+    }
+
+    let allQueues: Queue[] = []
+
+    function statusBadge(status: string): string {
+      const map: Record<string, StatusBadgeInfo> = {
         active: { cls: 'bg-emerald-500/15 text-emerald-500', label: 'Active' },
         paused: { cls: 'bg-amber-500/15 text-amber-500', label: 'Paused' },
         stopped: { cls: 'bg-red-500/15 text-red-500', label: 'Stopped' },
       }
-      const info = map[status] || { cls: 'bg-zinc-500/15 text-zinc-500', label: status }
+      const info: StatusBadgeInfo = map[status] || { cls: 'bg-zinc-500/15 text-zinc-500', label: status }
       return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + info.cls + '">' + info.label + '</span>'
     }
 
-    function renderQueues(queues) {
+    function renderQueues(queues: Queue[]): void {
       const container = useRef('queues-container')
       if (queues.length === 0) {
         container.innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">No queues found matching your search.</div>'
@@ -132,7 +147,7 @@ const title = 'Queues'
       }
 
       let html = '<div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">'
-      queues.forEach(q => {
+      queues.forEach((q: Queue) => {
         html += '<div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 hover:border-indigo-500 transition-colors duration-150">'
         html += '<div class="flex items-center justify-between mb-4">'
         html += '<span class="text-[0.9375rem] font-semibold text-zinc-50">' + q.name + '</span>'
@@ -153,10 +168,10 @@ const title = 'Queues'
       container.innerHTML = html
     }
 
-    async function loadQueues() {
+    async function loadQueues(): Promise<void> {
       try {
         const res = await fetch('/api/queues')
-        allQueues = await res.json()
+        allQueues = await res.json() as Queue[]
         filterQueues()
       } catch (err) {
         console.error('Failed to load queues:', err)
@@ -164,7 +179,7 @@ const title = 'Queues'
       }
     }
 
-    function filterQueues() {
+    function filterQueues(): void {
       const query = useRef('search-input').value.toLowerCase().trim()
       if (!query) {
         renderQueues(allQueues)

@@ -168,11 +168,54 @@ const title = 'bun-queue Dashboard'
       sidebarStorage.set(sidebar.classList.contains('collapsed'))
     }, { target: '#sidebar-toggle' })
 
-    // Chart instances
-    let throughputChart = null
-    let queueStatusChart = null
+    // CDN globals
+    declare const Chart: any
 
-    function badgeClass(status) {
+    // Interfaces
+    interface DashboardStats {
+      totalQueues: number
+      totalJobs: number
+      activeJobs: number
+      completedJobs: number
+      failedJobs: number
+      throughputPerMinute: number
+      avgLatency: number
+      uptime: number
+    }
+
+    interface MetricsData {
+      throughput: number[]
+      latency: number[]
+      errorRate: number[]
+      timestamps: string[]
+    }
+
+    interface JobData {
+      id: string
+      name: string
+      queue: string
+      status: string
+      duration?: number
+      createdAt: string
+      completedAt?: string
+      failedAt?: string
+      processedAt?: string
+    }
+
+    interface Queue {
+      id: string
+      name: string
+      status: string
+      activeJobs: number
+      pendingJobs: number
+      failedJobs: number
+    }
+
+    // Chart instances
+    let throughputChart: any = null
+    let queueStatusChart: any = null
+
+    function badgeClass(status: string): string {
       const map = {
         completed: 'bg-emerald-500/15 text-emerald-500',
         failed: 'bg-red-500/15 text-red-500',
@@ -183,11 +226,11 @@ const title = 'bun-queue Dashboard'
       return map[status] || 'bg-zinc-500/15 text-zinc-500'
     }
 
-    async function loadDashboard() {
+    async function loadDashboard(): Promise<void> {
       try {
         // Fetch stats
         const statsRes = await fetch('/api/stats')
-        const stats = await statsRes.json()
+        const stats: DashboardStats = await statsRes.json()
 
         useRef('stat-active-queues').textContent = stats.totalQueues
         useRef('stat-waiting-jobs').textContent = stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs
@@ -198,7 +241,7 @@ const title = 'bun-queue Dashboard'
 
         // Fetch metrics for throughput chart
         const metricsRes = await fetch('/api/metrics?timeRange=24h')
-        const metrics = await metricsRes.json()
+        const metrics: MetricsData = await metricsRes.json()
 
         if (throughputChart) throughputChart.destroy()
         const ctx1 = useRef('throughput-chart').getContext('2d')
@@ -258,8 +301,8 @@ const title = 'bun-queue Dashboard'
 
         // Fetch recent jobs
         const jobsRes = await fetch('/api/jobs')
-        const jobs = await jobsRes.json()
-        const recent = jobs.slice(0, 5)
+        const jobs: JobData[] = await jobsRes.json()
+        const recent: JobData[] = jobs.slice(0, 5)
 
         const jobsContainer = useRef('recent-jobs-container')
         if (recent.length === 0) {
@@ -271,8 +314,8 @@ const title = 'bun-queue Dashboard'
           html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Status</th>'
           html += '<th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Duration</th>'
           html += '</tr></thead><tbody>'
-          recent.forEach(job => {
-            const dur = job.duration ? (job.duration / 1000).toFixed(1) + 's' : '\u2014'
+          recent.forEach((job: JobData) => {
+            const dur: string = job.duration ? (job.duration / 1000).toFixed(1) + 's' : '\u2014'
             html += '<tr class="hover:bg-[#1e1e26]">'
             html += '<td class="px-3 py-2.5 text-sm text-zinc-50 font-medium border-b border-zinc-800 last:border-b-0">' + job.name + '</td>'
             html += '<td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + job.queue + '</td>'
@@ -286,14 +329,14 @@ const title = 'bun-queue Dashboard'
 
         // Fetch queues
         const queuesRes = await fetch('/api/queues')
-        const queues = await queuesRes.json()
+        const queues: Queue[] = await queuesRes.json()
 
         const queueContainer = useRef('queue-list-container')
         if (queues.length === 0) {
           queueContainer.innerHTML = '<div class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>'
         } else {
           let html = '<div class="flex flex-col gap-3">'
-          queues.forEach(q => {
+          queues.forEach((q: Queue) => {
             html += '<div class="bg-[#1e1e26] rounded-md px-4 py-3 flex items-center justify-between hover:bg-indigo-500/[0.08] transition-colors duration-150">'
             html += '<div><div class="text-sm font-medium text-zinc-50">' + q.name + '</div></div>'
             html += '<div class="flex gap-4 text-xs text-zinc-500 tabular-nums">'

@@ -169,6 +169,42 @@ const title = 'Real-time Monitoring'
   </div>
 
   <script lang="ts">
+    interface DashboardStats {
+      totalQueues: number
+      totalJobs: number
+      activeJobs: number
+      completedJobs: number
+      failedJobs: number
+      throughputPerMinute: number
+      avgLatency: number
+      uptime: number
+    }
+
+    interface QueueMetrics {
+      name: string
+      waiting: number
+      active: number
+      completed: number
+      failed: number
+      throughput: number
+      errorRate: number
+      avgProcessingTime: number
+      paused: boolean
+    }
+
+    interface EventTemplate {
+      type: string
+      message: string
+      dot: string
+    }
+
+    interface MonitoringEvent {
+      type: string
+      dot: string
+      message: string
+      time: string
+    }
+
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')
@@ -186,12 +222,13 @@ const title = 'Real-time Monitoring'
     }, { target: '#sidebar-toggle' })
 
     // Auto-refresh
-    let autoRefreshEnabled = true
-    let refreshTimer = null
-    const REFRESH_INTERVAL = 3000
+    let autoRefreshEnabled: boolean = true
+    let refreshTimer: ReturnType<typeof setInterval> | null = null
+    const REFRESH_INTERVAL: number = 3000
 
-    useEventListener('change', (e) => {
-      autoRefreshEnabled = e.target.checked
+    useEventListener('change', (e: Event) => {
+      const target = e.target as HTMLInputElement
+      autoRefreshEnabled = target.checked
       if (autoRefreshEnabled) {
         startAutoRefresh()
       } else {
@@ -199,13 +236,13 @@ const title = 'Real-time Monitoring'
       }
     }, { target: '#auto-refresh-toggle' })
 
-    function startAutoRefresh() {
+    function startAutoRefresh(): void {
       if (refreshTimer) clearInterval(refreshTimer)
       refreshTimer = setInterval(refreshMonitoring, REFRESH_INTERVAL)
       useRef('refresh-interval-label').textContent = 'every 3s'
     }
 
-    function stopAutoRefresh() {
+    function stopAutoRefresh(): void {
       if (refreshTimer) {
         clearInterval(refreshTimer)
         refreshTimer = null
@@ -214,7 +251,7 @@ const title = 'Real-time Monitoring'
     }
 
     // Mock event types
-    const eventTypes = [
+    const eventTypes: EventTemplate[] = [
       { type: 'completed', message: 'Job <strong>{name}</strong> completed successfully', dot: 'completed' },
       { type: 'started', message: 'Job <strong>{name}</strong> started processing', dot: 'started' },
       { type: 'failed', message: 'Job <strong>{name}</strong> failed: timeout exceeded', dot: 'failed' },
@@ -222,17 +259,17 @@ const title = 'Real-time Monitoring'
       { type: 'completed', message: 'Job <strong>{name}</strong> completed in {dur}ms', dot: 'completed' },
     ]
 
-    const jobNames = [
+    const jobNames: string[] = [
       'Send Welcome Email', 'Process Profile Picture', 'Import Customer Data',
       'Generate Monthly Report', 'Send Push Notification', 'Daily Database Backup',
       'Process Analytics Data', 'Optimize Product Images', 'Send Weekly Newsletter',
       'Generate Sales Report'
     ]
 
-    let events = []
-    const MAX_EVENTS = 50
+    let events: MonitoringEvent[] = []
+    const MAX_EVENTS: number = 50
 
-    function generateEvent() {
+    function generateEvent(): MonitoringEvent {
       const template = eventTypes[Math.floor(Math.random() * eventTypes.length)]
       const name = jobNames[Math.floor(Math.random() * jobNames.length)]
       const dur = Math.floor(Math.random() * 2000 + 100)
@@ -246,12 +283,12 @@ const title = 'Real-time Monitoring'
       }
     }
 
-    function dotColor(dot) {
+    function dotColor(dot: string): string {
       const map = { completed: 'bg-emerald-500', started: 'bg-indigo-500', failed: 'bg-red-500', queued: 'bg-amber-500' }
       return map[dot] || 'bg-zinc-500'
     }
 
-    function renderEvents() {
+    function renderEvents(): void {
       const container = useRef('event-log')
       let html = ''
       events.forEach(ev => {
@@ -269,33 +306,33 @@ const title = 'Real-time Monitoring'
       renderEvents()
     }, { target: '#clear-log-btn' })
 
-    async function refreshMonitoring() {
+    async function refreshMonitoring(): Promise<void> {
       try {
         // Fetch live stats
         const statsRes = await fetch('/api/stats')
-        const stats = await statsRes.json()
+        const stats: DashboardStats = await statsRes.json()
 
         // Simulate real-time values with slight randomness
-        const jobsSec = (stats.throughputPerMinute / 60).toFixed(1)
+        const jobsSec: string = (stats.throughputPerMinute / 60).toFixed(1)
         useRef('stat-jobs-sec').textContent = jobsSec
         useRef('stat-avg-latency').innerHTML = stats.avgLatency + '<span class="text-xs text-zinc-500 font-normal"> ms</span>'
-        const errRate = ((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2)
+        const errRate: string = ((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2)
         useRef('stat-error-rate').innerHTML = errRate + '<span class="text-xs text-zinc-500 font-normal"> %</span>'
         useRef('stat-active-workers').textContent = stats.activeJobs
 
         // Add new event
-        const newEvent = generateEvent()
+        const newEvent: MonitoringEvent = generateEvent()
         events.unshift(newEvent)
         if (events.length > MAX_EVENTS) events = events.slice(0, MAX_EVENTS)
         renderEvents()
 
         // Fetch queue health
         const queuesRes = await fetch('/api/queues/metrics')
-        const queues = await queuesRes.json()
+        const queues: QueueMetrics[] = await queuesRes.json()
 
         const healthGrid = useRef('queue-health-grid')
         let html = ''
-        queues.forEach(q => {
+        queues.forEach((q: QueueMetrics) => {
           const healthColor = q.errorRate > 5 ? 'bg-red-500' : q.errorRate > 1 ? 'bg-amber-500' : 'bg-emerald-500'
           html += '<div class="bg-[#1e1e26] rounded-md p-4">'
           html += '<div class="flex items-center justify-between mb-3">'
