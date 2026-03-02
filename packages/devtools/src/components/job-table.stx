@@ -1,14 +1,5 @@
 <script>
-interface JobTableRow {
-  id: string
-  queue: string
-  name: string
-  status: string
-  attempts: number
-  maxAttempts: number
-  createdAt: string
-  duration?: number
-}
+import type { JobTableRow } from '../types/components'
 
 const jobs: JobTableRow[] = []
 </script>

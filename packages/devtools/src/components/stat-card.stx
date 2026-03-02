@@ -1,5 +1,5 @@
 <script>
-type StatVariant = 'active' | 'completed' | 'failed' | ''
+import type { StatVariant } from '../types/components'
 
 const label: string = ''
 const value: number = 0

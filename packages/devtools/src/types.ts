@@ -42,3 +42,9 @@ export type {
   EventTemplate,
   MonitoringEvent,
 } from './types/monitoring'
+
+export type {
+  StatVariant,
+  QueueStatusData,
+  JobTableRow,
+} from './types/components'

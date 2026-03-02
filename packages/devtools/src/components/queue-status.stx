@@ -1,12 +1,5 @@
 <script>
-interface QueueStatusData {
-  name: string
-  paused: boolean
-  waiting: number
-  active: number
-  completed: number
-  failed: number
-}
+import type { QueueStatusData } from '../types/components'
 
 const queue: QueueStatusData = {
   name: '',
