@@ -102,29 +102,9 @@ const title = 'Job Dependencies'
   </div>
 
   <script lang="ts">
+    import type { DependencyNode, DependencyLink, DependencyGraph } from '../types/dependency'
+
     declare const d3: any
-
-    interface DependencyNode {
-      id: string
-      name?: string
-      label?: string
-      status: string
-      x?: number
-      y?: number
-      fx?: number | null
-      fy?: number | null
-    }
-
-    interface DependencyLink {
-      source: string | DependencyNode
-      target: string | DependencyNode
-    }
-
-    interface DependencyGraph {
-      nodes: DependencyNode[]
-      links?: DependencyLink[]
-      edges?: DependencyLink[]
-    }
 
     // Sidebar toggle
     const sidebarEl = useRef('sidebar');

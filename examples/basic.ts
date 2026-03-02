@@ -27,7 +27,7 @@ async function main() {
 
   // Process jobs with concurrency of 2
   emailQueue.process(2, async (job) => {
-    const { to, subject, body } = job.data
+    const { to, subject: _subject, body: _body } = job.data
 
     console.log(`Processing email to ${to}`)
 

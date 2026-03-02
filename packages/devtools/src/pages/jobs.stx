@@ -109,23 +109,13 @@ const title = 'Jobs'
       mainWrapper.classList.add('sidebar-collapsed')
     }
 
+    import type { JobData } from '../types/job'
+
     useEventListener('click', () => {
       sidebar.classList.toggle('collapsed')
       mainWrapper.classList.toggle('sidebar-collapsed')
       sidebarStorage.set(sidebar.classList.contains('collapsed'))
     }, { target: '#sidebar-toggle' })
-
-    interface JobData {
-      id: string
-      name: string
-      queue: string
-      status: string
-      duration?: number
-      createdAt: string
-      completedAt?: string
-      failedAt?: string
-      processedAt?: string
-    }
 
     let allJobs: JobData[] = []
     let currentStatus: string = 'all'

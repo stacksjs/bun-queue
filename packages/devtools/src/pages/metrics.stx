@@ -139,25 +139,10 @@ const title = 'Performance Metrics'
   </div>
 
   <script lang="ts">
+    import type { DashboardStats } from '../types/dashboard'
+    import type { MetricsData } from '../types/metrics'
+
     declare const Chart: any
-
-    interface MetricsData {
-      throughput: number[]
-      latency: number[]
-      errorRate: number[]
-      timestamps: string[]
-    }
-
-    interface DashboardStats {
-      totalQueues: number
-      totalJobs: number
-      activeJobs: number
-      completedJobs: number
-      failedJobs: number
-      throughputPerMinute: number
-      avgLatency: number
-      uptime: number
-    }
 
     // Sidebar toggle
     const sidebar = useRef('sidebar')

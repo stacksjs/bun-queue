@@ -106,26 +106,13 @@ const title = 'Queues'
       mainWrapper.classList.add('sidebar-collapsed')
     }
 
+    import type { Queue, StatusBadgeInfo } from '../types/queue'
+
     useEventListener('click', () => {
       sidebar.classList.toggle('collapsed')
       mainWrapper.classList.toggle('sidebar-collapsed')
       sidebarStorage.set(sidebar.classList.contains('collapsed'))
     }, { target: '#sidebar-toggle' })
-
-    interface Queue {
-      id: string
-      name: string
-      status: string
-      jobCount: number
-      pendingJobs: number
-      activeJobs: number
-      completedJobs: number
-    }
-
-    interface StatusBadgeInfo {
-      cls: string
-      label: string
-    }
 
     let allQueues: Queue[] = []
 

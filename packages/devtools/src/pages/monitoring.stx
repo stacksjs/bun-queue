@@ -169,41 +169,9 @@ const title = 'Real-time Monitoring'
   </div>
 
   <script lang="ts">
-    interface DashboardStats {
-      totalQueues: number
-      totalJobs: number
-      activeJobs: number
-      completedJobs: number
-      failedJobs: number
-      throughputPerMinute: number
-      avgLatency: number
-      uptime: number
-    }
-
-    interface QueueMetrics {
-      name: string
-      waiting: number
-      active: number
-      completed: number
-      failed: number
-      throughput: number
-      errorRate: number
-      avgProcessingTime: number
-      paused: boolean
-    }
-
-    interface EventTemplate {
-      type: string
-      message: string
-      dot: string
-    }
-
-    interface MonitoringEvent {
-      type: string
-      dot: string
-      message: string
-      time: string
-    }
+    import type { DashboardStats } from '../types/dashboard'
+    import type { QueueMetrics } from '../types/queue'
+    import type { EventTemplate, MonitoringEvent } from '../types/monitoring'
 
     // Sidebar toggle
     const sidebar = useRef('sidebar')

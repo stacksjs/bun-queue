@@ -19,7 +19,7 @@ async function main() {
 
   // Create a rate limiter with key-based options
   // This limits each user to 2 emails per 10 seconds
-  const emailRateLimiter = new RateLimiter(emailQueue, {
+  const _emailRateLimiter = new RateLimiter(emailQueue, {
     max: 2, // 2 emails
     duration: 10000, // per 10 seconds
     keyPrefix: 'userId' // Rate limit by userId field

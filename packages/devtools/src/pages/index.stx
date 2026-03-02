@@ -168,48 +168,13 @@ const title = 'bun-queue Dashboard'
       sidebarStorage.set(sidebar.classList.contains('collapsed'))
     }, { target: '#sidebar-toggle' })
 
+    import type { DashboardStats } from '../types/dashboard'
+    import type { MetricsData } from '../types/metrics'
+    import type { JobData } from '../types/job'
+    import type { Queue } from '../types/queue'
+
     // CDN globals
     declare const Chart: any
-
-    // Interfaces
-    interface DashboardStats {
-      totalQueues: number
-      totalJobs: number
-      activeJobs: number
-      completedJobs: number
-      failedJobs: number
-      throughputPerMinute: number
-      avgLatency: number
-      uptime: number
-    }
-
-    interface MetricsData {
-      throughput: number[]
-      latency: number[]
-      errorRate: number[]
-      timestamps: string[]
-    }
-
-    interface JobData {
-      id: string
-      name: string
-      queue: string
-      status: string
-      duration?: number
-      createdAt: string
-      completedAt?: string
-      failedAt?: string
-      processedAt?: string
-    }
-
-    interface Queue {
-      id: string
-      name: string
-      status: string
-      activeJobs: number
-      pendingJobs: number
-      failedJobs: number
-    }
 
     // Chart instances
     let throughputChart: any = null

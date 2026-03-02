@@ -253,7 +253,7 @@ async function main() {
   // 6. Report generation with dependencies
   console.log('6. Report generation:')
   const reportJob = new GenerateReportJob('sales', 'user_789', { period: 'monthly', year: 2024 })
-  const reportJobResult = await dispatch(reportJob)
+  const _reportJobResult = await dispatch(reportJob)
 
   // Send notification after report is generated
   const notificationJob = new SendNotificationJob(
