@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Job Dependencies'
 </script>
 
@@ -101,7 +101,7 @@ const title = 'Job Dependencies'
     </div>
   </div>
 
-  <script lang="ts">
+  <script>
     import type { DependencyNode, DependencyLink, DependencyGraph } from '../types/dependency'
 
     declare const d3: any

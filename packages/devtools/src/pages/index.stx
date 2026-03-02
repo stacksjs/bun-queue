@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'bun-queue Dashboard'
 </script>
 
@@ -151,7 +151,12 @@ const title = 'bun-queue Dashboard'
     </div>
   </div>
 
-  <script lang="ts">
+  <script>
+    import type { DashboardStats } from '../types/dashboard'
+    import type { MetricsData } from '../types/metrics'
+    import type { JobData } from '../types/job'
+    import type { Queue } from '../types/queue'
+
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')
@@ -167,11 +172,6 @@ const title = 'bun-queue Dashboard'
       mainWrapper.classList.toggle('sidebar-collapsed')
       sidebarStorage.set(sidebar.classList.contains('collapsed'))
     }, { target: '#sidebar-toggle' })
-
-    import type { DashboardStats } from '../types/dashboard'
-    import type { MetricsData } from '../types/metrics'
-    import type { JobData } from '../types/job'
-    import type { Queue } from '../types/queue'
 
     // CDN globals
     declare const Chart: any

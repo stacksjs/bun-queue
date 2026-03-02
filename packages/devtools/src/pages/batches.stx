@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Batches'
 const batches = []
 </script>
@@ -75,21 +75,8 @@ const batches = []
     </div>
   </div>
 
-  <script lang="ts">
-    interface BatchData {
-      id: string
-      name: string
-      status: string
-      totalJobs?: number
-      total?: number
-      processedJobs?: number
-      processed?: number
-      failedJobs?: number
-      failed?: number
-      progress: number
-      createdAt: string
-      finishedAt?: string
-    }
+  <script>
+    import type { Batch } from '../types/batch'
 
     // Sidebar toggle
     const sidebar = useRef('sidebar');
@@ -130,7 +117,7 @@ const batches = []
     async function loadBatches(): Promise<void> {
       try {
         const res = await fetch('/api/batches');
-        const batches: BatchData[] = await res.json();
+        const batches: Batch[] = await res.json();
 
         if (!batches || batches.length === 0) {
           batchesContainer.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No batches found. Create a batch to see it here.</div>';
@@ -138,7 +125,7 @@ const batches = []
         }
 
         let html = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
-        batches.forEach((batch: BatchData) => {
+        batches.forEach((batch: Batch) => {
           const total: number = batch.totalJobs || batch.total || 0;
           const processed: number = batch.processedJobs || batch.processed || 0;
           const failed: number = batch.failedJobs || batch.failed || 0;

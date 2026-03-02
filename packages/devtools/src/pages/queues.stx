@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Queues'
 </script>
 
@@ -95,7 +95,9 @@ const title = 'Queues'
     </div>
   </div>
 
-  <script lang="ts">
+  <script>
+    import type { Queue, StatusBadgeInfo } from '../types/queue'
+
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')
@@ -105,8 +107,6 @@ const title = 'Queues'
       sidebar.classList.add('collapsed')
       mainWrapper.classList.add('sidebar-collapsed')
     }
-
-    import type { Queue, StatusBadgeInfo } from '../types/queue'
 
     useEventListener('click', () => {
       sidebar.classList.toggle('collapsed')

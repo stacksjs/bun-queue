@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Real-time Monitoring'
 </script>
 
@@ -168,7 +168,7 @@ const title = 'Real-time Monitoring'
     </div>
   </div>
 
-  <script lang="ts">
+  <script>
     import type { DashboardStats } from '../types/dashboard'
     import type { QueueMetrics } from '../types/queue'
     import type { EventTemplate, MonitoringEvent } from '../types/monitoring'

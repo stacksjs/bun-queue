@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const pageTitle = 'bun-queue Dashboard'
 </script>
 

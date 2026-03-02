@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Job Details'
 const job = {
   id: '',
@@ -163,22 +163,8 @@ const job = {
     </div>
   </div>
 
-  <script lang="ts">
-    interface JobData {
-      id: string
-      name: string
-      queue: string
-      status: string
-      data: Record<string, unknown>
-      error?: string | Record<string, unknown>
-      attempts: number
-      maxAttempts: number
-      createdAt: string
-      processedAt?: string
-      completedAt?: string
-      failedAt?: string
-      duration?: number
-    }
+  <script>
+    import type { JobData } from '../types/job'
 
     const pageTitle = useTitle();
 

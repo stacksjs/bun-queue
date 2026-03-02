@@ -1,5 +1,16 @@
-<script lang="ts">
-const jobs = []
+<script>
+interface JobTableRow {
+  id: string
+  queue: string
+  name: string
+  status: string
+  attempts: number
+  maxAttempts: number
+  createdAt: string
+  duration?: number
+}
+
+const jobs: JobTableRow[] = []
 </script>
 
 <div>

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Group Details'
 const group = {
   id: '',
@@ -130,28 +130,9 @@ const jobs = []
     </div>
   </div>
 
-  <script lang="ts">
-    interface GroupData {
-      id: string
-      name: string
-      totalJobs?: number
-      jobCount?: number
-      total?: number
-      active: number
-      waiting: number
-      completed: number
-      failed: number
-      createdAt: string
-      updatedAt: string
-    }
-
-    interface JobData {
-      id: string
-      name: string
-      status: string
-      createdAt: string
-      updatedAt?: string
-    }
+  <script>
+    import type { JobGroup } from '../types/group'
+    import type { JobData } from '../types/job'
 
     // Sidebar toggle
     const sidebar = useRef('sidebar');
@@ -196,7 +177,7 @@ const jobs = []
     async function loadGroup(): Promise<void> {
       try {
         const res = await fetch('/api/groups/' + encodeURIComponent(groupId));
-        const group: GroupData = await res.json();
+        const group: JobGroup = await res.json();
 
         // Header
         groupNameEl.textContent = group.name || groupId;

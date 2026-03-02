@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Batch Details'
 const batch = {
   id: '',
@@ -157,31 +157,9 @@ const jobs = []
     </div>
   </div>
 
-  <script lang="ts">
-    interface BatchData {
-      id: string
-      name: string
-      status: string
-      totalJobs?: number
-      total?: number
-      processedJobs?: number
-      processed?: number
-      failedJobs?: number
-      failed?: number
-      createdAt: string
-      startedAt?: string
-      finishedAt?: string
-    }
-
-    interface JobData {
-      id: string
-      name: string
-      status: string
-      attempts: number
-      maxAttempts: number
-      createdAt: string
-      duration?: number
-    }
+  <script>
+    import type { Batch } from '../types/batch'
+    import type { JobData } from '../types/job'
 
     const pageTitle = useTitle();
 
@@ -215,7 +193,7 @@ const jobs = []
     async function loadBatch(): Promise<void> {
       try {
         const res = await fetch('/api/batches/' + encodeURIComponent(batchId));
-        const batch: BatchData = await res.json();
+        const batch: Batch = await res.json();
 
         // Header
         useRef('batch-name').textContent = batch.name || 'Batch ' + batch.id;

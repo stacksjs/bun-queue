@@ -1,5 +1,14 @@
-<script lang="ts">
-const queue = {
+<script>
+interface QueueStatusData {
+  name: string
+  paused: boolean
+  waiting: number
+  active: number
+  completed: number
+  failed: number
+}
+
+const queue: QueueStatusData = {
   name: '',
   paused: false,
   waiting: 0,

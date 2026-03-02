@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Jobs'
 </script>
 
@@ -98,7 +98,9 @@ const title = 'Jobs'
     </div>
   </div>
 
-  <script lang="ts">
+  <script>
+    import type { JobData } from '../types/job'
+
     // Sidebar toggle
     const sidebar = useRef('sidebar')
     const mainWrapper = useRef('main-wrapper')
@@ -108,8 +110,6 @@ const title = 'Jobs'
       sidebar.classList.add('collapsed')
       mainWrapper.classList.add('sidebar-collapsed')
     }
-
-    import type { JobData } from '../types/job'
 
     useEventListener('click', () => {
       sidebar.classList.toggle('collapsed')

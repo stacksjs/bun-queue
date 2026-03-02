@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Queue Details'
 const queue = {
   id: '',
@@ -144,7 +144,10 @@ const throughputData = { labels: [], values: [] }
     </div>
   </div>
 
-  <script lang="ts">
+  <script>
+    import type { JobData } from '../types/job'
+    import type { ThroughputData } from '../types/metrics'
+
     declare const Chart: any;
 
     interface QueueData {
@@ -156,20 +159,6 @@ const throughputData = { labels: [], values: [] }
       active: number
       completed: number
       failed: number
-    }
-
-    interface JobData {
-      id: string
-      name: string
-      status: string
-      attempts: number
-      maxAttempts: number
-      createdAt: string
-      duration?: number
-    }
-
-    interface ThroughputData {
-      throughput: Array<{ label?: string; time?: string; value?: number; count?: number }>
     }
 
     // Sidebar toggle

@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Job Groups'
 const groups = []
 </script>
@@ -80,16 +80,8 @@ const groups = []
     </div>
   </div>
 
-  <script lang="ts">
-    interface GroupData {
-      id: string
-      name: string
-      jobCount?: number
-      total?: number
-      active: number
-      completed: number
-      failed: number
-    }
+  <script>
+    import type { JobGroup } from '../types/group'
 
     // Sidebar toggle
     const sidebar = useRef('sidebar');
@@ -99,7 +91,7 @@ const groups = []
       mainWrapper.classList.toggle('sidebar-collapsed');
     }, { target: '#sidebar-toggle' });
 
-    let allGroups: GroupData[] = [];
+    let allGroups: JobGroup[] = [];
 
     // Refs
     const groupsContainer = useRef('groups-container');
@@ -109,14 +101,14 @@ const groups = []
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    function renderGroups(groups: GroupData[]): void {
+    function renderGroups(groups: JobGroup[]): void {
       if (!groups || groups.length === 0) {
         groupsContainer.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No groups found. Jobs assigned to groups will appear here.</div>';
         return;
       }
 
       let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
-      groups.forEach((group: GroupData) => {
+      groups.forEach((group: JobGroup) => {
         const jobCount: number = group.jobCount || group.total || 0;
         const active: number = group.active || 0;
         const completed: number = group.completed || 0;
@@ -147,7 +139,7 @@ const groups = []
     async function loadGroups(): Promise<void> {
       try {
         const res = await fetch('/api/groups');
-        allGroups = await res.json() as GroupData[];
+        allGroups = await res.json() as JobGroup[];
         filterAndRender();
       } catch (e) {
         console.error('Failed to load groups:', e);
@@ -162,7 +154,7 @@ const groups = []
         renderGroups(allGroups);
         return;
       }
-      const filtered: GroupData[] = allGroups.filter(g => {
+      const filtered: JobGroup[] = allGroups.filter(g => {
         const name = (g.name || g.id || '').toLowerCase();
         return name.includes(query);
       });

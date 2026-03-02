@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 const title = 'Performance Metrics'
 </script>
 
@@ -138,7 +138,7 @@ const title = 'Performance Metrics'
     </div>
   </div>
 
-  <script lang="ts">
+  <script>
     import type { DashboardStats } from '../types/dashboard'
     import type { MetricsData } from '../types/metrics'
 

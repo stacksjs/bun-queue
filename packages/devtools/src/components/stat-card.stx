@@ -1,7 +1,9 @@
-<script lang="ts">
-const label = ''
-const value = 0
-const variant = ''
+<script>
+type StatVariant = 'active' | 'completed' | 'failed' | ''
+
+const label: string = ''
+const value: number = 0
+const variant: StatVariant = ''
 </script>
 
 <div class="stat-card">
