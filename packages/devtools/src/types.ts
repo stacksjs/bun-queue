@@ -13,6 +13,7 @@ export type {
 
 export type {
   Queue,
+  QueueDetail,
   QueueMetrics,
   QueueStats,
   StatusBadgeInfo,

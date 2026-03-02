@@ -1,173 +1,98 @@
-<script>
-const title = 'Queue Details'
-const queue = {
-  id: '',
-  name: '',
-  status: 'active',
-  paused: false,
-  totalJobs: 0,
-  pending: 0,
-  active: 0,
-  completed: 0,
-  failed: 0,
-  throughput: 0,
-}
-const jobs = []
-const throughputData = { labels: [], values: [] }
-</script>
+@extends('../layouts/app')
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ title }} &mdash; bun-queue</title>
+@section('title', 'Queue Details — bun-queue')
+
+@push('head')
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+@endpush
+
+@push('styles')
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-    .sidebar.collapsed { width: 60px !important; }
-    .sidebar.collapsed .sidebar-text { display: none; }
-    .sidebar-collapsed { margin-left: 60px !important; }
     .progress-bar-fill { transition: width 0.5s ease; }
   </style>
-</head>
-<body class="bg-[#0a0a0f] text-zinc-50 leading-normal min-h-screen">
-  <!-- Sidebar -->
-  <aside class="sidebar fixed inset-y-0 left-0 z-50 bg-[#141419] border-r border-zinc-800 transition-all duration-300 flex flex-col overflow-hidden" id="sidebar" ref="sidebar" style="width: 240px;">
-    <div class="flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]">
-      <span class="sidebar-text text-sm font-bold text-indigo-400 whitespace-nowrap overflow-hidden">bun-queue</span>
-      <button class="bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center hover:text-zinc-50 hover:bg-[#1e1e26]" id="sidebar-toggle" title="Toggle sidebar">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </button>
+@endpush
+
+@section('content')
+  <div class="max-w-[1200px] mx-auto p-6">
+    <a href="/queues" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Queues
+    </a>
+
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
+          <span id="queue-name" ref="queue-name"></span>
+          <span id="queue-badge" ref="queue-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-emerald-500/15 text-emerald-500">active</span>
+        </h1>
+        <p class="text-[0.8125rem] text-zinc-500 mt-1">Queue details and job history</p>
+      </div>
     </div>
-    <nav class="flex-1 p-2 flex flex-col gap-0.5">
-      <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
-        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
-        <span class="sidebar-text">Dashboard</span>
-      </a>
-      <a href="/monitoring" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
-        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
-        <span class="sidebar-text">Monitoring</span>
-      </a>
-      <a href="/metrics" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
-        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
-        <span class="sidebar-text">Metrics</span>
-      </a>
-      <a href="/groups" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
-        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-        <span class="sidebar-text">Groups</span>
-      </a>
-      <a href="/batches" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
-        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
-        <span class="sidebar-text">Batches</span>
-      </a>
-      <a href="/jobs" class="flex items-center gap-3 px-3 py-2.5 rounded-md text-zinc-400 no-underline text-[0.8125rem] font-medium transition-all duration-150 whitespace-nowrap overflow-hidden hover:bg-[#1e1e26] hover:text-zinc-50">
-        <span class="w-5 h-5 shrink-0 flex items-center justify-center"><svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></span>
-        <span class="sidebar-text">Jobs</span>
-      </a>
-    </nav>
-  </aside>
 
-  <!-- Main content -->
-  <div class="min-h-screen transition-all duration-300" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
-    <div class="max-w-[1200px] mx-auto p-6">
-      <a href="/queues" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Back to Queues
-      </a>
-
-      <div class="flex items-center justify-between mb-6">
-        <div>
-          <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
-            <span id="queue-name" ref="queue-name">{{ queue.name }}</span>
-            <span id="queue-badge" ref="queue-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-emerald-500/15 text-emerald-500">active</span>
-          </h1>
-          <p class="text-[0.8125rem] text-zinc-500 mt-1">Queue details and job history</p>
-        </div>
+    <!-- Stats -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6" id="stats-grid">
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Jobs</div>
+        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums" id="stat-total" ref="stat-total">0</div>
       </div>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6" id="stats-grid">
-        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Jobs</div>
-          <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums" id="stat-total" ref="stat-total">{{ queue.totalJobs }}</div>
-        </div>
-        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Pending</div>
-          <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums" id="stat-pending" ref="stat-pending">{{ queue.pending }}</div>
-        </div>
-        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Active</div>
-          <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-active" ref="stat-active">{{ queue.active }}</div>
-        </div>
-        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Completed</div>
-          <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-completed" ref="stat-completed">{{ queue.completed }}</div>
-        </div>
-        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-          <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Failed</div>
-          <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-failed" ref="stat-failed">{{ queue.failed }}</div>
-        </div>
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Pending</div>
+        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums" id="stat-pending" ref="stat-pending">0</div>
       </div>
-
-      <!-- Progress bar -->
-      <div class="mb-6" id="progress-section">
-        <div class="flex justify-between mb-2 text-[0.8125rem]">
-          <span class="text-zinc-400">Completion Progress</span>
-          <span class="text-zinc-50 font-semibold tabular-nums" id="progress-pct" ref="progress-pct">0%</span>
-        </div>
-        <div class="w-full h-2 bg-[#1e1e26] rounded-full overflow-hidden">
-          <div class="progress-bar-fill h-full rounded-full bg-emerald-500" id="progress-fill" ref="progress-fill" style="width: 0%"></div>
-        </div>
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Active</div>
+        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-active" ref="stat-active">0</div>
       </div>
-
-      <!-- Throughput chart -->
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-sm font-semibold text-zinc-50">Throughput</span>
-        </div>
-        <div class="relative h-[260px]">
-          <canvas id="throughput-chart" ref="throughput-chart"></canvas>
-        </div>
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Completed</div>
+        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-completed" ref="stat-completed">0</div>
       </div>
+      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Failed</div>
+        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-failed" ref="stat-failed">0</div>
+      </div>
+    </div>
 
-      <!-- Jobs table -->
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-sm font-semibold text-zinc-50">Jobs in this Queue</span>
-        </div>
-        <div id="jobs-table-container" ref="jobs-table-container">
-          <div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
-        </div>
+    <!-- Progress bar -->
+    <div class="mb-6" id="progress-section">
+      <div class="flex justify-between mb-2 text-[0.8125rem]">
+        <span class="text-zinc-400">Completion Progress</span>
+        <span class="text-zinc-50 font-semibold tabular-nums" id="progress-pct" ref="progress-pct">0%</span>
+      </div>
+      <div class="w-full h-2 bg-[#1e1e26] rounded-full overflow-hidden">
+        <div class="progress-bar-fill h-full rounded-full bg-emerald-500" id="progress-fill" ref="progress-fill" style="width: 0%"></div>
+      </div>
+    </div>
+
+    <!-- Throughput chart -->
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-sm font-semibold text-zinc-50">Throughput</span>
+      </div>
+      <div class="relative h-[260px]">
+        <canvas id="throughput-chart" ref="throughput-chart"></canvas>
+      </div>
+    </div>
+
+    <!-- Jobs table -->
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-sm font-semibold text-zinc-50">Jobs in this Queue</span>
+      </div>
+      <div id="jobs-table-container" ref="jobs-table-container">
+        <div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
       </div>
     </div>
   </div>
+@endsection
 
+@push('scripts')
   <script>
     import type { JobData } from '../types/job'
     import type { ThroughputData } from '../types/metrics'
+    import type { QueueDetail } from '../types/queue'
 
-    declare const Chart: any;
-
-    interface QueueData {
-      id: string
-      name: string
-      status: string
-      paused: boolean
-      waiting: number
-      active: number
-      completed: number
-      failed: number
-    }
-
-    // Sidebar toggle
-    const sidebar = useRef('sidebar');
-    const mainWrapper = useRef('main-wrapper');
-    useEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
-      mainWrapper.classList.toggle('sidebar-collapsed');
-    }, { target: '#sidebar-toggle' });
+    declare const Chart: any
 
     // Get queue ID from URL
     const pathParts: string[] = useRoute().path.split('/');
@@ -191,8 +116,8 @@ const throughputData = { labels: [], values: [] }
     async function loadQueue(): Promise<void> {
       try {
         const res = await fetch('/api/queues');
-        const queues: QueueData[] = await res.json();
-        const q: QueueData | undefined = queues.find(q => q.id === queueId || q.name === queueId);
+        const queues: QueueDetail[] = await res.json();
+        const q: QueueDetail | undefined = queues.find(q => q.id === queueId || q.name === queueId);
         if (!q) return;
 
         useRef('queue-name').textContent = q.name || queueId;
@@ -313,12 +238,11 @@ const throughputData = { labels: [], values: [] }
       }
     }
 
-    loadQueue();
-    loadJobs();
-    loadThroughput();
-
-    // Auto-refresh every 10 seconds
-    setInterval(() => { loadQueue(); loadJobs(); }, 10000);
+    onMount(() => {
+      loadQueue();
+      loadJobs();
+      loadThroughput();
+      setInterval(() => { loadQueue(); loadJobs(); }, 10000);
+    });
   </script>
-</body>
-</html>
+@endpush

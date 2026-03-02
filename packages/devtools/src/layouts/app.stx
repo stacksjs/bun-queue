@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>@yield('title', 'bun-queue')</title>
+  @stack('head')
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* Sidebar collapsed state overrides */
+    .sidebar.collapsed { width: 56px !important; }
+    .sidebar.collapsed .sidebar-brand-text { display: none; }
+    .sidebar.collapsed .sidebar-toggle-btn { margin-left: auto; margin-right: auto; }
+    .sidebar.collapsed .nav-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
+    .sidebar.collapsed .nav-item-text { display: none; }
+    .main-wrapper.sidebar-collapsed { margin-left: 56px !important; }
+  </style>
+  @stack('styles')
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen @yield('body-class')">
+  @include('../partials/sidebar')
+
+  <!-- Main Content -->
+  <div class="main-wrapper transition-all duration-200 ease-in-out @yield('main-class', 'min-h-screen')" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    @yield('content')
+  </div>
+
+  <script>
+    // Sidebar toggle
+    const sidebar = useRef('sidebar')
+    const mainWrapper = useRef('main-wrapper')
+    const sidebarStorage = useLocalStorage('sidebar-collapsed', false)
+
+    if (sidebarStorage.get() === true || sidebarStorage.get() === 'true') {
+      sidebar.classList.add('collapsed')
+      mainWrapper.classList.add('sidebar-collapsed')
+    }
+
+    useEventListener('click', () => {
+      sidebar.classList.toggle('collapsed')
+      mainWrapper.classList.toggle('sidebar-collapsed')
+      sidebarStorage.set(sidebar.classList.contains('collapsed'))
+    }, { target: '#sidebar-toggle' })
+
+    // Active nav highlighting based on current route
+    const currentPath = useRoute().path
+    const navItems = document.querySelectorAll('#sidebar .nav-item')
+    navItems.forEach((item) => {
+      const href = item.getAttribute('href')
+      if (!href) return
+      const isActive = href === '/' ? currentPath === '/' : currentPath.startsWith(href)
+      if (isActive) {
+        item.classList.remove('text-zinc-400', 'hover:bg-[#1e1e26]', 'hover:text-zinc-50')
+        item.classList.add('bg-indigo-500', 'text-white')
+        const icon = item.querySelector('svg')
+        if (icon) {
+          icon.classList.remove('opacity-70')
+          icon.classList.add('opacity-100')
+        }
+      }
+    })
+  </script>
+  @stack('scripts')
+</body>
+</html>

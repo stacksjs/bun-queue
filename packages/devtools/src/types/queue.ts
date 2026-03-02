@@ -31,6 +31,17 @@ export interface QueueStats {
   processingRate: number
 }
 
+export interface QueueDetail {
+  id: string
+  name: string
+  status: string
+  paused: boolean
+  waiting: number
+  active: number
+  completed: number
+  failed: number
+}
+
 export interface StatusBadgeInfo {
   cls: string
   label: string

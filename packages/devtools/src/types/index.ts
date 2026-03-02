@@ -1,6 +1,6 @@
 export type { DashboardConfig, RedisConfig, AuthConfig, DashboardStats } from './dashboard'
 export type { JobData, JobStatus } from './job'
-export type { Queue, QueueMetrics, QueueStats, StatusBadgeInfo } from './queue'
+export type { Queue, QueueDetail, QueueMetrics, QueueStats, StatusBadgeInfo } from './queue'
 export type { Batch } from './batch'
 export type { JobGroup } from './group'
 export type { DependencyNode, DependencyLink, DependencyGraph } from './dependency'
