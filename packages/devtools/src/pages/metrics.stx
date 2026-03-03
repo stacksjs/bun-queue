@@ -21,9 +21,9 @@
         <p class="text-sm text-zinc-500 mt-1">Job throughput, latency, and error analysis</p>
       </div>
       <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="time-range-bar">
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 active" data-range="24h">24h</button>
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" data-range="7d">7d</button>
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" data-range="30d">30d</button>
+        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '24h' }" data-range="24h">24h</button>
+        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '7d' }" data-range="7d">7d</button>
+        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '30d' }" data-range="30d">30d</button>
       </div>
     </div>
 
@@ -130,10 +130,9 @@
       }
     }
 
-    let currentRange: string = '24h'
+    const activeRange = state('24h')
 
     async function loadMetrics(timeRange: string): Promise<void> {
-      currentRange = timeRange
       try {
         const [metricsRes, statsRes] = await Promise.all([
           fetch('/api/metrics?timeRange=' + timeRange),
@@ -189,28 +188,16 @@
       }
     }
 
-    // Time range button handling via event delegation
-    function setActiveButton(activeBtn: HTMLButtonElement): void {
-      useRef('time-range-bar').querySelectorAll('.time-range-btn').forEach((b: Element) => b.classList.remove('active'))
-      activeBtn.classList.add('active')
-    }
-
     useEventListener('click', (e: Event) => {
       const target = (e.target as HTMLElement).closest('.time-range-btn') as HTMLButtonElement | null
       if (!target) return
-      setActiveButton(target)
+      activeRange.set(target.dataset.range!)
       loadMetrics(target.dataset.range!)
     }, { target: '[ref="time-range-bar"]' })
 
-    // Read initial time range from URL
     onMount(() => {
-      const route = useRoute()
-      const range: string = route.query.timeRange || '24h'
-
-      const timeRangeBar = useRef('time-range-bar')
-      const activeBtn = timeRangeBar.querySelector('.time-range-btn[data-range="' + range + '"]') as HTMLButtonElement | null
-      if (activeBtn) setActiveButton(activeBtn)
-
+      const range: string = useRoute().query.timeRange || '24h'
+      activeRange.set(range)
       loadMetrics(range)
     })
   </script>

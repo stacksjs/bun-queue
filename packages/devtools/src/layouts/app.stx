@@ -48,13 +48,14 @@
       sidebarStorage.set(sidebar.classList.contains('collapsed'))
     }, { target: '#sidebar-toggle' })
 
-    // Active nav highlighting based on current route
+    // Active nav highlighting (set once on page load)
     const currentPath = useRoute().path
     document.querySelectorAll('#sidebar .nav-item').forEach((item) => {
       const href = item.getAttribute('href')
       if (!href) return
-      const isActive = href === '/' ? currentPath === '/' : currentPath.startsWith(href)
-      if (isActive) item.classList.add('active')
+      if (href === '/' ? currentPath === '/' : currentPath.startsWith(href)) {
+        item.classList.add('active')
+      }
     })
   </script>
   @stack('scripts')
