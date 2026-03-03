@@ -9,6 +9,7 @@
 @push('styles')
   <style>
     .chart-container { position: relative; height: 280px; width: 100%; }
+    .time-range-btn.active { background: #6366f1; color: white; }
   </style>
 @endpush
 
@@ -20,9 +21,9 @@
         <p class="text-sm text-zinc-500 mt-1">Job throughput, latency, and error analysis</p>
       </div>
       <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="time-range-bar">
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-indigo-500 !text-white active" data-range="24h">24h</button>
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-range="7d">7d</button>
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-range="30d">30d</button>
+        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 active" data-range="24h">24h</button>
+        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" data-range="7d">7d</button>
+        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" data-range="30d">30d</button>
       </div>
     </div>
 
@@ -190,13 +191,8 @@
 
     // Time range button handling via event delegation
     function setActiveButton(activeBtn: HTMLButtonElement): void {
-      const timeRangeBar = useRef('time-range-bar')
-      timeRangeBar.querySelectorAll('.time-range-btn').forEach((b: Element) => {
-        b.classList.remove('active', 'bg-indigo-500', '!text-white')
-        b.classList.add('bg-transparent')
-      })
-      activeBtn.classList.add('active', 'bg-indigo-500', '!text-white')
-      activeBtn.classList.remove('bg-transparent')
+      useRef('time-range-bar').querySelectorAll('.time-range-btn').forEach((b: Element) => b.classList.remove('active'))
+      activeBtn.classList.add('active')
     }
 
     useEventListener('click', (e: Event) => {

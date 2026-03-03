@@ -16,6 +16,10 @@
     .sidebar.collapsed .nav-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
     .sidebar.collapsed .nav-item-text { display: none; }
     .main-wrapper.sidebar-collapsed { margin-left: 56px !important; }
+
+    /* Active states */
+    .nav-item.active { background: #6366f1; color: white; }
+    .nav-item.active svg { opacity: 1; }
   </style>
   @stack('styles')
 </head>
@@ -46,20 +50,11 @@
 
     // Active nav highlighting based on current route
     const currentPath = useRoute().path
-    const navItems = document.querySelectorAll('#sidebar .nav-item')
-    navItems.forEach((item) => {
+    document.querySelectorAll('#sidebar .nav-item').forEach((item) => {
       const href = item.getAttribute('href')
       if (!href) return
       const isActive = href === '/' ? currentPath === '/' : currentPath.startsWith(href)
-      if (isActive) {
-        item.classList.remove('text-zinc-400', 'hover:bg-[#1e1e26]', 'hover:text-zinc-50')
-        item.classList.add('bg-indigo-500', 'text-white')
-        const icon = item.querySelector('svg')
-        if (icon) {
-          icon.classList.remove('opacity-70')
-          icon.classList.add('opacity-100')
-        }
-      }
+      if (isActive) item.classList.add('active')
     })
   </script>
   @stack('scripts')

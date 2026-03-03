@@ -5,6 +5,7 @@
 @push('styles')
   <style>
     .search-input::placeholder { color: #71717a; }
+    .filter-btn.active { background: #6366f1; color: white; }
   </style>
 @endpush
 
@@ -20,11 +21,11 @@
     <!-- Toolbar -->
     <div class="flex items-center gap-3 mb-6 flex-wrap">
       <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="filter-bar">
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-indigo-500 !text-white active" data-status="all">All</button>
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-status="waiting">Waiting</button>
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-status="active">Active</button>
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-status="completed">Completed</button>
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 bg-transparent" data-status="failed">Failed</button>
+        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150 active" data-status="all">All</button>
+        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" data-status="waiting">Waiting</button>
+        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" data-status="active">Active</button>
+        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" data-status="completed">Completed</button>
+        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" data-status="failed">Failed</button>
       </div>
       <div class="relative flex-1 max-w-[280px]">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -125,13 +126,8 @@
     useEventListener('click', (e: Event) => {
       const target = (e.target as HTMLElement).closest('.filter-btn') as HTMLButtonElement | null
       if (!target) return
-      const filterBar = useRef('filter-bar')
-      filterBar.querySelectorAll('.filter-btn').forEach((b: Element) => {
-        b.classList.remove('active', 'bg-indigo-500', '!text-white')
-        b.classList.add('bg-transparent')
-      })
-      target.classList.add('active', 'bg-indigo-500', '!text-white')
-      target.classList.remove('bg-transparent')
+      useRef('filter-bar').querySelectorAll('.filter-btn').forEach((b: Element) => b.classList.remove('active'))
+      target.classList.add('active')
       currentStatus = target.dataset.status!
       filterJobs()
     }, { target: '[ref="filter-bar"]' })
