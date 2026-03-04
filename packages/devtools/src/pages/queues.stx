@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Queues — bun-queue')
+@section('title')
+Queues — bun-queue
+@endsection
 
 @push('styles')
   <style>
@@ -42,6 +44,10 @@
 
     let allQueues: Queue[] = []
 
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
+
     function statusBadge(status: string): string {
       const map: Record<string, StatusBadgeInfo> = {
         active: { cls: 'bg-emerald-500/15 text-emerald-500', label: 'Active' },
@@ -53,7 +59,7 @@
     }
 
     function renderQueues(queues: Queue[]): void {
-      const container = useRef('queues-container')
+      const container = $('queues-container')
       if (queues.length === 0) {
         container.innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">No queues found matching your search.</div>'
         return
@@ -88,12 +94,12 @@
         filterQueues()
       } catch (err) {
         console.error('Failed to load queues:', err)
-        useRef('queues-container').innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">Failed to load queues. Please try again.</div>'
+        $('queues-container').innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">Failed to load queues. Please try again.</div>'
       }
     }
 
     function filterQueues(): void {
-      const query = useRef('search-input').value.toLowerCase().trim()
+      const query = ($('search-input') as HTMLInputElement).value.toLowerCase().trim()
       if (!query) {
         renderQueues(allQueues)
       } else {
@@ -102,9 +108,10 @@
       }
     }
 
-    useEventListener('input', filterQueues, { target: '#search-input' })
-    useEventListener('click', loadQueues, { target: '#refresh-btn' })
-
-    onMount(loadQueues)
+    onMount(() => {
+      $('search-input').addEventListener('input', filterQueues)
+      $('refresh-btn').addEventListener('click', loadQueues)
+      loadQueues()
+    })
   </script>
 @endpush

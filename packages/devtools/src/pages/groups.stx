@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Job Groups — bun-queue')
+@section('title')
+Job Groups — bun-queue
+@endsection
 
 @section('content')
   <div class="max-w-[1200px] mx-auto p-6">
@@ -12,9 +14,9 @@
       <div class="flex gap-3 items-center">
         <div class="relative">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" class="py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-[0.8125rem] outline-none w-[260px] transition-colors duration-150 placeholder:text-zinc-500 focus:border-indigo-500" id="search-input" placeholder="Search groups..." />
+          <input type="text" class="py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-[0.8125rem] outline-none w-[260px] transition-colors duration-150 placeholder:text-zinc-500 focus:border-indigo-500" id="search-input" ref="search-input" placeholder="Search groups..." />
         </div>
-        <button class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50" id="refresh-btn">
+        <button class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50" id="refresh-btn" ref="refresh-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           Refresh
         </button>
@@ -33,17 +35,18 @@
 
     let allGroups: JobGroup[] = [];
 
-    // Refs
-    const groupsContainer = useRef('groups-container');
-    const searchInput = useRef('search-input');
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
 
     function escapeHtml(str: string): string {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     function renderGroups(groups: JobGroup[]): void {
+      const container = $('groups-container');
       if (!groups || groups.length === 0) {
-        groupsContainer.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No groups found. Jobs assigned to groups will appear here.</div>';
+        container.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No groups found. Jobs assigned to groups will appear here.</div>';
         return;
       }
 
@@ -73,7 +76,7 @@
       });
       html += '</div>';
 
-      groupsContainer.innerHTML = html;
+      container.innerHTML = html;
     }
 
     async function loadGroups(): Promise<void> {
@@ -83,13 +86,13 @@
         filterAndRender();
       } catch (e) {
         console.error('Failed to load groups:', e);
-        groupsContainer.innerHTML =
+        $('groups-container').innerHTML =
           '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">Failed to load groups.</div>';
       }
     }
 
     function filterAndRender(): void {
-      const query: string = searchInput.value.toLowerCase().trim();
+      const query: string = ($('search-input') as HTMLInputElement).value.toLowerCase().trim();
       if (!query) {
         renderGroups(allGroups);
         return;
@@ -101,12 +104,12 @@
       renderGroups(filtered);
     }
 
-    useEventListener('input', filterAndRender, { target: '#search-input' });
-    useEventListener('click', loadGroups, { target: '#refresh-btn' });
+    const autoRefresh = useInterval(15000, { immediate: true })
+    autoRefresh.subscribe(() => loadGroups())
 
     onMount(() => {
-      loadGroups();
-      setInterval(loadGroups, 15000);
-    });
+      $('search-input').addEventListener('input', filterAndRender)
+      $('refresh-btn').addEventListener('click', loadGroups)
+    })
   </script>
 @endpush

@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Jobs — bun-queue')
+@section('title')
+Jobs — bun-queue
+@endsection
 
 @push('styles')
   <style>
@@ -20,7 +22,7 @@
 
     <!-- Toolbar -->
     <div class="flex items-center gap-3 mb-6 flex-wrap">
-      <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="filter-bar">
+      <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" id="filter-bar" ref="filter-bar">
         <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'all' }" data-status="all">All</button>
         <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'waiting' }" data-status="waiting">Waiting</button>
         <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'active' }" data-status="active">Active</button>
@@ -47,6 +49,13 @@
     let allJobs: JobData[] = []
     const activeFilter = state('all')
 
+    // Pre-declare inner-scope variables to satisfy stx auto-return
+    let map: any, panel: any, html: any, updated: any, query: any, filtered: any, res: any, target: any
+
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
+
     function badgeClass(status: string): string {
       const map = {
         completed: 'bg-emerald-500/15 text-emerald-500',
@@ -59,7 +68,7 @@
     }
 
     function renderJobs(jobs: JobData[]): void {
-      const panel = useRef('jobs-panel')
+      const panel = $('jobs-panel')
       if (jobs.length === 0) {
         panel.innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>'
         return
@@ -93,7 +102,7 @@
     }
 
     function filterJobs(): void {
-      const query = useRef('search-input').value.toLowerCase().trim()
+      const query = ($('search-input') as HTMLInputElement).value.toLowerCase().trim()
       let filtered: JobData[] = allJobs
 
       if (activeFilter() !== 'all') {
@@ -118,21 +127,19 @@
         filterJobs()
       } catch (err) {
         console.error('Failed to load jobs:', err)
-        useRef('jobs-panel').innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm">Failed to load jobs. Please try again.</div>'
+        $('jobs-panel').innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm">Failed to load jobs. Please try again.</div>'
       }
     }
 
-    // Status filter buttons via event delegation
-    useEventListener('click', (e: Event) => {
-      const target = (e.target as HTMLElement).closest('.filter-btn') as HTMLButtonElement | null
-      if (!target) return
-      activeFilter.set(target.dataset.status!)
-      filterJobs()
-    }, { target: '[ref="filter-bar"]' })
-
-    // Search input
-    useEventListener('input', filterJobs, { target: '#search-input' })
-
-    onMount(loadJobs)
+    onMount(() => {
+      $('filter-bar').addEventListener('click', (e: Event) => {
+        const target = (e.target as HTMLElement).closest('.filter-btn') as HTMLButtonElement | null
+        if (!target) return
+        activeFilter.set(target.dataset.status!)
+        filterJobs()
+      })
+      $('search-input').addEventListener('input', filterJobs)
+      loadJobs()
+    })
   </script>
 @endpush

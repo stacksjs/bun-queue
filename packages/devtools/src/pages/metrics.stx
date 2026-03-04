@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Performance Metrics — bun-queue')
+@section('title')
+Performance Metrics — bun-queue
+@endsection
 
 @push('head')
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -20,7 +22,7 @@
         <h1 class="text-lg font-semibold text-zinc-50">Performance Metrics</h1>
         <p class="text-sm text-zinc-500 mt-1">Job throughput, latency, and error analysis</p>
       </div>
-      <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="time-range-bar">
+      <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" id="time-range-bar" ref="time-range-bar">
         <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '24h' }" data-range="24h">24h</button>
         <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '7d' }" data-range="7d">7d</button>
         <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '30d' }" data-range="30d">30d</button>
@@ -90,12 +92,14 @@
 
     declare const Chart: any
 
-    // Chart instances
     let throughputChart: any = null
     let latencyChart: any = null
     let errorRateChart: any = null
 
-    // Common chart options
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
+
     function chartOptions(color?: string): Record<string, any> {
       return {
         responsive: true,
@@ -132,54 +136,49 @@
 
     const activeRange = state('24h')
 
+    // Pre-declare inner-scope variables to satisfy stx auto-return
+    let mData: any, sData: any, btn: any, initRange: any
+
     async function loadMetrics(timeRange: string): Promise<void> {
       try {
-        const [metricsRes, statsRes] = await Promise.all([
+        const [mRes, sRes] = await Promise.all([
           fetch('/api/metrics?timeRange=' + timeRange),
           fetch('/api/stats'),
         ])
-        const metrics: MetricsData = await metricsRes.json()
-        const stats: DashboardStats = await statsRes.json()
+        const mData: MetricsData = await mRes.json()
+        const sData: DashboardStats = await sRes.json()
 
-        // Update summary stats
-        const avgThroughput: number = metrics.throughput.length > 0 ? Math.round(metrics.throughput.reduce((a, b) => a + b, 0) / metrics.throughput.length) : 0
-        const avgLatency: number = metrics.latency.length > 0 ? Math.round(metrics.latency.reduce((a, b) => a + b, 0) / metrics.latency.length) : 0
-        const avgError: string = metrics.errorRate.length > 0 ? (metrics.errorRate.reduce((a, b) => a + b, 0) / metrics.errorRate.length).toFixed(2) : '0.00'
+        $('stat-throughput').textContent = mData.throughput.length > 0 ? Math.round(mData.throughput.reduce((a, b) => a + b, 0) / mData.throughput.length) : 0
+        $('stat-latency').textContent = mData.latency.length > 0 ? Math.round(mData.latency.reduce((a, b) => a + b, 0) / mData.latency.length) : 0
+        $('stat-error-rate').textContent = mData.errorRate.length > 0 ? (mData.errorRate.reduce((a, b) => a + b, 0) / mData.errorRate.length).toFixed(2) : '0.00'
+        $('stat-uptime').textContent = Math.round(sData.uptime / 3600)
 
-        useRef('stat-throughput').textContent = avgThroughput
-        useRef('stat-latency').textContent = avgLatency
-        useRef('stat-error-rate').textContent = avgError
-        useRef('stat-uptime').textContent = Math.round(stats.uptime / 3600)
-
-        // Throughput chart
         if (throughputChart) throughputChart.destroy()
-        throughputChart = new Chart(useRef('throughput-chart').getContext('2d'), {
+        throughputChart = new Chart(($('throughput-chart') as HTMLCanvasElement).getContext('2d'), {
           type: 'line',
           data: {
-            labels: metrics.timestamps,
-            datasets: [createLineDataset('Throughput (jobs/min)', metrics.throughput, 'rgb(99, 102, 241)')]
+            labels: mData.timestamps,
+            datasets: [createLineDataset('Throughput (jobs/min)', mData.throughput, 'rgb(99, 102, 241)')]
           },
           options: chartOptions()
         })
 
-        // Latency chart
         if (latencyChart) latencyChart.destroy()
-        latencyChart = new Chart(useRef('latency-chart').getContext('2d'), {
+        latencyChart = new Chart(($('latency-chart') as HTMLCanvasElement).getContext('2d'), {
           type: 'line',
           data: {
-            labels: metrics.timestamps,
-            datasets: [createLineDataset('Latency (ms)', metrics.latency, 'rgb(245, 158, 11)')]
+            labels: mData.timestamps,
+            datasets: [createLineDataset('Latency (ms)', mData.latency, 'rgb(245, 158, 11)')]
           },
           options: chartOptions()
         })
 
-        // Error rate chart
         if (errorRateChart) errorRateChart.destroy()
-        errorRateChart = new Chart(useRef('error-rate-chart').getContext('2d'), {
+        errorRateChart = new Chart(($('error-rate-chart') as HTMLCanvasElement).getContext('2d'), {
           type: 'line',
           data: {
-            labels: metrics.timestamps,
-            datasets: [createLineDataset('Error Rate (%)', metrics.errorRate, 'rgb(239, 68, 68)')]
+            labels: mData.timestamps,
+            datasets: [createLineDataset('Error Rate (%)', mData.errorRate, 'rgb(239, 68, 68)')]
           },
           options: chartOptions()
         })
@@ -188,17 +187,17 @@
       }
     }
 
-    useEventListener('click', (e: Event) => {
-      const target = (e.target as HTMLElement).closest('.time-range-btn') as HTMLButtonElement | null
-      if (!target) return
-      activeRange.set(target.dataset.range!)
-      loadMetrics(target.dataset.range!)
-    }, { target: '[ref="time-range-bar"]' })
-
     onMount(() => {
-      const range: string = useRoute().query.timeRange || '24h'
-      activeRange.set(range)
-      loadMetrics(range)
+      $('time-range-bar').addEventListener('click', (e: Event) => {
+        const btn = (e.target as HTMLElement).closest('.time-range-btn') as HTMLButtonElement | null
+        if (!btn) return
+        activeRange.set(btn.dataset.range!)
+        loadMetrics(btn.dataset.range!)
+      })
+
+      const initRange: string = useRoute().query.timeRange || '24h'
+      activeRange.set(initRange)
+      loadMetrics(initRange)
     })
   </script>
 @endpush

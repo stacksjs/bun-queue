@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Batches — bun-queue')
+@section('title')
+Batches — bun-queue
+@endsection
 
 @push('styles')
   <style>
@@ -15,7 +17,7 @@
         <h1 class="text-xl font-semibold text-zinc-50">Batches</h1>
         <p class="text-[0.8125rem] text-zinc-500 mt-1">Monitor batch job progress and status</p>
       </div>
-      <button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50" id="refresh-btn">
+      <button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50" id="refresh-btn" ref="refresh-btn">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
         Refresh
       </button>
@@ -31,8 +33,9 @@
   <script>
     import type { Batch } from '../types/batch'
 
-    // Refs
-    const batchesContainer = useRef('batches-container');
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
 
     function escapeHtml(str: string): string {
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -63,9 +66,10 @@
       try {
         const res = await fetch('/api/batches');
         const batches: Batch[] = await res.json();
+        const container = $('batches-container');
 
         if (!batches || batches.length === 0) {
-          batchesContainer.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No batches found. Create a batch to see it here.</div>';
+          container.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No batches found. Create a batch to see it here.</div>';
           return;
         }
 
@@ -84,11 +88,9 @@
           html += '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + statusBadgeClass(status) + '">' + status + '</span>';
           html += '</div>';
 
-          // Progress bar
           html += '<div class="w-full h-1.5 bg-[#1e1e26] rounded-full overflow-hidden mb-2"><div class="progress-bar-fill h-full rounded-full ' + progressBarColorClass(status) + '" style="width: ' + pct + '%"></div></div>';
           html += '<div class="text-xs text-zinc-500 text-right tabular-nums mb-3">' + pct + '% complete</div>';
 
-          // Stats
           html += '<div class="grid grid-cols-4 gap-2 mb-3">';
           html += '<div class="text-center"><div class="text-lg font-bold text-zinc-50 tabular-nums">' + total + '</div><div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Total</div></div>';
           html += '<div class="text-center"><div class="text-lg font-bold text-emerald-500 tabular-nums">' + processed + '</div><div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Processed</div></div>';
@@ -96,13 +98,11 @@
           html += '<div class="text-center"><div class="text-lg font-bold text-amber-500 tabular-nums">' + Math.max(0, pending) + '</div><div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Pending</div></div>';
           html += '</div>';
 
-          // Timestamps
           html += '<div class="flex gap-4 text-xs text-zinc-500 mb-3 flex-wrap">';
           html += '<span class="whitespace-nowrap">Created: ' + formatTime(batch.createdAt) + '</span>';
           if (batch.finishedAt) html += '<span class="whitespace-nowrap">Finished: ' + formatTime(batch.finishedAt) + '</span>';
           html += '</div>';
 
-          // Footer
           html += '<div class="flex justify-end">';
           html += '<a href="/batches/' + batch.id + '" class="text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline">View Details \u2192</a>';
           html += '</div>';
@@ -110,19 +110,19 @@
         });
         html += '</div>';
 
-        batchesContainer.innerHTML = html;
+        container.innerHTML = html;
       } catch (e) {
         console.error('Failed to load batches:', e);
-        batchesContainer.innerHTML =
+        $('batches-container').innerHTML =
           '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">Failed to load batches.</div>';
       }
     }
 
-    useEventListener('click', loadBatches, { target: '#refresh-btn' });
+    const autoRefresh = useInterval(10000, { immediate: true })
+    autoRefresh.subscribe(() => loadBatches())
 
     onMount(() => {
-      loadBatches();
-      setInterval(loadBatches, 10000);
-    });
+      $('refresh-btn').addEventListener('click', loadBatches)
+    })
   </script>
 @endpush

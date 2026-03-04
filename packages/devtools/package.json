@@ -39,7 +39,7 @@
   ],
   "scripts": {
     "build": "bun --bun build.ts",
-    "dev": "bunx bun-plugin-stx serve src/pages/ --port 4400",
+    "dev": "bun --watch server.ts",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "test:watch": "bun test --watch",
@@ -48,10 +48,10 @@
   },
   "dependencies": {
     "@cwcss/crosswind": "^0.1.6",
-    "@stacksjs/bun-queue": "^0.0.1"
+    "@stacksjs/bun-queue": "^0.0.1",
+    "@stacksjs/stx": "^0.2.5"
   },
   "devDependencies": {
-    "@stacksjs/stx": "^0.2.5",
     "bun-plugin-stx": "^0.2.5"
   }
 }

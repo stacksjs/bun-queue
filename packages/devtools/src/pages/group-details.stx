@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Group Details — bun-queue')
+@section('title')
+Group Details — bun-queue
+@endsection
 
 @section('content')
   <div class="max-w-[1200px] mx-auto p-6">
@@ -71,24 +73,14 @@
     import type { JobGroup } from '../types/group'
     import type { JobData } from '../types/job'
 
-    // Page title
     const pageTitle = useTitle();
 
-    // Get group ID from URL
-    const route = useRoute();
-    const pathParts: string[] = route.path.split('/');
+    const pathParts: string[] = useRoute().path.split('/');
     const groupId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
-    // Refs
-    const groupNameEl = useRef('group-name');
-    const statTotalEl = useRef('stat-total');
-    const statActiveEl = useRef('stat-active');
-    const statWaitingEl = useRef('stat-waiting');
-    const statCompletedEl = useRef('stat-completed');
-    const statFailedEl = useRef('stat-failed');
-    const metaCreatedEl = useRef('meta-created');
-    const metaUpdatedEl = useRef('meta-updated');
-    const jobsTableContainer = useRef('jobs-table-container');
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
 
     function statusBadgeClass(status: string): string {
       if (status === 'completed') return 'bg-emerald-500/15 text-emerald-500';
@@ -108,21 +100,18 @@
         const res = await fetch('/api/groups/' + encodeURIComponent(groupId));
         const group: JobGroup = await res.json();
 
-        // Header
-        groupNameEl.textContent = group.name || groupId;
+        $('group-name').textContent = group.name || groupId;
         pageTitle.set((group.name || groupId) + ' \u2014 bun-queue');
 
-        // Stats
         const total: number = group.totalJobs || group.jobCount || group.total || 0;
-        statTotalEl.textContent = total;
-        statActiveEl.textContent = group.active || 0;
-        statWaitingEl.textContent = group.waiting || 0;
-        statCompletedEl.textContent = group.completed || 0;
-        statFailedEl.textContent = group.failed || 0;
+        $('stat-total').textContent = total;
+        $('stat-active').textContent = group.active || 0;
+        $('stat-waiting').textContent = group.waiting || 0;
+        $('stat-completed').textContent = group.completed || 0;
+        $('stat-failed').textContent = group.failed || 0;
 
-        // Metadata
-        metaCreatedEl.textContent = formatTime(group.createdAt);
-        metaUpdatedEl.textContent = formatTime(group.updatedAt);
+        $('meta-created').textContent = formatTime(group.createdAt);
+        $('meta-updated').textContent = formatTime(group.updatedAt);
       } catch (e) {
         console.error('Failed to load group:', e);
       }
@@ -133,8 +122,9 @@
         const res = await fetch('/api/groups/' + encodeURIComponent(groupId) + '/jobs');
         const jobs: JobData[] = await res.json();
 
+        const container = $('jobs-table-container');
         if (!jobs || jobs.length === 0) {
-          jobsTableContainer.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this group.</div>';
+          container.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this group.</div>';
           return;
         }
 
@@ -155,18 +145,15 @@
         });
 
         html += '</tbody></table>';
-        jobsTableContainer.innerHTML = html;
+        container.innerHTML = html;
       } catch (e) {
         console.error('Failed to load group jobs:', e);
-        jobsTableContainer.innerHTML =
+        $('jobs-table-container').innerHTML =
           '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load group jobs.</div>';
       }
     }
 
-    onMount(() => {
-      loadGroup();
-      loadJobs();
-      setInterval(() => { loadGroup(); loadJobs(); }, 10000);
-    });
+    const autoRefresh = useInterval(10000, { immediate: true })
+    autoRefresh.subscribe(() => { loadGroup(); loadJobs(); })
   </script>
 @endpush

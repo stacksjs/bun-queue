@@ -8,6 +8,9 @@ export type {
 
 export type {
   JobData,
+} from './types/job'
+
+export {
   JobStatus,
 } from './types/job'
 
@@ -29,8 +32,10 @@ export type {
 
 export type {
   DependencyNode,
+  DependencyNode as JobNode,
   DependencyLink,
   DependencyGraph,
+  DependencyGraph as JobDependencyGraph,
 } from './types/dependency'
 
 export type {

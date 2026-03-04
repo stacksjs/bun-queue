@@ -32,30 +32,43 @@
   </div>
 
   <script>
-    // Sidebar toggle
-    const sidebar = useRef('sidebar')
-    const mainWrapper = useRef('main-wrapper')
-    const sidebarStorage = useLocalStorage('sidebar-collapsed', false)
+    const SIDEBAR_KEY = 'sidebar-collapsed'
+    const stored = localStorage.getItem(SIDEBAR_KEY)
+    const sidebarCollapsed = state(stored === 'true')
 
-    if (sidebarStorage.get() === true || sidebarStorage.get() === 'true') {
-      sidebar.classList.add('collapsed')
-      mainWrapper.classList.add('sidebar-collapsed')
-    }
+    onMount(() => {
+      const sidebar = document.getElementById('sidebar')!
+      const mainWrapper = document.getElementById('main-wrapper')!
 
-    useEventListener('click', () => {
-      sidebar.classList.toggle('collapsed')
-      mainWrapper.classList.toggle('sidebar-collapsed')
-      sidebarStorage.set(sidebar.classList.contains('collapsed'))
-    }, { target: '#sidebar-toggle' })
-
-    // Active nav highlighting (set once on page load)
-    const currentPath = useRoute().path
-    document.querySelectorAll('#sidebar .nav-item').forEach((item) => {
-      const href = item.getAttribute('href')
-      if (!href) return
-      if (href === '/' ? currentPath === '/' : currentPath.startsWith(href)) {
-        item.classList.add('active')
+      function applySidebarState(): void {
+        if (sidebarCollapsed()) {
+          sidebar.classList.add('collapsed')
+          mainWrapper.classList.add('sidebar-collapsed')
+        } else {
+          sidebar.classList.remove('collapsed')
+          mainWrapper.classList.remove('sidebar-collapsed')
+        }
       }
+
+      applySidebarState()
+
+      document.getElementById('sidebar-toggle')!.addEventListener('click', () => {
+        sidebarCollapsed.set(!sidebarCollapsed())
+        localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed()))
+        applySidebarState()
+      })
+
+      // Active nav highlighting
+      const currentPath = useRoute().path
+      const sidebarNav = document.getElementById('sidebar-nav')!
+      Array.from(sidebarNav.children).forEach((item) => {
+        if (!(item as HTMLElement).classList.contains('nav-item')) return
+        const href = item.getAttribute('href')
+        if (!href) return
+        if (href === '/' ? currentPath === '/' : currentPath.startsWith(href)) {
+          (item as HTMLElement).classList.add('active')
+        }
+      })
     })
   </script>
   @stack('scripts')

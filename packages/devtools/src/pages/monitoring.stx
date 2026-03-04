@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Real-time Monitoring — bun-queue')
+@section('title')
+Real-time Monitoring — bun-queue
+@endsection
 
 @push('styles')
   <style>
@@ -111,34 +113,10 @@
     import type { QueueMetrics } from '../types/queue'
     import type { EventTemplate, MonitoringEvent } from '../types/monitoring'
 
-    // Auto-refresh
-    let autoRefreshEnabled: boolean = true
-    let refreshTimer: ReturnType<typeof setInterval> | null = null
+    // Auto-refresh using useInterval composable
     const REFRESH_INTERVAL: number = 3000
-
-    useEventListener('change', (e: Event) => {
-      const target = e.target as HTMLInputElement
-      autoRefreshEnabled = target.checked
-      if (autoRefreshEnabled) {
-        startAutoRefresh()
-      } else {
-        stopAutoRefresh()
-      }
-    }, { target: '#auto-refresh-toggle' })
-
-    function startAutoRefresh(): void {
-      if (refreshTimer) clearInterval(refreshTimer)
-      refreshTimer = setInterval(refreshMonitoring, REFRESH_INTERVAL)
-      useRef('refresh-interval-label').textContent = 'every 3s'
-    }
-
-    function stopAutoRefresh(): void {
-      if (refreshTimer) {
-        clearInterval(refreshTimer)
-        refreshTimer = null
-      }
-      useRef('refresh-interval-label').textContent = 'paused'
-    }
+    const refresh = useInterval(REFRESH_INTERVAL, { immediate: true })
+    refresh.subscribe(() => refreshMonitoring())
 
     // Mock event types
     const eventTypes: EventTemplate[] = [
@@ -178,8 +156,11 @@
       return map[dot] || 'bg-zinc-500'
     }
 
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
+
     function renderEvents(): void {
-      const container = useRef('event-log')
       let html = ''
       events.forEach(ev => {
         html += '<div class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-[#1e1e26] transition-colors duration-100">'
@@ -188,39 +169,29 @@
         html += '<div class="text-[0.6875rem] text-zinc-500 font-mono whitespace-nowrap">' + ev.time + '</div>'
         html += '</div>'
       })
-      container.innerHTML = html
+      $('event-log').innerHTML = html
     }
-
-    useEventListener('click', () => {
-      events = []
-      renderEvents()
-    }, { target: '#clear-log-btn' })
 
     async function refreshMonitoring(): Promise<void> {
       try {
-        // Fetch live stats
         const statsRes = await fetch('/api/stats')
         const stats: DashboardStats = await statsRes.json()
 
-        // Simulate real-time values with slight randomness
         const jobsSec: string = (stats.throughputPerMinute / 60).toFixed(1)
-        useRef('stat-jobs-sec').textContent = jobsSec
-        useRef('stat-avg-latency').innerHTML = stats.avgLatency + '<span class="text-xs text-zinc-500 font-normal"> ms</span>'
+        $('stat-jobs-sec').textContent = jobsSec
+        $('stat-avg-latency').innerHTML = stats.avgLatency + '<span class="text-xs text-zinc-500 font-normal"> ms</span>'
         const errRate: string = ((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2)
-        useRef('stat-error-rate').innerHTML = errRate + '<span class="text-xs text-zinc-500 font-normal"> %</span>'
-        useRef('stat-active-workers').textContent = stats.activeJobs
+        $('stat-error-rate').innerHTML = errRate + '<span class="text-xs text-zinc-500 font-normal"> %</span>'
+        $('stat-active-workers').textContent = stats.activeJobs
 
-        // Add new event
         const newEvent: MonitoringEvent = generateEvent()
         events.unshift(newEvent)
         if (events.length > MAX_EVENTS) events = events.slice(0, MAX_EVENTS)
         renderEvents()
 
-        // Fetch queue health
         const queuesRes = await fetch('/api/queues/metrics')
         const queues: QueueMetrics[] = await queuesRes.json()
 
-        const healthGrid = useRef('queue-health-grid')
         let html = ''
         queues.forEach((q: QueueMetrics) => {
           const healthColor = q.errorRate > 5 ? 'bg-red-500' : q.errorRate > 1 ? 'bg-amber-500' : 'bg-emerald-500'
@@ -237,27 +208,40 @@
           html += '</div>'
           html += '</div>'
         })
-        healthGrid.innerHTML = html
+        $('queue-health-grid').innerHTML = html
       } catch (err) {
         console.error('Monitoring refresh failed:', err)
-        const connectionDot = useRef('connection-dot')
-        connectionDot.classList.add('disconnected')
-        connectionDot.classList.remove('bg-emerald-500')
-        connectionDot.classList.add('bg-red-500')
-        const connectionLabel = useRef('connection-label')
-        connectionLabel.textContent = 'Disconnected'
-        connectionLabel.style.color = '#ef4444'
+        const dot = $('connection-dot')
+        dot.classList.add('disconnected')
+        dot.classList.remove('bg-emerald-500')
+        dot.classList.add('bg-red-500')
+        $('connection-label').textContent = 'Disconnected'
+        $('connection-label').style.color = '#ef4444'
       }
     }
 
-    // Initialize with some events
     onMount(() => {
+      // Initialize events
       for (let i = 0; i < 12; i++) {
         events.push(generateEvent())
       }
       renderEvents()
-      refreshMonitoring()
-      startAutoRefresh()
+
+      // Event listeners
+      $('auto-refresh-toggle').addEventListener('change', (e: Event) => {
+        if ((e.target as HTMLInputElement).checked) {
+          refresh.resume()
+          $('refresh-interval-label').textContent = 'every 3s'
+        } else {
+          refresh.pause()
+          $('refresh-interval-label').textContent = 'paused'
+        }
+      })
+
+      $('clear-log-btn').addEventListener('click', () => {
+        events = []
+        renderEvents()
+      })
     })
   </script>
 @endpush

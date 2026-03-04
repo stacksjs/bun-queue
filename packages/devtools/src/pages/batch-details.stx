@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Batch Details — bun-queue')
+@section('title')
+Batch Details — bun-queue
+@endsection
 
 @push('styles')
   <style>
@@ -103,11 +105,14 @@
 
     const pageTitle = useTitle();
 
-    // Get batch ID from URL
     const pathParts: string[] = useRoute().path.split('/');
     const batchId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
     const circumference: number = 2 * Math.PI * 65; // ~408.4
+
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
 
     function statusBadgeClass(status: string): string {
       if (status === 'completed' || status === 'finished') return 'bg-emerald-500/15 text-emerald-500';
@@ -127,35 +132,31 @@
         const res = await fetch('/api/batches/' + encodeURIComponent(batchId));
         const batch: Batch = await res.json();
 
-        // Header
-        useRef('batch-name').textContent = batch.name || 'Batch ' + batch.id;
-        const badge = useRef('batch-badge');
+        $('batch-name').textContent = batch.name || 'Batch ' + batch.id;
+        const badge = $('batch-badge');
         badge.textContent = batch.status || 'pending';
         badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + statusBadgeClass(batch.status);
 
         pageTitle.set((batch.name || 'Batch ' + batch.id) + ' \u2014 bun-queue');
 
-        // Stats
         const total: number = batch.totalJobs || batch.total || 0;
         const processed: number = batch.processedJobs || batch.processed || 0;
         const failed: number = batch.failedJobs || batch.failed || 0;
         const pending: number = Math.max(0, total - processed - failed);
 
-        useRef('stat-total').textContent = total;
-        useRef('stat-processed').textContent = processed;
-        useRef('stat-failed').textContent = failed;
-        useRef('stat-pending').textContent = pending;
+        $('stat-total').textContent = total;
+        $('stat-processed').textContent = processed;
+        $('stat-failed').textContent = failed;
+        $('stat-pending').textContent = pending;
 
-        // Progress ring
         const pct: number = total > 0 ? Math.round((processed / total) * 100) : 0;
-        useRef('progress-pct').textContent = pct + '%';
+        $('progress-pct').textContent = pct + '%';
         const offset: number = circumference - (pct / 100) * circumference;
-        useRef('progress-ring').style.strokeDashoffset = offset;
+        ($('progress-ring') as unknown as SVGElement).style.strokeDashoffset = offset;
 
-        // Timeline
-        useRef('tl-created').textContent = formatTime(batch.createdAt);
-        useRef('tl-started').textContent = formatTime(batch.startedAt);
-        useRef('tl-finished').textContent = formatTime(batch.finishedAt);
+        $('tl-created').textContent = formatTime(batch.createdAt);
+        $('tl-started').textContent = formatTime(batch.startedAt);
+        $('tl-finished').textContent = formatTime(batch.finishedAt);
       } catch (e) {
         console.error('Failed to load batch:', e);
       }
@@ -166,7 +167,7 @@
         const res = await fetch('/api/batches/' + encodeURIComponent(batchId) + '/jobs');
         const jobs: JobData[] = await res.json();
 
-        const container = useRef('jobs-table-container');
+        const container = $('jobs-table-container');
         if (!jobs || jobs.length === 0) {
           container.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this batch.</div>';
           return;
@@ -198,15 +199,12 @@
         container.innerHTML = html;
       } catch (e) {
         console.error('Failed to load batch jobs:', e);
-        useRef('jobs-table-container').innerHTML =
+        $('jobs-table-container').innerHTML =
           '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load batch jobs.</div>';
       }
     }
 
-    onMount(() => {
-      loadBatch();
-      loadJobs();
-      setInterval(() => { loadBatch(); loadJobs(); }, 10000);
-    });
+    const autoRefresh = useInterval(10000, { immediate: true })
+    autoRefresh.subscribe(() => { loadBatch(); loadJobs(); })
   </script>
 @endpush

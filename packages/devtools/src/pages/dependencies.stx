@@ -1,9 +1,16 @@
 @extends('../layouts/app')
 
-@section('title', 'Job Dependencies — bun-queue')
+@section('title')
+Job Dependencies — bun-queue
+@endsection
 
-@section('body-class', 'overflow-hidden')
-@section('main-class', 'h-screen flex flex-col')
+@section('body-class')
+overflow-hidden
+@endsection
+
+@section('main-class')
+h-screen flex flex-col
+@endsection
 
 @push('head')
   <script src="https://d3js.org/d3.v7.min.js"></script>
@@ -77,7 +84,10 @@
       return statusColors[status] || '#71717a';
     }
 
-    const tooltipEl = useRef('tooltip');
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
+
     let simulation: any = null;
 
     async function loadDependencies(): Promise<void> {
@@ -86,30 +96,29 @@
         const data: DependencyGraph = await res.json();
 
         if (!data || !data.nodes || data.nodes.length === 0) {
-          useRef('graph-empty').textContent = 'No job dependencies found.';
+          $('graph-empty').textContent = 'No job dependencies found.';
           return;
         }
 
-        useRef('graph-empty').style.display = 'none';
+        $('graph-empty').style.display = 'none';
         buildGraph(data);
       } catch (e) {
         console.error('Failed to load dependencies:', e);
-        useRef('graph-empty').textContent = 'Failed to load dependency graph.';
+        $('graph-empty').textContent = 'Failed to load dependency graph.';
       }
     }
 
     function buildGraph(data: DependencyGraph): void {
-      const container = useRef('graph-container');
+      const container = $('graph-container');
+      const tooltipEl = $('tooltip');
       const width: number = container.clientWidth;
       const height: number = container.clientHeight;
 
-      // Create SVG
       const svg = d3.select('#graph-container')
         .append('svg')
         .attr('width', width)
         .attr('height', height);
 
-      // Arrow marker definition
       svg.append('defs').append('marker')
         .attr('id', 'arrowhead')
         .attr('viewBox', '0 -5 10 10')
@@ -122,7 +131,6 @@
         .attr('d', 'M0,-5L10,0L0,5')
         .attr('class', 'link-arrow');
 
-      // Zoom behavior
       const g = svg.append('g');
 
       const zoom = d3.zoom()
@@ -133,21 +141,17 @@
 
       svg.call(zoom);
 
-      // Center the initial view
       svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2));
 
-      // Build links
       const nodes: DependencyNode[] = data.nodes.map((d: DependencyNode) => ({ ...d }));
       const links: DependencyLink[] = (data.links || data.edges || []).map((d: DependencyLink) => ({ ...d }));
 
-      // Simulation
       simulation = d3.forceSimulation(nodes)
         .force('link', d3.forceLink(links).id(d => d.id).distance(120))
         .force('charge', d3.forceManyBody().strength(-300))
         .force('center', d3.forceCenter(width / 2, height / 2))
         .force('collision', d3.forceCollide().radius(30));
 
-      // Draw links
       const link = g.append('g')
         .selectAll('line')
         .data(links)
@@ -155,7 +159,6 @@
         .attr('class', 'link')
         .attr('marker-end', 'url(#arrowhead)');
 
-      // Draw nodes
       const node = g.append('g')
         .selectAll('g')
         .data(nodes)
@@ -168,8 +171,8 @@
         .on('mouseover', function(event, d) {
           d3.select(this).attr('r', 16).attr('stroke-width', 3);
 
-          useRef('tooltip-name').textContent = d.name || d.label || 'Job';
-          useRef('tooltip-id').textContent = 'ID: ' + d.id;
+          $('tooltip-name').textContent = d.name || d.label || 'Job';
+          $('tooltip-id').textContent = 'ID: ' + d.id;
 
           const badgeStatus = d.status || 'waiting';
           const badgeColors = {
@@ -178,7 +181,7 @@
             waiting: 'background: rgba(245, 158, 11, 0.2); color: #f59e0b;',
             failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
           };
-          useRef('tooltip-status').innerHTML =
+          $('tooltip-status').innerHTML =
             '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>';
 
           tooltipEl.style.left = (event.pageX + 12) + 'px';
@@ -210,7 +213,6 @@
           })
         );
 
-      // Node labels
       node.append('text')
         .attr('class', 'node-label')
         .attr('dy', 28)
@@ -219,7 +221,6 @@
           return name.length > 16 ? name.slice(0, 14) + '...' : name;
         });
 
-      // Tick
       simulation.on('tick', () => {
         link
           .attr('x1', d => d.source.x)
@@ -231,6 +232,8 @@
       });
     }
 
-    loadDependencies();
+    onMount(() => {
+      loadDependencies();
+    });
   </script>
 @endpush

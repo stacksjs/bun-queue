@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'bun-queue Dashboard')
+@section('title')
+bun-queue Dashboard
+@endsection
 
 @push('head')
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -102,12 +104,14 @@
     import type { JobData } from '../types/job'
     import type { Queue } from '../types/queue'
 
-    // CDN globals
     declare const Chart: any
 
-    // Chart instances
     let throughputChart: any = null
     let queueStatusChart: any = null
+
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
 
     function badgeClass(status: string): string {
       const map = {
@@ -122,23 +126,21 @@
 
     async function loadDashboard(): Promise<void> {
       try {
-        // Fetch stats
         const statsRes = await fetch('/api/stats')
         const stats: DashboardStats = await statsRes.json()
 
-        useRef('stat-active-queues').textContent = stats.totalQueues
-        useRef('stat-waiting-jobs').textContent = stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs
-        useRef('stat-active-jobs').textContent = stats.activeJobs
-        useRef('stat-completed-jobs').textContent = stats.completedJobs
-        useRef('stat-failed-jobs').textContent = stats.failedJobs
-        useRef('stat-processing-rate').innerHTML = stats.throughputPerMinute + '<span class="text-xs text-zinc-500 font-normal"> /min</span>'
+        $('stat-active-queues').textContent = stats.totalQueues
+        $('stat-waiting-jobs').textContent = stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs
+        $('stat-active-jobs').textContent = stats.activeJobs
+        $('stat-completed-jobs').textContent = stats.completedJobs
+        $('stat-failed-jobs').textContent = stats.failedJobs
+        $('stat-processing-rate').innerHTML = stats.throughputPerMinute + '<span class="text-xs text-zinc-500 font-normal"> /min</span>'
 
-        // Fetch metrics for throughput chart
         const metricsRes = await fetch('/api/metrics?timeRange=24h')
         const metrics: MetricsData = await metricsRes.json()
 
         if (throughputChart) throughputChart.destroy()
-        const ctx1 = useRef('throughput-chart').getContext('2d')
+        const ctx1 = ($('throughput-chart') as HTMLCanvasElement).getContext('2d')
         throughputChart = new Chart(ctx1, {
           type: 'line',
           data: {
@@ -166,9 +168,8 @@
           }
         })
 
-        // Queue status doughnut chart
         if (queueStatusChart) queueStatusChart.destroy()
-        const ctx2 = useRef('queue-status-chart').getContext('2d')
+        const ctx2 = ($('queue-status-chart') as HTMLCanvasElement).getContext('2d')
         queueStatusChart = new Chart(ctx2, {
           type: 'doughnut',
           data: {
@@ -193,12 +194,11 @@
           }
         })
 
-        // Fetch recent jobs
         const jobsRes = await fetch('/api/jobs')
         const jobs: JobData[] = await jobsRes.json()
         const recent: JobData[] = jobs.slice(0, 5)
 
-        const jobsContainer = useRef('recent-jobs-container')
+        const jobsContainer = $('recent-jobs-container')
         if (recent.length === 0) {
           jobsContainer.innerHTML = '<div class="text-center py-8 text-zinc-500 text-sm">No recent jobs to display.</div>'
         } else {
@@ -221,11 +221,10 @@
           jobsContainer.innerHTML = html
         }
 
-        // Fetch queues
         const queuesRes = await fetch('/api/queues')
         const queues: Queue[] = await queuesRes.json()
 
-        const queueContainer = useRef('queue-list-container')
+        const queueContainer = $('queue-list-container')
         if (queues.length === 0) {
           queueContainer.innerHTML = '<div class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>'
         } else {
@@ -248,8 +247,9 @@
       }
     }
 
-    useEventListener('click', loadDashboard, { target: '#refresh-btn' })
-
-    onMount(loadDashboard)
+    onMount(() => {
+      $('refresh-btn').addEventListener('click', loadDashboard)
+      loadDashboard()
+    })
   </script>
 @endpush

@@ -1,10 +1,29 @@
 import type { DashboardConfig } from './types'
+import path from 'node:path'
+import { defaultConfig as stxDefaultConfig, processDirectives } from '@stacksjs/stx'
 import { createApiRoutes, fetchBatchById, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobById, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueById, fetchQueues } from './api'
 import { resolveConfig } from './api'
 
 export type { Batch, DashboardConfig, DashboardStats, JobData, JobDependencyGraph, JobGroup, JobNode, MetricsData, Queue, QueueMetrics } from './types'
 export { JobStatus } from './types'
 export { createApiRoutes, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueMetrics, fetchQueues } from './api'
+
+const PAGES_DIR = path.join(import.meta.dir, 'pages')
+
+async function renderStxPage(templateName: string): Promise<string> {
+  const templatePath = path.join(PAGES_DIR, `${templateName}.stx`)
+  const content = await Bun.file(templatePath).text()
+
+  const config = {
+    ...stxDefaultConfig,
+    componentsDir: path.join(import.meta.dir, 'components'),
+    layoutsDir: path.join(import.meta.dir, 'layouts'),
+    partialsDir: path.join(import.meta.dir, 'partials'),
+  }
+
+  const context = { __filename: templatePath, __dirname: path.dirname(templatePath) }
+  return await processDirectives(content, context, templatePath, config, new Set())
+}
 
 export async function serveDashboard(options: DashboardConfig = {}): Promise<void> {
   const config = resolveConfig(options)
@@ -77,48 +96,36 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
         return Response.json(allJobs.slice(0, batch.totalJobs > 10 ? 10 : batch.totalJobs))
       }
 
-      // Page routes — serve stx templates
-      // TODO: Integrate stx template rendering engine
-      const pageRoutes: Record<string, string> = {
-        '/': 'Dashboard',
-        '/monitoring': 'Monitoring',
-        '/metrics': 'Metrics',
-        '/queues': 'Queues',
-        '/jobs': 'Jobs',
-        '/batches': 'Batches',
-        '/groups': 'Groups',
-        '/dependencies': 'Dependencies',
+      // Static page routes
+      const pageMap: Record<string, string> = {
+        '/': 'index',
+        '/monitoring': 'monitoring',
+        '/metrics': 'metrics',
+        '/queues': 'queues',
+        '/jobs': 'jobs',
+        '/batches': 'batches',
+        '/groups': 'groups',
+        '/dependencies': 'dependencies',
       }
 
-      // Static page routes
-      if (pageRoutes[path]) {
-        // For now, return page name as placeholder
-        // Once stx rendering is integrated, this will render the .stx template
-        return new Response(`<!DOCTYPE html><html><head><title>${pageRoutes[path]} - bun-queue</title></head><body><h1>${pageRoutes[path]}</h1><p>stx template rendering pending integration</p></body></html>`, {
-          headers: { 'Content-Type': 'text/html' },
-        })
+      if (pageMap[path]) {
+        const html = await renderStxPage(pageMap[path])
+        return new Response(html, { headers: { 'Content-Type': 'text/html' } })
       }
 
       // Dynamic page routes (detail views)
-      if (path.match(/^\/queues\/[^/]+$/)) {
-        return new Response('<!DOCTYPE html><html><head><title>Queue Details - bun-queue</title></head><body><h1>Queue Details</h1></body></html>', {
-          headers: { 'Content-Type': 'text/html' },
-        })
-      }
-      if (path.match(/^\/jobs\/[^/]+$/)) {
-        return new Response('<!DOCTYPE html><html><head><title>Job Details - bun-queue</title></head><body><h1>Job Details</h1></body></html>', {
-          headers: { 'Content-Type': 'text/html' },
-        })
-      }
-      if (path.match(/^\/batches\/[^/]+$/)) {
-        return new Response('<!DOCTYPE html><html><head><title>Batch Details - bun-queue</title></head><body><h1>Batch Details</h1></body></html>', {
-          headers: { 'Content-Type': 'text/html' },
-        })
-      }
-      if (path.match(/^\/groups\/[^/]+$/)) {
-        return new Response('<!DOCTYPE html><html><head><title>Group Details - bun-queue</title></head><body><h1>Group Details</h1></body></html>', {
-          headers: { 'Content-Type': 'text/html' },
-        })
+      const dynamicPages: Array<{ pattern: RegExp, template: string }> = [
+        { pattern: /^\/queues\/[^/]+$/, template: 'queue-details' },
+        { pattern: /^\/jobs\/[^/]+$/, template: 'job-details' },
+        { pattern: /^\/batches\/[^/]+$/, template: 'batch-details' },
+        { pattern: /^\/groups\/[^/]+$/, template: 'group-details' },
+      ]
+
+      for (const { pattern, template } of dynamicPages) {
+        if (pattern.test(path)) {
+          const html = await renderStxPage(template)
+          return new Response(html, { headers: { 'Content-Type': 'text/html' } })
+        }
       }
 
       return new Response('Not Found', { status: 404 })

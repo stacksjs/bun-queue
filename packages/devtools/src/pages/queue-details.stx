@@ -1,6 +1,8 @@
 @extends('../layouts/app')
 
-@section('title', 'Queue Details — bun-queue')
+@section('title')
+Queue Details — bun-queue
+@endsection
 
 @push('head')
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
@@ -94,11 +96,14 @@
 
     declare const Chart: any
 
-    // Get queue ID from URL
     const pathParts: string[] = useRoute().path.split('/');
     const queueId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
     let throughputChart: any = null;
+
+    function $(id: string): HTMLElement {
+      return document.getElementById(id)!
+    }
 
     function statusBadgeClass(status: string): string {
       if (status === 'completed') return 'bg-emerald-500/15 text-emerald-500';
@@ -120,8 +125,8 @@
         const q: QueueDetail | undefined = queues.find(q => q.id === queueId || q.name === queueId);
         if (!q) return;
 
-        useRef('queue-name').textContent = q.name || queueId;
-        const badge = useRef('queue-badge');
+        $('queue-name').textContent = q.name || queueId;
+        const badge = $('queue-badge');
         if (q.paused) {
           badge.textContent = 'paused';
           badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-zinc-500/15 text-zinc-500';
@@ -131,15 +136,15 @@
         }
 
         const total: number = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0);
-        useRef('stat-total').textContent = total;
-        useRef('stat-pending').textContent = q.waiting || 0;
-        useRef('stat-active').textContent = q.active || 0;
-        useRef('stat-completed').textContent = q.completed || 0;
-        useRef('stat-failed').textContent = q.failed || 0;
+        $('stat-total').textContent = total;
+        $('stat-pending').textContent = q.waiting || 0;
+        $('stat-active').textContent = q.active || 0;
+        $('stat-completed').textContent = q.completed || 0;
+        $('stat-failed').textContent = q.failed || 0;
 
         const pct: number = total > 0 ? Math.round(((q.completed || 0) / total) * 100) : 0;
-        useRef('progress-pct').textContent = pct + '%';
-        useRef('progress-fill').style.width = pct + '%';
+        $('progress-pct').textContent = pct + '%';
+        ($('progress-fill') as HTMLElement).style.width = pct + '%';
       } catch (e) {
         console.error('Failed to load queue:', e);
       }
@@ -150,7 +155,7 @@
         const res = await fetch('/api/jobs?queue=' + encodeURIComponent(queueId));
         const jobs: JobData[] = await res.json();
 
-        const container = useRef('jobs-table-container');
+        const container = $('jobs-table-container');
         if (!jobs || jobs.length === 0) {
           container.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this queue.</div>';
           return;
@@ -182,7 +187,7 @@
         container.innerHTML = html;
       } catch (e) {
         console.error('Failed to load jobs:', e);
-        useRef('jobs-table-container').innerHTML =
+        $('jobs-table-container').innerHTML =
           '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load jobs.</div>';
       }
     }
@@ -195,7 +200,7 @@
         const labels: string[] = data.throughput ? data.throughput.map(d => d.label || d.time) : [];
         const values: number[] = data.throughput ? data.throughput.map(d => d.value || d.count) : [];
 
-        const ctx = useRef('throughput-chart').getContext('2d');
+        const ctx = ($('throughput-chart') as HTMLCanvasElement).getContext('2d');
 
         if (throughputChart) throughputChart.destroy();
 
@@ -238,11 +243,11 @@
       }
     }
 
+    const autoRefresh = useInterval(10000, { immediate: true })
+    autoRefresh.subscribe(() => { loadQueue(); loadJobs(); })
+
     onMount(() => {
-      loadQueue();
-      loadJobs();
       loadThroughput();
-      setInterval(() => { loadQueue(); loadJobs(); }, 10000);
     });
   </script>
 @endpush
