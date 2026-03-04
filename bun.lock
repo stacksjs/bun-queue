@@ -6,7 +6,7 @@
       "name": "@stacksjs/bun-queue",
       "devDependencies": {
         "@stacksjs/bunpress": "^0.1.1",
-        "@types/bun": "^1.3.9",
+        "@types/bun": "^1.3.10",
         "better-dx": "^0.2.6",
       },
     },
@@ -19,11 +19,11 @@
       "version": "0.1.0",
       "dependencies": {
         "@cwcss/crosswind": "^0.1.6",
-        "@stacksjs/bun-queue": "^0.0.1",
-        "@stacksjs/stx": "^0.2.5",
+        "@stacksjs/bun-queue": "^0.1.0",
+        "@stacksjs/stx": "^0.2.6",
       },
       "devDependencies": {
-        "bun-plugin-stx": "^0.2.5",
+        "bun-plugin-stx": "^0.2.6",
       },
     },
   },
@@ -139,7 +139,5 @@
     "wrap-ansi": ["wrap-ansi@9.0.2", "", { "dependencies": { "ansi-styles": "^6.2.1", "string-width": "^7.0.0", "strip-ansi": "^7.1.0" } }, "sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww=="],
 
     "yocto-queue": ["yocto-queue@1.2.2", "", {}, "sha512-4LCcse/U2MHZ63HAJVE+v71o7yOdIe4cZ70Wpf8D/IyjDKYQLV5GD46B+hSTjJsvV5PztjvHoU580EftxjDZFQ=="],
-
-    "@stacksjs/bun-queue-dashboard/@stacksjs/bun-queue": ["@stacksjs/bun-queue@0.0.1", "", {}, "sha512-DmnFxh5cgaQppy3SOpP1kl3ez6/b+ntFJu12+you6gH1wJPdN1Z6bumsHZD1Zq9cBw/ZM+IQueiVCq4PVsZY4g=="],
   }
 }
