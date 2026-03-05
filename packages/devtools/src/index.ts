@@ -110,7 +110,7 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
 
       if (pageMap[path]) {
         const html = await renderStxPage(pageMap[path])
-        return new Response(html, { headers: { 'Content-Type': 'text/html' } })
+        return new Response(html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } })
       }
 
       // Dynamic page routes (detail views)
@@ -124,7 +124,7 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
       for (const { pattern, template } of dynamicPages) {
         if (pattern.test(path)) {
           const html = await renderStxPage(template)
-          return new Response(html, { headers: { 'Content-Type': 'text/html' } })
+          return new Response(html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } })
         }
       }
 

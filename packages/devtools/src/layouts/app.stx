@@ -37,8 +37,10 @@
     const sidebarCollapsed = state(stored === 'true')
 
     onMount(() => {
-      const sidebar = document.getElementById('sidebar')!
-      const mainWrapper = document.getElementById('main-wrapper')!
+      const sidebar = useRef('sidebar')
+      const mainWrapper = useRef('main-wrapper')
+      const sidebarToggle = useRef('sidebar-toggle')
+      const sidebarNav = useRef('sidebar-nav')
 
       function applySidebarState(): void {
         if (sidebarCollapsed()) {
@@ -52,7 +54,7 @@
 
       applySidebarState()
 
-      document.getElementById('sidebar-toggle')!.addEventListener('click', () => {
+      sidebarToggle.addEventListener('click', () => {
         sidebarCollapsed.set(!sidebarCollapsed())
         localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed()))
         applySidebarState()
@@ -60,7 +62,6 @@
 
       // Active nav highlighting
       const currentPath = useRoute().path
-      const sidebarNav = document.getElementById('sidebar-nav')!
       Array.from(sidebarNav.children).forEach((item) => {
         if (!(item as HTMLElement).classList.contains('nav-item')) return
         const href = item.getAttribute('href')
