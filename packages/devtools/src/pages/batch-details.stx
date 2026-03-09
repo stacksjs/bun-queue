@@ -22,8 +22,8 @@ Batch Details — bun-queue
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
-          <span id="batch-name" ref="batch-name"></span>
-          <span id="batch-badge" ref="batch-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-zinc-500/15 text-zinc-500"></span>
+          <span>{{ batchName() }}</span>
+          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass(batchStatus())">{{ batchStatus() }}</span>
         </h1>
         <p class="text-[0.8125rem] text-zinc-500 mt-1">Batch progress and job breakdown</p>
       </div>
@@ -34,33 +34,33 @@ Batch Details — bun-queue
       <div class="progress-ring-container relative w-40 h-40">
         <svg width="160" height="160" viewBox="0 0 160 160">
           <circle class="progress-ring-bg" cx="80" cy="80" r="65"/>
-          <circle class="progress-ring-fill" id="progress-ring" ref="progress-ring" cx="80" cy="80" r="65"
-            stroke-dasharray="408.4" stroke-dashoffset="408.4"/>
+          <circle class="progress-ring-fill" cx="80" cy="80" r="65"
+            stroke-dasharray="408.4" :style="'stroke-dashoffset: ' + ringOffset()"/>
         </svg>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          <div class="text-[2rem] font-bold text-zinc-50 tabular-nums leading-none" id="progress-pct" ref="progress-pct">0%</div>
+          <div class="text-[2rem] font-bold text-zinc-50 tabular-nums leading-none">{{ progressPct() }}%</div>
           <div class="text-xs text-zinc-500 mt-1">complete</div>
         </div>
       </div>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="stats-grid">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Jobs</div>
-        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums" id="stat-total" ref="stat-total">0</div>
+        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums">{{ totalJobs() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Processed</div>
-        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-processed" ref="stat-processed">0</div>
+        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ processedJobs() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Failed</div>
-        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-failed" ref="stat-failed">0</div>
+        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ failedJobs() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Pending</div>
-        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums" id="stat-pending" ref="stat-pending">0</div>
+        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums">{{ pendingJobs() }}</div>
       </div>
     </div>
 
@@ -71,17 +71,17 @@ Batch Details — bun-queue
         <div class="flex items-center gap-3">
           <div class="w-2 h-2 rounded-full bg-indigo-500 shrink-0"></div>
           <div class="text-[0.8125rem] text-zinc-500 w-[100px] shrink-0">Created</div>
-          <div class="text-[0.8125rem] text-zinc-400" id="tl-created" ref="tl-created">&mdash;</div>
+          <div class="text-[0.8125rem] text-zinc-400">{{ createdAt() }}</div>
         </div>
         <div class="flex items-center gap-3">
           <div class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
           <div class="text-[0.8125rem] text-zinc-500 w-[100px] shrink-0">Started</div>
-          <div class="text-[0.8125rem] text-zinc-400" id="tl-started" ref="tl-started">&mdash;</div>
+          <div class="text-[0.8125rem] text-zinc-400">{{ startedAt() }}</div>
         </div>
         <div class="flex items-center gap-3">
           <div class="w-2 h-2 rounded-full bg-zinc-500 shrink-0"></div>
           <div class="text-[0.8125rem] text-zinc-500 w-[100px] shrink-0">Finished</div>
-          <div class="text-[0.8125rem] text-zinc-400" id="tl-finished" ref="tl-finished">&mdash;</div>
+          <div class="text-[0.8125rem] text-zinc-400">{{ finishedAt() }}</div>
         </div>
       </div>
     </div>
@@ -91,9 +91,44 @@ Batch Details — bun-queue
       <div class="flex items-center justify-between mb-4">
         <span class="text-sm font-semibold text-zinc-50">Jobs in this Batch</span>
       </div>
-      <div id="jobs-table-container" ref="jobs-table-container">
-        <div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
-      </div>
+
+      <!-- Loading state -->
+      <div @show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
+
+      <!-- Empty state -->
+      <div @show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this batch.</div>
+
+      <!-- Table -->
+      <table @show="!loading() && jobs().length > 0" class="w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Name</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Status</th>
+            <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Attempts</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Created</th>
+            <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Duration</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template @for="job in jobs()">
+            <tr class="hover:bg-[#1e1e26]">
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 font-mono text-xs">{{ job.id }}</td>
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">{{ job.name || '\u2014' }}</td>
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass(job.status)">{{ job.status }}</span>
+              </td>
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 text-right tabular-nums">{{ (job.attempts || 0) + '/' + (job.maxAttempts || 3) }}</td>
+              <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ formatTime(job.createdAt) }}</td>
+              <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums">{{ job.duration ? job.duration + 'ms' : '\u2014' }}</td>
+              <td class="px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800">
+                <a :href="'/jobs/' + job.id" class="text-indigo-500 no-underline hover:underline">View</a>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
     </div>
   </div>
 @endsection
@@ -103,106 +138,87 @@ Batch Details — bun-queue
     import type { Batch } from '../types/batch'
     import type { JobData } from '../types/job'
 
-    const pathParts: string[] = window.location.pathname.split('/');
-    const batchId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
+    const pathParts: string[] = window.location.pathname.split('/')
+    const batchId: string = decodeURIComponent(pathParts[pathParts.length - 1])
 
-    const circumference: number = 2 * Math.PI * 65; // ~408.4
+    const batchName = state('Batch')
+    const batchStatus = state('pending')
+    const totalJobs = state(0)
+    const processedJobs = state(0)
+    const failedJobs = state(0)
+    const createdAt = state('\u2014')
+    const startedAt = state('\u2014')
+    const finishedAt = state('\u2014')
+    const jobs = state([])
+    const loading = state(true)
 
-    function $(id: string): HTMLElement {
-      return document.getElementById(id)!
+    const pendingJobs = derived(() => {
+      return Math.max(0, totalJobs() - processedJobs() - failedJobs())
+    })
+
+    const progressPct = derived(() => {
+      const total = totalJobs()
+      const processed = processedJobs()
+      return total > 0 ? Math.round((processed / total) * 100) : 0
+    })
+
+    const ringOffset = derived(() => {
+      const circumference = 2 * Math.PI * 65
+      return circumference - (progressPct() / 100) * circumference
+    })
+
+    function badgeClass(status) {
+      const map = {
+        completed: 'bg-emerald-500/15 text-emerald-500',
+        finished: 'bg-emerald-500/15 text-emerald-500',
+        failed: 'bg-red-500/15 text-red-500',
+        processing: 'bg-indigo-500/15 text-indigo-400',
+        active: 'bg-indigo-500/15 text-indigo-400',
+        pending: 'bg-amber-500/15 text-amber-500',
+        waiting: 'bg-amber-500/15 text-amber-500',
+      }
+      return map[status] || 'bg-zinc-500/15 text-zinc-500'
     }
 
-    function statusBadgeClass(status: string): string {
-      if (status === 'completed' || status === 'finished') return 'bg-emerald-500/15 text-emerald-500';
-      if (status === 'failed') return 'bg-red-500/15 text-red-500';
-      if (status === 'processing' || status === 'active') return 'bg-indigo-500/15 text-indigo-400';
-      if (status === 'pending' || status === 'waiting') return 'bg-amber-500/15 text-amber-500';
-      return 'bg-zinc-500/15 text-zinc-500';
+    function formatTime(ts) {
+      if (!ts) return '\u2014'
+      return new Date(ts).toLocaleString()
     }
 
-    function formatTime(ts: string | null | undefined): string {
-      if (!ts) return '\u2014';
-      return new Date(ts).toLocaleString();
-    }
-
-    async function loadBatch(): Promise<void> {
+    async function loadBatch() {
       try {
-        const res = await fetch('/api/batches/' + encodeURIComponent(batchId));
-        const batch: Batch = await res.json();
+        const res = await fetch('/api/batches/' + encodeURIComponent(batchId))
+        const batch = await res.json()
 
-        $('batch-name').textContent = batch.name || 'Batch ' + batch.id;
-        const badge = $('batch-badge');
-        badge.textContent = batch.status || 'pending';
-        badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + statusBadgeClass(batch.status);
+        batchName.set(batch.name || 'Batch ' + batch.id)
+        batchStatus.set(batch.status || 'pending')
 
-        document.title = (batch.name || 'Batch ' + batch.id) + ' \u2014 bun-queue';
+        document.title = (batch.name || 'Batch ' + batch.id) + ' \u2014 bun-queue'
 
-        const total: number = batch.totalJobs || batch.total || 0;
-        const processed: number = batch.processedJobs || batch.processed || 0;
-        const failed: number = batch.failedJobs || batch.failed || 0;
-        const pending: number = Math.max(0, total - processed - failed);
+        totalJobs.set(batch.totalJobs || batch.total || 0)
+        processedJobs.set(batch.processedJobs || batch.processed || 0)
+        failedJobs.set(batch.failedJobs || batch.failed || 0)
 
-        $('stat-total').textContent = total;
-        $('stat-processed').textContent = processed;
-        $('stat-failed').textContent = failed;
-        $('stat-pending').textContent = pending;
-
-        const pct: number = total > 0 ? Math.round((processed / total) * 100) : 0;
-        $('progress-pct').textContent = pct + '%';
-        const offset: number = circumference - (pct / 100) * circumference;
-        ($('progress-ring') as unknown as SVGElement).style.strokeDashoffset = offset;
-
-        $('tl-created').textContent = formatTime(batch.createdAt);
-        $('tl-started').textContent = formatTime(batch.startedAt);
-        $('tl-finished').textContent = formatTime(batch.finishedAt);
+        createdAt.set(formatTime(batch.createdAt))
+        startedAt.set(formatTime(batch.startedAt))
+        finishedAt.set(formatTime(batch.finishedAt))
       } catch (e) {
-        console.error('Failed to load batch:', e);
+        console.error('Failed to load batch:', e)
       }
     }
 
-    async function loadJobs(): Promise<void> {
+    async function loadJobs() {
+      loading.set(true)
       try {
-        const res = await fetch('/api/batches/' + encodeURIComponent(batchId) + '/jobs');
-        const jobs: JobData[] = await res.json();
-
-        const container = $('jobs-table-container');
-        if (!jobs || jobs.length === 0) {
-          container.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this batch.</div>';
-          return;
-        }
-
-        let html = '<table class="w-full border-collapse"><thead><tr>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Name</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Status</th>';
-        html += '<th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Attempts</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Created</th>';
-        html += '<th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Duration</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>';
-        html += '</tr></thead><tbody>';
-
-        jobs.forEach((job: JobData) => {
-          html += '<tr class="hover:bg-[#1e1e26]">';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 font-mono text-xs">' + job.id + '</td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">' + (job.name || '\u2014') + '</td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + statusBadgeClass(job.status) + '">' + job.status + '</span></td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 text-right tabular-nums">' + (job.attempts || 0) + '/' + (job.maxAttempts || 3) + '</td>';
-          html += '<td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">' + formatTime(job.createdAt) + '</td>';
-          html += '<td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums">' + (job.duration ? job.duration + 'ms' : '\u2014') + '</td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800"><a href="/jobs/' + job.id + '" class="text-indigo-500 no-underline hover:underline">View</a></td>';
-          html += '</tr>';
-        });
-
-        html += '</tbody></table>';
-        container.innerHTML = html;
+        const res = await fetch('/api/batches/' + encodeURIComponent(batchId) + '/jobs')
+        jobs.set(await res.json())
       } catch (e) {
-        console.error('Failed to load batch jobs:', e);
-        $('jobs-table-container').innerHTML =
-          '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load batch jobs.</div>';
+        console.error('Failed to load batch jobs:', e)
       }
+      loading.set(false)
     }
 
     const autoRefresh = useInterval(10000, { immediate: true })
-    autoRefresh.subscribe(() => { loadBatch(); loadJobs(); })
+    autoRefresh.subscribe(() => { loadBatch(); loadJobs() })
   </script>
 @endpush

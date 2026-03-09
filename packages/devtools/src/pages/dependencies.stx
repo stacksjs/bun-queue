@@ -54,15 +54,15 @@ h-screen flex flex-col
   </div>
 
   <!-- Graph -->
-  <div class="graph-container flex-1 relative overflow-hidden" id="graph-container" ref="graph-container">
-    <div class="flex items-center justify-center h-full text-zinc-500 text-sm" id="graph-empty" ref="graph-empty">Loading dependency graph...</div>
+  <div class="graph-container flex-1 relative overflow-hidden" ref="graph-container">
+    <div @show="statusMessage()" class="flex items-center justify-center h-full text-zinc-500 text-sm">{{ statusMessage() }}</div>
   </div>
 
   <!-- Tooltip -->
-  <div class="absolute pointer-events-none bg-[#141419] border border-zinc-800 rounded-md px-3.5 py-2.5 text-xs text-zinc-50 shadow-lg z-[200] opacity-0 transition-opacity duration-150" id="tooltip" ref="tooltip">
-    <div class="font-semibold mb-1" id="tooltip-name" ref="tooltip-name"></div>
-    <div class="font-mono text-zinc-500 text-[0.6875rem]" id="tooltip-id" ref="tooltip-id"></div>
-    <div class="mt-1" id="tooltip-status" ref="tooltip-status"></div>
+  <div class="absolute pointer-events-none bg-[#141419] border border-zinc-800 rounded-md px-3.5 py-2.5 text-xs text-zinc-50 shadow-lg z-[200] opacity-0 transition-opacity duration-150" ref="tooltip">
+    <div class="font-semibold mb-1" ref="tooltip-name"></div>
+    <div class="font-mono text-zinc-500 text-[0.6875rem]" ref="tooltip-id"></div>
+    <div class="mt-1" ref="tooltip-status"></div>
   </div>
 @endsection
 
@@ -72,52 +72,50 @@ h-screen flex flex-col
 
     declare const d3: any
 
+    const statusMessage = state('Loading dependency graph...')
+
     const statusColors: Record<string, string> = {
       completed: '#10b981',
       active: '#6366f1',
       waiting: '#f59e0b',
       pending: '#f59e0b',
       failed: '#ef4444',
-    };
+    }
 
     function getStatusColor(status: string): string {
-      return statusColors[status] || '#71717a';
+      return statusColors[status] || '#71717a'
     }
 
-    function $(id: string): HTMLElement {
-      return document.getElementById(id)!
-    }
-
-    let simulation: any = null;
+    let simulation: any = null
 
     async function loadDependencies(): Promise<void> {
       try {
-        const res = await fetch('/api/dependencies');
-        const data: DependencyGraph = await res.json();
+        const res = await fetch('/api/dependencies')
+        const data: DependencyGraph = await res.json()
 
         if (!data || !data.nodes || data.nodes.length === 0) {
-          $('graph-empty').textContent = 'No job dependencies found.';
-          return;
+          statusMessage.set('No job dependencies found.')
+          return
         }
 
-        $('graph-empty').style.display = 'none';
-        buildGraph(data);
+        statusMessage.set('')
+        buildGraph(data)
       } catch (e) {
-        console.error('Failed to load dependencies:', e);
-        $('graph-empty').textContent = 'Failed to load dependency graph.';
+        console.error('Failed to load dependencies:', e)
+        statusMessage.set('Failed to load dependency graph.')
       }
     }
 
     function buildGraph(data: DependencyGraph): void {
-      const container = $('graph-container');
-      const tooltipEl = $('tooltip');
-      const width: number = container.clientWidth;
-      const height: number = container.clientHeight;
+      const container = useRef('graph-container').current as HTMLElement
+      const tooltipEl = useRef('tooltip').current as HTMLElement
+      const width: number = container.clientWidth
+      const height: number = container.clientHeight
 
-      const svg = d3.select('#graph-container')
+      const svg = d3.select(container)
         .append('svg')
         .attr('width', width)
-        .attr('height', height);
+        .attr('height', height)
 
       svg.append('defs').append('marker')
         .attr('id', 'arrowhead')
@@ -129,111 +127,114 @@ h-screen flex flex-col
         .attr('orient', 'auto')
         .append('path')
         .attr('d', 'M0,-5L10,0L0,5')
-        .attr('class', 'link-arrow');
+        .attr('class', 'link-arrow')
 
-      const g = svg.append('g');
+      const g = svg.append('g')
 
       const zoom = d3.zoom()
         .scaleExtent([0.1, 4])
-        .on('zoom', (event) => {
-          g.attr('transform', event.transform);
-        });
+        .on('zoom', (event: any) => {
+          g.attr('transform', event.transform)
+        })
 
-      svg.call(zoom);
+      svg.call(zoom)
+      svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2))
 
-      svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2));
-
-      const nodes: DependencyNode[] = data.nodes.map((d: DependencyNode) => ({ ...d }));
-      const links: DependencyLink[] = (data.links || data.edges || []).map((d: DependencyLink) => ({ ...d }));
+      const nodes: DependencyNode[] = data.nodes.map((d: DependencyNode) => ({ ...d }))
+      const links: DependencyLink[] = (data.links || data.edges || []).map((d: DependencyLink) => ({ ...d }))
 
       simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id(d => d.id).distance(120))
+        .force('link', d3.forceLink(links).id((d: any) => d.id).distance(120))
         .force('charge', d3.forceManyBody().strength(-300))
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(30));
+        .force('collision', d3.forceCollide().radius(30))
 
       const link = g.append('g')
         .selectAll('line')
         .data(links)
         .join('line')
         .attr('class', 'link')
-        .attr('marker-end', 'url(#arrowhead)');
+        .attr('marker-end', 'url(#arrowhead)')
 
       const node = g.append('g')
         .selectAll('g')
         .data(nodes)
-        .join('g');
+        .join('g')
 
       node.append('circle')
         .attr('class', 'node-circle')
         .attr('r', 12)
-        .attr('fill', d => getStatusColor(d.status))
-        .on('mouseover', function(event, d) {
-          d3.select(this).attr('r', 16).attr('stroke-width', 3);
+        .attr('fill', (d: any) => getStatusColor(d.status))
+        .on('mouseover', function(event: any, d: any) {
+          d3.select(this).attr('r', 16).attr('stroke-width', 3)
 
-          $('tooltip-name').textContent = d.name || d.label || 'Job';
-          $('tooltip-id').textContent = 'ID: ' + d.id;
+          const nameEl = useRef('tooltip-name').current as HTMLElement
+          const idEl = useRef('tooltip-id').current as HTMLElement
+          const statusEl = useRef('tooltip-status').current as HTMLElement
 
-          const badgeStatus = d.status || 'waiting';
-          const badgeColors = {
+          nameEl.textContent = d.name || d.label || 'Job'
+          idEl.textContent = 'ID: ' + d.id
+
+          const badgeStatus = d.status || 'waiting'
+          const badgeColors: Record<string, string> = {
             completed: 'background: rgba(16, 185, 129, 0.2); color: #10b981;',
             active: 'background: rgba(99, 102, 241, 0.2); color: #6366f1;',
             waiting: 'background: rgba(245, 158, 11, 0.2); color: #f59e0b;',
             failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
-          };
-          $('tooltip-status').innerHTML =
-            '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>';
+          }
+          statusEl.innerHTML =
+            '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>'
 
-          tooltipEl.style.left = (event.pageX + 12) + 'px';
-          tooltipEl.style.top = (event.pageY - 10) + 'px';
-          tooltipEl.style.opacity = '1';
+          tooltipEl.style.left = (event.pageX + 12) + 'px'
+          tooltipEl.style.top = (event.pageY - 10) + 'px'
+          tooltipEl.style.opacity = '1'
         })
-        .on('mousemove', function(event) {
-          tooltipEl.style.left = (event.pageX + 12) + 'px';
-          tooltipEl.style.top = (event.pageY - 10) + 'px';
+        .on('mousemove', function(event: any) {
+          tooltipEl.style.left = (event.pageX + 12) + 'px'
+          tooltipEl.style.top = (event.pageY - 10) + 'px'
         })
         .on('mouseout', function() {
-          d3.select(this).attr('r', 12).attr('stroke-width', 2);
-          tooltipEl.style.opacity = '0';
+          d3.select(this).attr('r', 12).attr('stroke-width', 2)
+          tooltipEl.style.opacity = '0'
         })
         .call(d3.drag()
-          .on('start', (event, d) => {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x;
-            d.fy = d.y;
+          .on('start', (event: any, d: any) => {
+            if (!event.active) simulation.alphaTarget(0.3).restart()
+            d.fx = d.x
+            d.fy = d.y
           })
-          .on('drag', (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
+          .on('drag', (event: any, d: any) => {
+            d.fx = event.x
+            d.fy = event.y
           })
-          .on('end', (event, d) => {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
+          .on('end', (event: any, d: any) => {
+            if (!event.active) simulation.alphaTarget(0)
+            d.fx = null
+            d.fy = null
           })
-        );
+        )
 
       node.append('text')
         .attr('class', 'node-label')
         .attr('dy', 28)
-        .text(d => {
-          const name = d.name || d.label || d.id || '';
-          return name.length > 16 ? name.slice(0, 14) + '...' : name;
-        });
+        .text((d: any) => {
+          const name = d.name || d.label || d.id || ''
+          return name.length > 16 ? name.slice(0, 14) + '...' : name
+        })
 
       simulation.on('tick', () => {
         link
-          .attr('x1', d => d.source.x)
-          .attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x)
-          .attr('y2', d => d.target.y);
+          .attr('x1', (d: any) => d.source.x)
+          .attr('y1', (d: any) => d.source.y)
+          .attr('x2', (d: any) => d.target.x)
+          .attr('y2', (d: any) => d.target.y)
 
-        node.attr('transform', d => 'translate(' + d.x + ',' + d.y + ')');
-      });
+        node.attr('transform', (d: any) => 'translate(' + d.x + ',' + d.y + ')')
+      })
     }
 
     onMount(() => {
-      loadDependencies();
-    });
+      loadDependencies()
+    })
   </script>
 @endpush

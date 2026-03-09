@@ -22,10 +22,14 @@ Performance Metrics — bun-queue
         <h1 class="text-lg font-semibold text-zinc-50">Performance Metrics</h1>
         <p class="text-sm text-zinc-500 mt-1">Job throughput, latency, and error analysis</p>
       </div>
-      <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" id="time-range-bar" ref="time-range-bar">
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '24h' }" data-range="24h">24h</button>
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '7d' }" data-range="7d">7d</button>
-        <button class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeRange() === '30d' }" data-range="30d">30d</button>
+      <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1">
+        <template @for="range in timeRanges()">
+          <button
+            class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150"
+            :class="{ active: activeRange() === range }"
+            @click="selectRange(range)"
+          >{{ range }}</button>
+        </template>
       </div>
     </div>
 
@@ -33,22 +37,22 @@ Performance Metrics — bun-queue
     <div class="grid grid-cols-4 gap-4 mb-6 max-sm:grid-cols-2">
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Throughput</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-throughput" ref="stat-throughput">--</div>
+        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statThroughput() }}</div>
         <div class="text-xs text-zinc-500 font-normal">jobs/min</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Latency</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-latency" ref="stat-latency">--</div>
+        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statLatency() }}</div>
         <div class="text-xs text-zinc-500 font-normal">ms</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Error Rate</div>
-        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-error-rate" ref="stat-error-rate">--</div>
+        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ statErrorRate() }}</div>
         <div class="text-xs text-zinc-500 font-normal">%</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Uptime</div>
-        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-uptime" ref="stat-uptime">--</div>
+        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ statUptime() }}</div>
         <div class="text-xs text-zinc-500 font-normal">hours</div>
       </div>
     </div>
@@ -96,11 +100,19 @@ Performance Metrics — bun-queue
     let latencyChart: any = null
     let errorRateChart: any = null
 
-    function $(id: string): HTMLElement {
-      return document.getElementById(id)!
+    const timeRanges = state(['24h', '7d', '30d'])
+    const activeRange = state('24h')
+    const statThroughput = state('--')
+    const statLatency = state('--')
+    const statErrorRate = state('--')
+    const statUptime = state('--')
+
+    function selectRange(range: string): void {
+      activeRange.set(range)
+      loadMetrics(range)
     }
 
-    function chartOptions(color?: string): Record<string, any> {
+    function chartOptions(): Record<string, any> {
       return {
         responsive: true,
         maintainAspectRatio: false,
@@ -122,8 +134,8 @@ Performance Metrics — bun-queue
 
     function createLineDataset(label: string, data: number[], color: string): Record<string, any> {
       return {
-        label: label,
-        data: data,
+        label,
+        data,
         borderColor: color,
         backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'),
         fill: true,
@@ -134,11 +146,6 @@ Performance Metrics — bun-queue
       }
     }
 
-    const activeRange = state('24h')
-
-    // Pre-declare inner-scope variables to satisfy stx auto-return
-    let mData: any, sData: any, btn: any, initRange: any
-
     async function loadMetrics(timeRange: string): Promise<void> {
       try {
         const [mRes, sRes] = await Promise.all([
@@ -148,13 +155,27 @@ Performance Metrics — bun-queue
         const mData: MetricsData = await mRes.json()
         const sData: DashboardStats = await sRes.json()
 
-        $('stat-throughput').textContent = mData.throughput.length > 0 ? Math.round(mData.throughput.reduce((a, b) => a + b, 0) / mData.throughput.length) : 0
-        $('stat-latency').textContent = mData.latency.length > 0 ? Math.round(mData.latency.reduce((a, b) => a + b, 0) / mData.latency.length) : 0
-        $('stat-error-rate').textContent = mData.errorRate.length > 0 ? (mData.errorRate.reduce((a, b) => a + b, 0) / mData.errorRate.length).toFixed(2) : '0.00'
-        $('stat-uptime').textContent = Math.round(sData.uptime / 3600)
+        // Update reactive stat values
+        statThroughput.set(
+          mData.throughput.length > 0
+            ? String(Math.round(mData.throughput.reduce((a, b) => a + b, 0) / mData.throughput.length))
+            : '0'
+        )
+        statLatency.set(
+          mData.latency.length > 0
+            ? String(Math.round(mData.latency.reduce((a, b) => a + b, 0) / mData.latency.length))
+            : '0'
+        )
+        statErrorRate.set(
+          mData.errorRate.length > 0
+            ? (mData.errorRate.reduce((a, b) => a + b, 0) / mData.errorRate.length).toFixed(2)
+            : '0.00'
+        )
+        statUptime.set(String(Math.round(sData.uptime / 3600)))
 
+        // Chart.js requires direct canvas access — keep in imperative code
         if (throughputChart) throughputChart.destroy()
-        throughputChart = new Chart(($('throughput-chart') as HTMLCanvasElement).getContext('2d'), {
+        throughputChart = new Chart((document.getElementById('throughput-chart') as HTMLCanvasElement).getContext('2d'), {
           type: 'line',
           data: {
             labels: mData.timestamps,
@@ -164,7 +185,7 @@ Performance Metrics — bun-queue
         })
 
         if (latencyChart) latencyChart.destroy()
-        latencyChart = new Chart(($('latency-chart') as HTMLCanvasElement).getContext('2d'), {
+        latencyChart = new Chart((document.getElementById('latency-chart') as HTMLCanvasElement).getContext('2d'), {
           type: 'line',
           data: {
             labels: mData.timestamps,
@@ -174,7 +195,7 @@ Performance Metrics — bun-queue
         })
 
         if (errorRateChart) errorRateChart.destroy()
-        errorRateChart = new Chart(($('error-rate-chart') as HTMLCanvasElement).getContext('2d'), {
+        errorRateChart = new Chart((document.getElementById('error-rate-chart') as HTMLCanvasElement).getContext('2d'), {
           type: 'line',
           data: {
             labels: mData.timestamps,
@@ -188,13 +209,6 @@ Performance Metrics — bun-queue
     }
 
     onMount(() => {
-      $('time-range-bar').addEventListener('click', (e: Event) => {
-        const btn = (e.target as HTMLElement).closest('.time-range-btn') as HTMLButtonElement | null
-        if (!btn) return
-        activeRange.set(btn.dataset.range!)
-        loadMetrics(btn.dataset.range!)
-      })
-
       const initRange: string = useRoute().query.timeRange || '24h'
       activeRange.set(initRange)
       loadMetrics(initRange)

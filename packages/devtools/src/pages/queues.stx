@@ -23,94 +23,131 @@ Queues — bun-queue
     <div class="flex items-center gap-3 mb-6">
       <div class="relative flex-1 max-w-[320px]">
         <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="search-input w-full py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-sm outline-none focus:border-indigo-500 transition-colors duration-150" id="search-input" ref="search-input" placeholder="Search queues...">
+        <input
+          type="text"
+          class="search-input w-full py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-sm outline-none focus:border-indigo-500 transition-colors duration-150"
+          placeholder="Search queues..."
+          @input="searchQuery.set($event.target.value)"
+        >
       </div>
-      <button class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" id="refresh-btn" ref="refresh-btn">
+      <button
+        class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150"
+        @click="loadQueues()"
+      >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
         Refresh
       </button>
     </div>
 
     <!-- Queue Cards Container -->
-    <div id="queues-container" ref="queues-container">
-      <div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">Loading queues...</div>
+    <div>
+      <!-- Loading state -->
+      <div @show="loading()" class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">
+        Loading queues...
+      </div>
+
+      <!-- Error state -->
+      <div @show="!loading() && errorMessage()" class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">
+        {{ errorMessage() }}
+      </div>
+
+      <!-- Empty state -->
+      <div @show="!loading() && !errorMessage() && filteredQueues().length === 0" class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">
+        No queues found matching your search.
+      </div>
+
+      <!-- Queue cards grid -->
+      <div @show="!loading() && !errorMessage() && filteredQueues().length > 0" class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+        <template @for="q in filteredQueues()">
+          <div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 hover:border-indigo-500 transition-colors duration-150">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-[0.9375rem] font-semibold text-zinc-50">{{ q.name }}</span>
+              <span
+                class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium"
+                :class="statusBadgeClass(q.status)"
+              >
+                {{ statusLabel(q.status) }}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+              <div class="flex flex-col">
+                <span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Total</span>
+                <span class="text-lg font-bold text-zinc-50 tabular-nums">{{ q.jobCount }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Pending</span>
+                <span class="text-lg font-bold text-zinc-50 tabular-nums">{{ q.pendingJobs }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Active</span>
+                <span class="text-lg font-bold text-zinc-50 tabular-nums">{{ q.activeJobs }}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Completed</span>
+                <span class="text-lg font-bold text-zinc-50 tabular-nums">{{ q.completedJobs }}</span>
+              </div>
+            </div>
+            <div class="pt-3 border-t border-zinc-800">
+              <a :href="'/queues/' + q.id" class="text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details &rarr;</a>
+            </div>
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 @endsection
 
 @push('scripts')
   <script>
-    import type { Queue, StatusBadgeInfo } from '../types/queue'
+    import type { Queue } from '../types/queue'
 
-    let allQueues: Queue[] = []
+    const allQueues = state<Queue[]>([])
+    const searchQuery = state('')
+    const loading = state(true)
+    const errorMessage = state('')
 
-    function $(id: string): HTMLElement {
-      return document.getElementById(id)!
+    const filteredQueues = derived(() => {
+      const query = searchQuery().toLowerCase().trim()
+      if (!query) return allQueues()
+      return allQueues().filter((q: Queue) =>
+        q.name.toLowerCase().includes(query) || q.id.toLowerCase().includes(query)
+      )
+    })
+
+    function statusBadgeClass(status: string): string {
+      const map: Record<string, string> = {
+        active: 'bg-emerald-500/15 text-emerald-500',
+        paused: 'bg-amber-500/15 text-amber-500',
+        stopped: 'bg-red-500/15 text-red-500',
+      }
+      return map[status] || 'bg-zinc-500/15 text-zinc-500'
     }
 
-    function statusBadge(status: string): string {
-      const map: Record<string, StatusBadgeInfo> = {
-        active: { cls: 'bg-emerald-500/15 text-emerald-500', label: 'Active' },
-        paused: { cls: 'bg-amber-500/15 text-amber-500', label: 'Paused' },
-        stopped: { cls: 'bg-red-500/15 text-red-500', label: 'Stopped' },
+    function statusLabel(status: string): string {
+      const map: Record<string, string> = {
+        active: 'Active',
+        paused: 'Paused',
+        stopped: 'Stopped',
       }
-      const info: StatusBadgeInfo = map[status] || { cls: 'bg-zinc-500/15 text-zinc-500', label: status }
-      return '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + info.cls + '">' + info.label + '</span>'
-    }
-
-    function renderQueues(queues: Queue[]): void {
-      const container = $('queues-container')
-      if (queues.length === 0) {
-        container.innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">No queues found matching your search.</div>'
-        return
-      }
-
-      let html = '<div class="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">'
-      queues.forEach((q: Queue) => {
-        html += '<div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 hover:border-indigo-500 transition-colors duration-150">'
-        html += '<div class="flex items-center justify-between mb-4">'
-        html += '<span class="text-[0.9375rem] font-semibold text-zinc-50">' + q.name + '</span>'
-        html += statusBadge(q.status)
-        html += '</div>'
-        html += '<div class="grid grid-cols-2 gap-3 mb-4">'
-        html += '<div class="flex flex-col"><span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Total</span><span class="text-lg font-bold text-zinc-50 tabular-nums">' + q.jobCount + '</span></div>'
-        html += '<div class="flex flex-col"><span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Pending</span><span class="text-lg font-bold text-zinc-50 tabular-nums">' + q.pendingJobs + '</span></div>'
-        html += '<div class="flex flex-col"><span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Active</span><span class="text-lg font-bold text-zinc-50 tabular-nums">' + q.activeJobs + '</span></div>'
-        html += '<div class="flex flex-col"><span class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide">Completed</span><span class="text-lg font-bold text-zinc-50 tabular-nums">' + q.completedJobs + '</span></div>'
-        html += '</div>'
-        html += '<div class="pt-3 border-t border-zinc-800">'
-        html += '<a href="/queues/' + q.id + '" class="text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details &rarr;</a>'
-        html += '</div>'
-        html += '</div>'
-      })
-      html += '</div>'
-      container.innerHTML = html
+      return map[status] || status
     }
 
     async function loadQueues(): Promise<void> {
+      loading.set(true)
+      errorMessage.set('')
       try {
         const res = await fetch('/api/queues')
-        allQueues = await res.json() as Queue[]
-        filterQueues()
+        const queues: Queue[] = await res.json()
+        allQueues.set(queues)
       } catch (err) {
         console.error('Failed to load queues:', err)
-        $('queues-container').innerHTML = '<div class="text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg">Failed to load queues. Please try again.</div>'
-      }
-    }
-
-    function filterQueues(): void {
-      const query = ($('search-input') as HTMLInputElement).value.toLowerCase().trim()
-      if (!query) {
-        renderQueues(allQueues)
-      } else {
-        const filtered = allQueues.filter(q => q.name.toLowerCase().includes(query) || q.id.toLowerCase().includes(query))
-        renderQueues(filtered)
+        errorMessage.set('Failed to load queues. Please try again.')
+      } finally {
+        loading.set(false)
       }
     }
 
     onMount(() => {
-      $('search-input').addEventListener('input', filterQueues)
-      $('refresh-btn').addEventListener('click', loadQueues)
       loadQueues()
     })
   </script>

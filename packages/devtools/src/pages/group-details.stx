@@ -14,45 +14,45 @@ Group Details — bun-queue
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
-          <span id="group-name" ref="group-name"></span>
+          <span>{{ groupName() }}</span>
         </h1>
         <p class="text-[0.8125rem] text-zinc-500 mt-1">Group details and associated jobs</p>
       </div>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6" id="stats-grid">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Jobs</div>
-        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums" id="stat-total" ref="stat-total">0</div>
+        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums">{{ statTotal() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Active</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-active" ref="stat-active">0</div>
+        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statActive() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Waiting</div>
-        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums" id="stat-waiting" ref="stat-waiting">0</div>
+        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums">{{ statWaiting() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Completed</div>
-        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-completed" ref="stat-completed">0</div>
+        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ statCompleted() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Failed</div>
-        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-failed" ref="stat-failed">0</div>
+        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ statFailed() }}</div>
       </div>
     </div>
 
     <!-- Metadata -->
-    <div class="flex gap-8 mb-6 flex-wrap" id="meta-row">
+    <div class="flex gap-8 mb-6 flex-wrap">
       <div class="flex flex-col gap-1">
         <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider">Created</div>
-        <div class="text-sm text-zinc-400" id="meta-created" ref="meta-created">&mdash;</div>
+        <div class="text-sm text-zinc-400">{{ metaCreated() }}</div>
       </div>
       <div class="flex flex-col gap-1">
         <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider">Last Updated</div>
-        <div class="text-sm text-zinc-400" id="meta-updated" ref="meta-updated">&mdash;</div>
+        <div class="text-sm text-zinc-400">{{ metaUpdated() }}</div>
       </div>
     </div>
 
@@ -61,9 +61,38 @@ Group Details — bun-queue
       <div class="flex items-center justify-between mb-4">
         <span class="text-sm font-semibold text-zinc-50">Jobs in this Group</span>
       </div>
-      <div id="jobs-table-container" ref="jobs-table-container">
-        <div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
-      </div>
+
+      <!-- Loading state -->
+      <div @show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
+
+      <!-- Empty state -->
+      <div @show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this group.</div>
+
+      <!-- Table -->
+      <table @show="!loading() && jobs().length > 0" class="w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Name</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Status</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Updated</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template @for="job in jobs()">
+            <tr class="hover:bg-[#1e1e26]">
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">{{ job.name || job.id || '\u2014' }}</td>
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass(job.status)">{{ job.status }}</span>
+              </td>
+              <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ formatTime(job.updatedAt || job.createdAt) }}</td>
+              <td class="px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800">
+                <a :href="'/jobs/' + job.id" class="text-indigo-500 no-underline hover:underline">View</a>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
     </div>
   </div>
 @endsection
@@ -73,85 +102,75 @@ Group Details — bun-queue
     import type { JobGroup } from '../types/group'
     import type { JobData } from '../types/job'
 
-    const pathParts: string[] = window.location.pathname.split('/');
-    const groupId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
+    const pathParts: string[] = window.location.pathname.split('/')
+    const groupId: string = decodeURIComponent(pathParts[pathParts.length - 1])
 
-    function $(id: string): HTMLElement {
-      return document.getElementById(id)!
-    }
+    const groupName = state(groupId)
+    const statTotal = state(0)
+    const statActive = state(0)
+    const statWaiting = state(0)
+    const statCompleted = state(0)
+    const statFailed = state(0)
+    const metaCreated = state('\u2014')
+    const metaUpdated = state('\u2014')
+    const jobs = state<JobData[]>([])
+    const loading = state(true)
 
-    function statusBadgeClass(status: string): string {
-      if (status === 'completed') return 'bg-emerald-500/15 text-emerald-500';
-      if (status === 'failed') return 'bg-red-500/15 text-red-500';
-      if (status === 'active') return 'bg-indigo-500/15 text-indigo-400';
-      if (status === 'waiting' || status === 'pending') return 'bg-amber-500/15 text-amber-500';
-      return 'bg-zinc-500/15 text-zinc-500';
+    function badgeClass(status: string): string {
+      const map: Record<string, string> = {
+        completed: 'bg-emerald-500/15 text-emerald-500',
+        failed: 'bg-red-500/15 text-red-500',
+        active: 'bg-indigo-500/15 text-indigo-400',
+        waiting: 'bg-amber-500/15 text-amber-500',
+        pending: 'bg-amber-500/15 text-amber-500',
+      }
+      return map[status] || 'bg-zinc-500/15 text-zinc-500'
     }
 
     function formatTime(ts: string | null | undefined): string {
-      if (!ts) return '\u2014';
-      return new Date(ts).toLocaleString();
+      if (!ts) return '\u2014'
+      return new Date(ts).toLocaleString()
     }
 
     async function loadGroup(): Promise<void> {
       try {
-        const res = await fetch('/api/groups/' + encodeURIComponent(groupId));
-        const group: JobGroup = await res.json();
+        const res = await fetch('/api/groups/' + encodeURIComponent(groupId))
+        const group: JobGroup = await res.json()
 
-        $('group-name').textContent = group.name || groupId;
-        document.title = (group.name || groupId) + ' \u2014 bun-queue';
+        groupName.set(group.name || groupId)
+        document.title = (group.name || groupId) + ' \u2014 bun-queue'
 
-        const total: number = group.totalJobs || group.jobCount || group.total || 0;
-        $('stat-total').textContent = total;
-        $('stat-active').textContent = group.active || 0;
-        $('stat-waiting').textContent = group.waiting || 0;
-        $('stat-completed').textContent = group.completed || 0;
-        $('stat-failed').textContent = group.failed || 0;
+        statTotal.set(group.totalJobs || group.jobCount || group.total || 0)
+        statActive.set(group.active || 0)
+        statWaiting.set(group.waiting || 0)
+        statCompleted.set(group.completed || 0)
+        statFailed.set(group.failed || 0)
 
-        $('meta-created').textContent = formatTime(group.createdAt);
-        $('meta-updated').textContent = formatTime(group.updatedAt);
+        metaCreated.set(formatTime(group.createdAt))
+        metaUpdated.set(formatTime(group.updatedAt))
       } catch (e) {
-        console.error('Failed to load group:', e);
+        console.error('Failed to load group:', e)
       }
     }
 
     async function loadJobs(): Promise<void> {
       try {
-        const res = await fetch('/api/groups/' + encodeURIComponent(groupId) + '/jobs');
-        const jobs: JobData[] = await res.json();
-
-        const container = $('jobs-table-container');
-        if (!jobs || jobs.length === 0) {
-          container.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this group.</div>';
-          return;
-        }
-
-        let html = '<table class="w-full border-collapse"><thead><tr>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Name</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Status</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Updated</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>';
-        html += '</tr></thead><tbody>';
-
-        jobs.forEach((job: JobData) => {
-          html += '<tr class="hover:bg-[#1e1e26]">';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">' + (job.name || job.id || '\u2014') + '</td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + statusBadgeClass(job.status) + '">' + job.status + '</span></td>';
-          html += '<td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">' + formatTime(job.updatedAt || job.createdAt) + '</td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800"><a href="/jobs/' + job.id + '" class="text-indigo-500 no-underline hover:underline">View</a></td>';
-          html += '</tr>';
-        });
-
-        html += '</tbody></table>';
-        container.innerHTML = html;
+        const res = await fetch('/api/groups/' + encodeURIComponent(groupId) + '/jobs')
+        const data: JobData[] = await res.json()
+        jobs.set(data || [])
       } catch (e) {
-        console.error('Failed to load group jobs:', e);
-        $('jobs-table-container').innerHTML =
-          '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load group jobs.</div>';
+        console.error('Failed to load group jobs:', e)
       }
+      loading.set(false)
     }
 
-    const autoRefresh = useInterval(10000, { immediate: true })
-    autoRefresh.subscribe(() => { loadGroup(); loadJobs(); })
+    async function loadAll(): Promise<void> {
+      await Promise.all([loadGroup(), loadJobs()])
+    }
+
+    onMount(() => { loadAll() })
+
+    const autoRefresh = useInterval(10000)
+    autoRefresh.subscribe(() => { loadAll() })
   </script>
 @endpush

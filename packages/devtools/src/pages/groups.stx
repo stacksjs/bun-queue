@@ -14,17 +14,72 @@ Job Groups — bun-queue
       <div class="flex gap-3 items-center">
         <div class="relative">
           <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" class="py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-[0.8125rem] outline-none w-[260px] transition-colors duration-150 placeholder:text-zinc-500 focus:border-indigo-500" id="search-input" ref="search-input" placeholder="Search groups..." />
+          <input
+            type="text"
+            class="py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-[0.8125rem] outline-none w-[260px] transition-colors duration-150 placeholder:text-zinc-500 focus:border-indigo-500"
+            placeholder="Search groups..."
+            @input="searchQuery.set($event.target.value)"
+          >
         </div>
-        <button class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50" id="refresh-btn" ref="refresh-btn">
+        <button
+          class="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50"
+          @click="loadGroups()"
+        >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
           Refresh
         </button>
       </div>
     </div>
 
-    <div id="groups-container" ref="groups-container">
-      <div class="text-center py-12 text-zinc-500 text-[0.8125rem]">Loading groups...</div>
+    <div>
+      <!-- Loading state -->
+      <div @show="loading()" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
+        Loading groups...
+      </div>
+
+      <!-- Error state -->
+      <div @show="!loading() && errorMessage()" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
+        {{ errorMessage() }}
+      </div>
+
+      <!-- Empty state -->
+      <div @show="!loading() && !errorMessage() && filteredGroups().length === 0" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
+        No groups found. Jobs assigned to groups will appear here.
+      </div>
+
+      <!-- Group cards grid -->
+      <div @show="!loading() && !errorMessage() && filteredGroups().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <template @for="group in filteredGroups()">
+          <div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <span class="text-[0.9375rem] font-semibold text-zinc-50">{{ group.name || group.id || 'Unknown' }}</span>
+              <span class="bg-indigo-500/15 text-indigo-400 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tabular-nums">{{ groupJobCount(group) }} jobs</span>
+            </div>
+
+            <div class="flex gap-4 mb-4 flex-wrap">
+              <div class="flex items-center gap-1.5 text-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span>
+                <span class="text-zinc-500">Active</span>
+                <span class="text-zinc-400 font-semibold tabular-nums">{{ group.active || group.activeJobs || 0 }}</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+                <span class="text-zinc-500">Completed</span>
+                <span class="text-zinc-400 font-semibold tabular-nums">{{ group.completed || group.completedJobs || 0 }}</span>
+              </div>
+              <div class="flex items-center gap-1.5 text-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span>
+                <span class="text-zinc-500">Failed</span>
+                <span class="text-zinc-400 font-semibold tabular-nums">{{ group.failed || group.failedJobs || 0 }}</span>
+              </div>
+            </div>
+
+            <div class="mt-auto flex justify-end pt-3 border-t border-zinc-800">
+              <a :href="'/groups/' + encodeURIComponent(group.id || group.name)" class="text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline">View Details &rarr;</a>
+            </div>
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 @endsection
@@ -33,83 +88,41 @@ Job Groups — bun-queue
   <script>
     import type { JobGroup } from '../types/group'
 
-    let allGroups: JobGroup[] = [];
+    const allGroups = state<JobGroup[]>([])
+    const searchQuery = state('')
+    const loading = state(true)
+    const errorMessage = state('')
 
-    function $(id: string): HTMLElement {
-      return document.getElementById(id)!
-    }
+    const filteredGroups = derived(() => {
+      const query = searchQuery().toLowerCase().trim()
+      if (!query) return allGroups()
+      return allGroups().filter((g: JobGroup) => {
+        const name = (g.name || g.id || '').toLowerCase()
+        return name.includes(query)
+      })
+    })
 
-    function escapeHtml(str: string): string {
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
-
-    function renderGroups(groups: JobGroup[]): void {
-      const container = $('groups-container');
-      if (!groups || groups.length === 0) {
-        container.innerHTML = '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">No groups found. Jobs assigned to groups will appear here.</div>';
-        return;
-      }
-
-      let html = '<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">';
-      groups.forEach((group: JobGroup) => {
-        const jobCount: number = group.jobCount || group.total || 0;
-        const active: number = group.active || 0;
-        const completed: number = group.completed || 0;
-        const failed: number = group.failed || 0;
-
-        html += '<div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500 flex flex-col">';
-        html += '<div class="flex items-center justify-between mb-4">';
-        html += '<span class="text-[0.9375rem] font-semibold text-zinc-50">' + escapeHtml(group.name || group.id || 'Unknown') + '</span>';
-        html += '<span class="bg-indigo-500/15 text-indigo-400 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tabular-nums">' + jobCount + ' jobs</span>';
-        html += '</div>';
-
-        html += '<div class="flex gap-4 mb-4 flex-wrap">';
-        html += '<div class="flex items-center gap-1.5 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0"></span><span class="text-zinc-500">Active</span><span class="text-zinc-400 font-semibold tabular-nums">' + active + '</span></div>';
-        html += '<div class="flex items-center gap-1.5 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span><span class="text-zinc-500">Completed</span><span class="text-zinc-400 font-semibold tabular-nums">' + completed + '</span></div>';
-        html += '<div class="flex items-center gap-1.5 text-xs"><span class="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0"></span><span class="text-zinc-500">Failed</span><span class="text-zinc-400 font-semibold tabular-nums">' + failed + '</span></div>';
-        html += '</div>';
-
-        html += '<div class="mt-auto flex justify-end pt-3 border-t border-zinc-800">';
-        html += '<a href="/groups/' + encodeURIComponent(group.id || group.name) + '" class="text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline">View Details \u2192</a>';
-        html += '</div>';
-        html += '</div>';
-      });
-      html += '</div>';
-
-      container.innerHTML = html;
+    function groupJobCount(group: JobGroup): number {
+      return group.jobCount || group.total || 0
     }
 
     async function loadGroups(): Promise<void> {
+      loading.set(true)
+      errorMessage.set('')
       try {
-        const res = await fetch('/api/groups');
-        allGroups = await res.json() as JobGroup[];
-        filterAndRender();
+        const res = await fetch('/api/groups')
+        const groups: JobGroup[] = await res.json()
+        allGroups.set(groups)
       } catch (e) {
-        console.error('Failed to load groups:', e);
-        $('groups-container').innerHTML =
-          '<div class="text-center py-12 text-zinc-500 text-[0.8125rem]">Failed to load groups.</div>';
+        console.error('Failed to load groups:', e)
+        errorMessage.set('Failed to load groups.')
+      } finally {
+        loading.set(false)
       }
     }
-
-    function filterAndRender(): void {
-      const query: string = ($('search-input') as HTMLInputElement).value.toLowerCase().trim();
-      if (!query) {
-        renderGroups(allGroups);
-        return;
-      }
-      const filtered: JobGroup[] = allGroups.filter(g => {
-        const name = (g.name || g.id || '').toLowerCase();
-        return name.includes(query);
-      });
-      renderGroups(filtered);
-    }
-
-    const autoRefresh = useInterval(15000, { immediate: true })
-    autoRefresh.subscribe(() => loadGroups())
 
     onMount(() => {
-      $('search-input').addEventListener('input', filterAndRender)
-      $('refresh-btn').addEventListener('click', loadGroups)
+      loadGroups()
     })
   </script>
 @endpush

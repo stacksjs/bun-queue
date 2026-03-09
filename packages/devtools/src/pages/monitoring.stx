@@ -53,16 +53,21 @@ Real-time Monitoring — bun-queue
     <!-- Connection Status Bar -->
     <div class="flex items-center gap-6 px-4 py-3 bg-[#141419] border border-zinc-800 rounded-lg mb-6">
       <div class="flex items-center gap-2 text-sm font-medium">
-        <div class="w-2 h-2 rounded-full bg-emerald-500 status-dot-pulse" id="connection-dot" ref="connection-dot"></div>
-        <span id="connection-label" ref="connection-label" style="color: #10b981;">Connected</span>
+        <div
+          class="w-2 h-2 rounded-full status-dot-pulse"
+          :class="connected() ? 'bg-emerald-500' : 'bg-red-500 disconnected'"
+        ></div>
+        <span :style="'color: ' + (connected() ? '#10b981' : '#ef4444')">
+          {{ connected() ? 'Connected' : 'Disconnected' }}
+        </span>
       </div>
       <div class="flex items-center gap-2 text-sm text-zinc-400 ml-auto">
         <span>Auto-refresh</span>
         <label class="toggle-switch relative w-9 h-5 cursor-pointer">
-          <input type="checkbox" id="auto-refresh-toggle" ref="auto-refresh-toggle" checked class="opacity-0 w-0 h-0">
+          <input type="checkbox" checked class="opacity-0 w-0 h-0" @click="toggleAutoRefresh()">
           <span class="toggle-slider"></span>
         </label>
-        <span class="text-xs text-zinc-500" id="refresh-interval-label" ref="refresh-interval-label">every 3s</span>
+        <span class="text-xs text-zinc-500">{{ autoRefreshEnabled() ? 'every 3s' : 'paused' }}</span>
       </div>
     </div>
 
@@ -70,19 +75,23 @@ Real-time Monitoring — bun-queue
     <div class="grid grid-cols-4 gap-4 mb-6 max-md:grid-cols-2">
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Jobs / sec</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-jobs-sec" ref="stat-jobs-sec">--</div>
+        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ jobsPerSec() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Latency</div>
-        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums" id="stat-avg-latency" ref="stat-avg-latency">--<span class="text-xs text-zinc-500 font-normal"> ms</span></div>
+        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums">
+          {{ avgLatency() }}<span class="text-xs text-zinc-500 font-normal"> ms</span>
+        </div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Error Rate</div>
-        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-error-rate" ref="stat-error-rate">--<span class="text-xs text-zinc-500 font-normal"> %</span></div>
+        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">
+          {{ errorRate() }}<span class="text-xs text-zinc-500 font-normal"> %</span>
+        </div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Active Workers</div>
-        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-active-workers" ref="stat-active-workers">--</div>
+        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ activeWorkers() }}</div>
       </div>
     </div>
 
@@ -90,9 +99,22 @@ Real-time Monitoring — bun-queue
     <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
       <div class="flex items-center justify-between mb-4">
         <span class="text-sm font-semibold text-zinc-50">Live Event Log</span>
-        <button class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" id="clear-log-btn" ref="clear-log-btn">Clear</button>
+        <button
+          class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150"
+          @click="clearEvents()"
+        >Clear</button>
       </div>
-      <div class="event-log-scroll max-h-[360px] overflow-y-auto flex flex-col gap-1" id="event-log" ref="event-log">
+      <div class="event-log-scroll max-h-[360px] overflow-y-auto flex flex-col gap-1">
+        <template @for="event in events()">
+          <div class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-[#1e1e26] transition-colors duration-100">
+            <div
+              class="w-1.5 h-1.5 rounded-full shrink-0"
+              :class="dotColor(event.dot)"
+            ></div>
+            <div class="text-zinc-400 flex-1">{{ event.message }}</div>
+            <div class="text-[0.6875rem] text-zinc-500 font-mono whitespace-nowrap">{{ event.time }}</div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -101,7 +123,28 @@ Real-time Monitoring — bun-queue
       <div class="flex items-center justify-between mb-4">
         <span class="text-sm font-semibold text-zinc-50">Queue Health</span>
       </div>
-      <div class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3" id="queue-health-grid" ref="queue-health-grid">
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3">
+        <template @for="queue in queues()">
+          <div class="bg-[#1e1e26] rounded-md p-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-sm font-medium text-zinc-50">{{ queue.name }}</span>
+              <div
+                class="w-2 h-2 rounded-full"
+                :class="healthColor(queue.errorRate)"
+              ></div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <span class="text-zinc-500">Active</span>
+              <span class="text-zinc-400 font-medium text-right tabular-nums">{{ queue.active }}</span>
+              <span class="text-zinc-500">Waiting</span>
+              <span class="text-zinc-400 font-medium text-right tabular-nums">{{ queue.waiting }}</span>
+              <span class="text-zinc-500">Throughput</span>
+              <span class="text-zinc-400 font-medium text-right tabular-nums">{{ queue.throughput }}/min</span>
+              <span class="text-zinc-500">Avg Time</span>
+              <span class="text-zinc-400 font-medium text-right tabular-nums">{{ queue.avgProcessingTime }}ms</span>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
   </div>
@@ -113,18 +156,26 @@ Real-time Monitoring — bun-queue
     import type { QueueMetrics } from '../types/queue'
     import type { EventTemplate, MonitoringEvent } from '../types/monitoring'
 
-    // Auto-refresh using useInterval composable
-    const REFRESH_INTERVAL: number = 3000
-    const refresh = useInterval(REFRESH_INTERVAL, { immediate: true })
-    refresh.subscribe(() => refreshMonitoring())
+    const REFRESH_INTERVAL = 3000
+    const MAX_EVENTS = 50
+
+    // Reactive state
+    const connected = state<boolean>(true)
+    const autoRefreshEnabled = state<boolean>(true)
+    const jobsPerSec = state<string>('--')
+    const avgLatency = state<string>('--')
+    const errorRate = state<string>('--')
+    const activeWorkers = state<string>('--')
+    const events = state<MonitoringEvent[]>([])
+    const queues = state<QueueMetrics[]>([])
 
     // Mock event types
     const eventTypes: EventTemplate[] = [
-      { type: 'completed', message: 'Job <strong>{name}</strong> completed successfully', dot: 'completed' },
-      { type: 'started', message: 'Job <strong>{name}</strong> started processing', dot: 'started' },
-      { type: 'failed', message: 'Job <strong>{name}</strong> failed: timeout exceeded', dot: 'failed' },
-      { type: 'queued', message: 'Job <strong>{name}</strong> added to queue', dot: 'queued' },
-      { type: 'completed', message: 'Job <strong>{name}</strong> completed in {dur}ms', dot: 'completed' },
+      { type: 'completed', message: 'Job {name} completed successfully', dot: 'completed' },
+      { type: 'started', message: 'Job {name} started processing', dot: 'started' },
+      { type: 'failed', message: 'Job {name} failed: timeout exceeded', dot: 'failed' },
+      { type: 'queued', message: 'Job {name} added to queue', dot: 'queued' },
+      { type: 'completed', message: 'Job {name} completed in {dur}ms', dot: 'completed' },
     ]
 
     const jobNames: string[] = [
@@ -134,42 +185,52 @@ Real-time Monitoring — bun-queue
       'Generate Sales Report'
     ]
 
-    let events: MonitoringEvent[] = []
-    const MAX_EVENTS: number = 50
-
     function generateEvent(): MonitoringEvent {
       const template = eventTypes[Math.floor(Math.random() * eventTypes.length)]
       const name = jobNames[Math.floor(Math.random() * jobNames.length)]
-      const dur = Math.floor(Math.random() * 2000 + 100)
+      const dur = String(Math.floor(Math.random() * 2000 + 100))
       const now = new Date()
       const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
       return {
         type: template.type,
         dot: template.dot,
         message: template.message.replace('{name}', name).replace('{dur}', dur),
-        time: time,
+        time,
       }
     }
 
     function dotColor(dot: string): string {
-      const map = { completed: 'bg-emerald-500', started: 'bg-indigo-500', failed: 'bg-red-500', queued: 'bg-amber-500' }
+      const map: Record<string, string> = {
+        completed: 'bg-emerald-500',
+        started: 'bg-indigo-500',
+        failed: 'bg-red-500',
+        queued: 'bg-amber-500',
+      }
       return map[dot] || 'bg-zinc-500'
     }
 
-    function $(id: string): HTMLElement {
-      return document.getElementById(id)!
+    function healthColor(errorRateValue: number): string {
+      if (errorRateValue > 5) return 'bg-red-500'
+      if (errorRateValue > 1) return 'bg-amber-500'
+      return 'bg-emerald-500'
     }
 
-    function renderEvents(): void {
-      let html = ''
-      events.forEach(ev => {
-        html += '<div class="flex items-center gap-3 px-3 py-2 rounded-md text-sm hover:bg-[#1e1e26] transition-colors duration-100">'
-        html += '<div class="w-1.5 h-1.5 rounded-full shrink-0 ' + dotColor(ev.dot) + '"></div>'
-        html += '<div class="text-zinc-400 flex-1">' + ev.message + '</div>'
-        html += '<div class="text-[0.6875rem] text-zinc-500 font-mono whitespace-nowrap">' + ev.time + '</div>'
-        html += '</div>'
-      })
-      $('event-log').innerHTML = html
+    function clearEvents(): void {
+      events([])
+    }
+
+    // Auto-refresh using useInterval composable
+    const refresh = useInterval(REFRESH_INTERVAL, { immediate: true })
+    refresh.subscribe(() => refreshMonitoring())
+
+    function toggleAutoRefresh(): void {
+      if (autoRefreshEnabled()) {
+        autoRefreshEnabled(false)
+        refresh.pause()
+      } else {
+        autoRefreshEnabled(true)
+        refresh.resume()
+      }
     }
 
     async function refreshMonitoring(): Promise<void> {
@@ -177,71 +238,35 @@ Real-time Monitoring — bun-queue
         const statsRes = await fetch('/api/stats')
         const stats: DashboardStats = await statsRes.json()
 
-        const jobsSec: string = (stats.throughputPerMinute / 60).toFixed(1)
-        $('stat-jobs-sec').textContent = jobsSec
-        $('stat-avg-latency').innerHTML = stats.avgLatency + '<span class="text-xs text-zinc-500 font-normal"> ms</span>'
-        const errRate: string = ((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2)
-        $('stat-error-rate').innerHTML = errRate + '<span class="text-xs text-zinc-500 font-normal"> %</span>'
-        $('stat-active-workers').textContent = stats.activeJobs
+        jobsPerSec((stats.throughputPerMinute / 60).toFixed(1))
+        avgLatency(String(stats.avgLatency))
+        errorRate(((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2))
+        activeWorkers(String(stats.activeJobs))
 
-        const newEvent: MonitoringEvent = generateEvent()
-        events.unshift(newEvent)
-        if (events.length > MAX_EVENTS) events = events.slice(0, MAX_EVENTS)
-        renderEvents()
+        // Add a new event to the list
+        const newEvent = generateEvent()
+        const currentEvents = [newEvent, ...events()]
+        events(currentEvents.slice(0, MAX_EVENTS))
 
+        // Load queue health data
         const queuesRes = await fetch('/api/queues/metrics')
-        const queues: QueueMetrics[] = await queuesRes.json()
+        const queueData: QueueMetrics[] = await queuesRes.json()
+        queues(queueData)
 
-        let html = ''
-        queues.forEach((q: QueueMetrics) => {
-          const healthColor = q.errorRate > 5 ? 'bg-red-500' : q.errorRate > 1 ? 'bg-amber-500' : 'bg-emerald-500'
-          html += '<div class="bg-[#1e1e26] rounded-md p-4">'
-          html += '<div class="flex items-center justify-between mb-3">'
-          html += '<span class="text-sm font-medium text-zinc-50">' + q.name + '</span>'
-          html += '<div class="w-2 h-2 rounded-full ' + healthColor + '"></div>'
-          html += '</div>'
-          html += '<div class="grid grid-cols-2 gap-2 text-xs">'
-          html += '<span class="text-zinc-500">Active</span><span class="text-zinc-400 font-medium text-right tabular-nums">' + q.active + '</span>'
-          html += '<span class="text-zinc-500">Waiting</span><span class="text-zinc-400 font-medium text-right tabular-nums">' + q.waiting + '</span>'
-          html += '<span class="text-zinc-500">Throughput</span><span class="text-zinc-400 font-medium text-right tabular-nums">' + q.throughput + '/min</span>'
-          html += '<span class="text-zinc-500">Avg Time</span><span class="text-zinc-400 font-medium text-right tabular-nums">' + q.avgProcessingTime + 'ms</span>'
-          html += '</div>'
-          html += '</div>'
-        })
-        $('queue-health-grid').innerHTML = html
+        connected(true)
       } catch (err) {
         console.error('Monitoring refresh failed:', err)
-        const dot = $('connection-dot')
-        dot.classList.add('disconnected')
-        dot.classList.remove('bg-emerald-500')
-        dot.classList.add('bg-red-500')
-        $('connection-label').textContent = 'Disconnected'
-        $('connection-label').style.color = '#ef4444'
+        connected(false)
       }
     }
 
     onMount(() => {
-      // Initialize events
+      // Initialize with some events
+      const initialEvents: MonitoringEvent[] = []
       for (let i = 0; i < 12; i++) {
-        events.push(generateEvent())
+        initialEvents.push(generateEvent())
       }
-      renderEvents()
-
-      // Event listeners
-      $('auto-refresh-toggle').addEventListener('change', (e: Event) => {
-        if ((e.target as HTMLInputElement).checked) {
-          refresh.resume()
-          $('refresh-interval-label').textContent = 'every 3s'
-        } else {
-          refresh.pause()
-          $('refresh-interval-label').textContent = 'paused'
-        }
-      })
-
-      $('clear-log-btn').addEventListener('click', () => {
-        events = []
-        renderEvents()
-      })
+      events(initialEvents)
     })
   </script>
 @endpush

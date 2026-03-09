@@ -24,45 +24,50 @@ Queue Details — bun-queue
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
-          <span id="queue-name" ref="queue-name"></span>
-          <span id="queue-badge" ref="queue-badge" class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-emerald-500/15 text-emerald-500">active</span>
+          <span>{{ queueName() }}</span>
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium"
+            :class="statusBadgeClass(queueStatus())"
+          >
+            {{ queueStatus() }}
+          </span>
         </h1>
         <p class="text-[0.8125rem] text-zinc-500 mt-1">Queue details and job history</p>
       </div>
     </div>
 
     <!-- Stats -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6" id="stats-grid">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Jobs</div>
-        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums" id="stat-total" ref="stat-total">0</div>
+        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums">{{ statTotal() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Pending</div>
-        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums" id="stat-pending" ref="stat-pending">0</div>
+        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums">{{ statPending() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Active</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums" id="stat-active" ref="stat-active">0</div>
+        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statActive() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Completed</div>
-        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums" id="stat-completed" ref="stat-completed">0</div>
+        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ statCompleted() }}</div>
       </div>
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
         <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Failed</div>
-        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums" id="stat-failed" ref="stat-failed">0</div>
+        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ statFailed() }}</div>
       </div>
     </div>
 
     <!-- Progress bar -->
-    <div class="mb-6" id="progress-section">
+    <div class="mb-6">
       <div class="flex justify-between mb-2 text-[0.8125rem]">
         <span class="text-zinc-400">Completion Progress</span>
-        <span class="text-zinc-50 font-semibold tabular-nums" id="progress-pct" ref="progress-pct">0%</span>
+        <span class="text-zinc-50 font-semibold tabular-nums">{{ progressPct() }}%</span>
       </div>
       <div class="w-full h-2 bg-[#1e1e26] rounded-full overflow-hidden">
-        <div class="progress-bar-fill h-full rounded-full bg-emerald-500" id="progress-fill" ref="progress-fill" style="width: 0%"></div>
+        <div class="progress-bar-fill h-full rounded-full bg-emerald-500" :style="'width: ' + progressPct() + '%'"></div>
       </div>
     </div>
 
@@ -72,7 +77,7 @@ Queue Details — bun-queue
         <span class="text-sm font-semibold text-zinc-50">Throughput</span>
       </div>
       <div class="relative h-[260px]">
-        <canvas id="throughput-chart" ref="throughput-chart"></canvas>
+        <canvas id="throughput-chart"></canvas>
       </div>
     </div>
 
@@ -81,9 +86,53 @@ Queue Details — bun-queue
       <div class="flex items-center justify-between mb-4">
         <span class="text-sm font-semibold text-zinc-50">Jobs in this Queue</span>
       </div>
-      <div id="jobs-table-container" ref="jobs-table-container">
-        <div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
+
+      <!-- Loading state -->
+      <div @show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+        Loading jobs...
       </div>
+
+      <!-- Empty state -->
+      <div @show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+        No jobs found in this queue.
+      </div>
+
+      <!-- Error state -->
+      <div @show="!loading() && errorMessage()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+        {{ errorMessage() }}
+      </div>
+
+      <!-- Jobs table -->
+      <table @show="!loading() && !errorMessage() && jobs().length > 0" class="w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Name</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Status</th>
+            <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Attempts</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Created</th>
+            <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Duration</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <template @for="job in jobs()">
+            <tr class="hover:bg-[#1e1e26]">
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 font-mono text-xs">{{ job.id }}</td>
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">{{ job.name || '\u2014' }}</td>
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="statusBadgeClass(job.status)">{{ job.status }}</span>
+              </td>
+              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 text-right tabular-nums">{{ (job.attempts || 0) + '/' + (job.maxAttempts || 3) }}</td>
+              <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ formatTime(job.createdAt) }}</td>
+              <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums">{{ job.duration ? job.duration + 'ms' : '\u2014' }}</td>
+              <td class="px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800">
+                <a :href="'/jobs/' + job.id" class="text-indigo-500 no-underline hover:underline">View</a>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
     </div>
   </div>
 @endsection
@@ -96,113 +145,91 @@ Queue Details — bun-queue
 
     declare const Chart: any
 
-    const pathParts: string[] = useRoute().path.split('/');
-    const queueId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
+    const pathParts: string[] = window.location.pathname.split('/')
+    const queueId: string = decodeURIComponent(pathParts[pathParts.length - 1])
 
-    let throughputChart: any = null;
+    const queueName = state(queueId)
+    const queueStatus = state('active')
+    const statTotal = state(0)
+    const statPending = state(0)
+    const statActive = state(0)
+    const statCompleted = state(0)
+    const statFailed = state(0)
+    const jobs = state<JobData[]>([])
+    const loading = state(true)
+    const errorMessage = state('')
 
-    function $(id: string): HTMLElement {
-      return document.getElementById(id)!
-    }
+    const progressPct = derived(() => {
+      const total = statTotal()
+      if (total <= 0) return 0
+      return Math.round((statCompleted() / total) * 100)
+    })
+
+    let throughputChart: any = null
 
     function statusBadgeClass(status: string): string {
-      if (status === 'completed') return 'bg-emerald-500/15 text-emerald-500';
-      if (status === 'failed') return 'bg-red-500/15 text-red-500';
-      if (status === 'active') return 'bg-indigo-500/15 text-indigo-400';
-      if (status === 'waiting' || status === 'pending') return 'bg-amber-500/15 text-amber-500';
-      return 'bg-zinc-500/15 text-zinc-500';
+      const map: Record<string, string> = {
+        completed: 'bg-emerald-500/15 text-emerald-500',
+        failed: 'bg-red-500/15 text-red-500',
+        active: 'bg-emerald-500/15 text-emerald-500',
+        waiting: 'bg-amber-500/15 text-amber-500',
+        pending: 'bg-amber-500/15 text-amber-500',
+        paused: 'bg-zinc-500/15 text-zinc-500',
+      }
+      return map[status] || 'bg-zinc-500/15 text-zinc-500'
     }
 
     function formatTime(ts: string | null | undefined): string {
-      if (!ts) return '\u2014';
-      return new Date(ts).toLocaleString();
+      if (!ts) return '\u2014'
+      return new Date(ts).toLocaleString()
     }
 
     async function loadQueue(): Promise<void> {
       try {
-        const res = await fetch('/api/queues');
-        const queues: QueueDetail[] = await res.json();
-        const q: QueueDetail | undefined = queues.find(q => q.id === queueId || q.name === queueId);
-        if (!q) return;
+        const res = await fetch('/api/queues')
+        const queues: QueueDetail[] = await res.json()
+        const q: QueueDetail | undefined = queues.find(q => q.id === queueId || q.name === queueId)
+        if (!q) return
 
-        $('queue-name').textContent = q.name || queueId;
-        const badge = $('queue-badge');
-        if (q.paused) {
-          badge.textContent = 'paused';
-          badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-zinc-500/15 text-zinc-500';
-        } else {
-          badge.textContent = 'active';
-          badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium bg-emerald-500/15 text-emerald-500';
-        }
+        queueName.set(q.name || queueId)
+        queueStatus.set(q.paused ? 'paused' : 'active')
 
-        const total: number = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0);
-        $('stat-total').textContent = total;
-        $('stat-pending').textContent = q.waiting || 0;
-        $('stat-active').textContent = q.active || 0;
-        $('stat-completed').textContent = q.completed || 0;
-        $('stat-failed').textContent = q.failed || 0;
-
-        const pct: number = total > 0 ? Math.round(((q.completed || 0) / total) * 100) : 0;
-        $('progress-pct').textContent = pct + '%';
-        ($('progress-fill') as HTMLElement).style.width = pct + '%';
+        const total: number = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0)
+        statTotal.set(total)
+        statPending.set(q.waiting || 0)
+        statActive.set(q.active || 0)
+        statCompleted.set(q.completed || 0)
+        statFailed.set(q.failed || 0)
       } catch (e) {
-        console.error('Failed to load queue:', e);
+        console.error('Failed to load queue:', e)
       }
     }
 
     async function loadJobs(): Promise<void> {
       try {
-        const res = await fetch('/api/jobs?queue=' + encodeURIComponent(queueId));
-        const jobs: JobData[] = await res.json();
-
-        const container = $('jobs-table-container');
-        if (!jobs || jobs.length === 0) {
-          container.innerHTML = '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this queue.</div>';
-          return;
-        }
-
-        let html = '<table class="w-full border-collapse"><thead><tr>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Name</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Status</th>';
-        html += '<th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Attempts</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Created</th>';
-        html += '<th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Duration</th>';
-        html += '<th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>';
-        html += '</tr></thead><tbody>';
-
-        jobs.forEach((job: JobData) => {
-          html += '<tr class="hover:bg-[#1e1e26]">';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 font-mono text-xs">' + job.id + '</td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">' + (job.name || '\u2014') + '</td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + statusBadgeClass(job.status) + '">' + job.status + '</span></td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 text-right tabular-nums">' + (job.attempts || 0) + '/' + (job.maxAttempts || 3) + '</td>';
-          html += '<td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">' + formatTime(job.createdAt) + '</td>';
-          html += '<td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums">' + (job.duration ? job.duration + 'ms' : '\u2014') + '</td>';
-          html += '<td class="px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800"><a href="/jobs/' + job.id + '" class="text-indigo-500 no-underline hover:underline">View</a></td>';
-          html += '</tr>';
-        });
-
-        html += '</tbody></table>';
-        container.innerHTML = html;
+        const res = await fetch('/api/jobs?queue=' + encodeURIComponent(queueId))
+        const data: JobData[] = await res.json()
+        jobs.set(data || [])
+        errorMessage.set('')
       } catch (e) {
-        console.error('Failed to load jobs:', e);
-        $('jobs-table-container').innerHTML =
-          '<div class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load jobs.</div>';
+        console.error('Failed to load jobs:', e)
+        errorMessage.set('Failed to load jobs.')
+      } finally {
+        loading.set(false)
       }
     }
 
     async function loadThroughput(): Promise<void> {
       try {
-        const res = await fetch('/api/metrics?queue=' + encodeURIComponent(queueId));
-        const data: ThroughputData = await res.json();
+        const res = await fetch('/api/metrics?queue=' + encodeURIComponent(queueId))
+        const data: ThroughputData = await res.json()
 
-        const labels: string[] = data.throughput ? data.throughput.map(d => d.label || d.time) : [];
-        const values: number[] = data.throughput ? data.throughput.map(d => d.value || d.count) : [];
+        const labels: string[] = data.throughput ? data.throughput.map(d => d.label || d.time) : []
+        const values: number[] = data.throughput ? data.throughput.map(d => d.value || d.count) : []
 
-        const ctx = ($('throughput-chart') as HTMLCanvasElement).getContext('2d');
+        const ctx = (document.getElementById('throughput-chart') as HTMLCanvasElement).getContext('2d')
 
-        if (throughputChart) throughputChart.destroy();
+        if (throughputChart) throughputChart.destroy()
 
         throughputChart = new Chart(ctx, {
           type: 'line',
@@ -237,17 +264,16 @@ Queue Details — bun-queue
               },
             },
           }
-        });
+        })
       } catch (e) {
-        console.error('Failed to load throughput:', e);
+        console.error('Failed to load throughput:', e)
       }
     }
 
-    const autoRefresh = useInterval(10000, { immediate: true })
-    autoRefresh.subscribe(() => { loadQueue(); loadJobs(); })
-
     onMount(() => {
-      loadThroughput();
-    });
+      loadQueue()
+      loadJobs()
+      loadThroughput()
+    })
   </script>
 @endpush
