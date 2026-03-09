@@ -103,9 +103,7 @@ Batch Details — bun-queue
     import type { Batch } from '../types/batch'
     import type { JobData } from '../types/job'
 
-    const pageTitle = useTitle();
-
-    const pathParts: string[] = useRoute().path.split('/');
+    const pathParts: string[] = window.location.pathname.split('/');
     const batchId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
     const circumference: number = 2 * Math.PI * 65; // ~408.4
@@ -137,7 +135,7 @@ Batch Details — bun-queue
         badge.textContent = batch.status || 'pending';
         badge.className = 'inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + statusBadgeClass(batch.status);
 
-        pageTitle.set((batch.name || 'Batch ' + batch.id) + ' \u2014 bun-queue');
+        document.title = (batch.name || 'Batch ' + batch.id) + ' \u2014 bun-queue';
 
         const total: number = batch.totalJobs || batch.total || 0;
         const processed: number = batch.processedJobs || batch.processed || 0;

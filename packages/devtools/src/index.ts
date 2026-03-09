@@ -4,7 +4,7 @@ import { defaultConfig as stxDefaultConfig, processDirectives } from '@stacksjs/
 import { createApiRoutes, fetchBatchById, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobById, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueById, fetchQueues } from './api'
 import { resolveConfig } from './api'
 
-export type { Batch, DashboardConfig, DashboardStats, JobData, JobDependencyGraph, JobGroup, JobNode, MetricsData, Queue, QueueMetrics } from './types'
+export type { Batch, DashboardConfig, DashboardStats, DependencyGraph, DependencyNode, JobData, JobGroup, MetricsData, Queue, QueueMetrics } from './types'
 export { JobStatus } from './types'
 export { createApiRoutes, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueMetrics, fetchQueues } from './api'
 
@@ -50,6 +50,66 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
         if (!queue)
           return Response.json({ error: 'Queue not found' }, { status: 404 })
         return Response.json(queue)
+      }
+
+      // Job retry: POST /api/jobs/:id/retry
+      const retryMatch = path.match(/^\/api\/jobs\/([^/]+)\/retry$/)
+      if (retryMatch && req.method === 'POST') {
+        const jobId = decodeURIComponent(retryMatch[1])
+        const queues = config.queues || []
+        const manager = config.queueManager
+        let retried = false
+
+        // Try to find and retry the job across all queues
+        const allQueues = queues.length ? queues : manager ? (() => {
+          const qs: any[] = []
+          for (const connName of manager.getConnections()) {
+            try {
+              const conn = manager.connection(connName)
+              for (const q of conn.queues.values()) qs.push(q)
+            } catch {}
+          }
+          return qs
+        })() : []
+
+        for (const q of allQueues) {
+          try {
+            const result = await q.retryJob(jobId)
+            if (result) { retried = true; break }
+          } catch { /* try next queue */ }
+        }
+
+        return Response.json({ success: retried })
+      }
+
+      // Job delete: DELETE /api/jobs/:id
+      const deleteMatch = path.match(/^\/api\/jobs\/([^/]+)$/)
+      if (deleteMatch && req.method === 'DELETE') {
+        const jobId = decodeURIComponent(deleteMatch[1])
+        const queues = config.queues || []
+        const manager = config.queueManager
+        let deleted = false
+
+        const allQueues = queues.length ? queues : manager ? (() => {
+          const qs: any[] = []
+          for (const connName of manager.getConnections()) {
+            try {
+              const conn = manager.connection(connName)
+              for (const q of conn.queues.values()) qs.push(q)
+            } catch {}
+          }
+          return qs
+        })() : []
+
+        for (const q of allQueues) {
+          try {
+            await q.removeJob(jobId)
+            deleted = true
+            break
+          } catch { /* try next queue */ }
+        }
+
+        return Response.json({ success: deleted })
       }
 
       const jobMatch = path.match(/^\/api\/jobs\/([^/]+)$/)

@@ -21,14 +21,15 @@
     .nav-item.active { background: #6366f1; color: white; }
     .nav-item.active svg { opacity: 1; }
   </style>
-  @stack('styles')
 </head>
 <body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen @yield('body-class')">
   @include('../partials/sidebar')
 
   <!-- Main Content -->
   <div class="main-wrapper transition-all duration-200 ease-in-out @yield('main-class', 'min-h-screen')" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
+    @stack('styles')
     @yield('content')
+    @stack('scripts')
   </div>
 
   <script>
@@ -37,10 +38,11 @@
     const sidebarCollapsed = state(stored === 'true')
 
     onMount(() => {
-      const sidebar = useRef('sidebar')
-      const mainWrapper = useRef('main-wrapper')
-      const sidebarToggle = useRef('sidebar-toggle')
-      const sidebarNav = useRef('sidebar-nav')
+      const sidebar = useRef('sidebar').current
+      const mainWrapper = useRef('main-wrapper').current
+      const sidebarToggle = useRef('sidebar-toggle').current
+
+      if (!sidebar || !mainWrapper || !sidebarToggle) return
 
       function applySidebarState(): void {
         if (sidebarCollapsed()) {
@@ -59,19 +61,8 @@
         localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed()))
         applySidebarState()
       })
-
-      // Active nav highlighting
-      const currentPath = useRoute().path
-      Array.from(sidebarNav.children).forEach((item) => {
-        if (!(item as HTMLElement).classList.contains('nav-item')) return
-        const href = item.getAttribute('href')
-        if (!href) return
-        if (href === '/' ? currentPath === '/' : currentPath.startsWith(href)) {
-          (item as HTMLElement).classList.add('active')
-        }
-      })
     })
   </script>
-  @stack('scripts')
+  @stxRouter('#main-wrapper')
 </body>
 </html>

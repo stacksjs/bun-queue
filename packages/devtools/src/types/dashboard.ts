@@ -4,6 +4,10 @@ export interface DashboardConfig {
   redis?: RedisConfig
   auth?: AuthConfig
   refreshInterval?: number
+  /** Pass an existing QueueManager instance to read real queue data */
+  queueManager?: any
+  /** Pass Queue instances directly (alternative to queueManager) */
+  queues?: any[]
 }
 
 export interface RedisConfig {

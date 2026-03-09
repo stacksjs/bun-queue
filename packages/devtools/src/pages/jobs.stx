@@ -93,7 +93,11 @@ Jobs — bun-queue
         html += '<td class="px-4 py-2.5 border-b border-zinc-800 last:border-b-0"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium ' + badgeClass(job.status) + '">' + job.status + '</span></td>'
         html += '<td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + job.createdAt + '</td>'
         html += '<td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">' + updated + '</td>'
-        html += '<td class="px-4 py-2.5 text-right border-b border-zinc-800 last:border-b-0"><a href="/jobs/' + job.id + '" class="text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details</a></td>'
+        html += '<td class="px-4 py-2.5 text-right border-b border-zinc-800 last:border-b-0 whitespace-nowrap">'
+        if (job.status === 'failed') {
+          html += '<button class="retry-btn text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3" data-job-id="' + job.id + '">Retry</button>'
+        }
+        html += '<a href="/jobs/' + job.id + '" class="text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details</a></td>'
         html += '</tr>'
       })
 
@@ -131,6 +135,15 @@ Jobs — bun-queue
       }
     }
 
+    async function retryJob(jobId: string): Promise<void> {
+      try {
+        await fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
+        await loadJobs()
+      } catch (err) {
+        console.error('Retry failed:', err)
+      }
+    }
+
     onMount(() => {
       $('filter-bar').addEventListener('click', (e: Event) => {
         const target = (e.target as HTMLElement).closest('.filter-btn') as HTMLButtonElement | null
@@ -139,6 +152,13 @@ Jobs — bun-queue
         filterJobs()
       })
       $('search-input').addEventListener('input', filterJobs)
+
+      $('jobs-panel').addEventListener('click', (e: Event) => {
+        const btn = (e.target as HTMLElement).closest('.retry-btn') as HTMLButtonElement | null
+        if (!btn) return
+        retryJob(btn.dataset.jobId!)
+      })
+
       loadJobs()
     })
   </script>

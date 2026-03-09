@@ -73,9 +73,7 @@ Group Details — bun-queue
     import type { JobGroup } from '../types/group'
     import type { JobData } from '../types/job'
 
-    const pageTitle = useTitle();
-
-    const pathParts: string[] = useRoute().path.split('/');
+    const pathParts: string[] = window.location.pathname.split('/');
     const groupId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
     function $(id: string): HTMLElement {
@@ -101,7 +99,7 @@ Group Details — bun-queue
         const group: JobGroup = await res.json();
 
         $('group-name').textContent = group.name || groupId;
-        pageTitle.set((group.name || groupId) + ' \u2014 bun-queue');
+        document.title = (group.name || groupId) + ' \u2014 bun-queue';
 
         const total: number = group.totalJobs || group.jobCount || group.total || 0;
         $('stat-total').textContent = total;

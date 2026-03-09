@@ -102,9 +102,7 @@ Job Details — bun-queue
   <script>
     import type { JobData } from '../types/job'
 
-    const pageTitle = useTitle();
-
-    const pathParts: string[] = useRoute().path.split('/');
+    const pathParts: string[] = window.location.pathname.split('/');
     const jobId: string = decodeURIComponent(pathParts[pathParts.length - 1]);
 
     function $(id: string): HTMLElement {
@@ -138,7 +136,7 @@ Job Details — bun-queue
         badge.textContent = job.status;
         badge.className = statusBadgeClass(job.status);
 
-        pageTitle.set((job.name || 'Job ' + job.id) + ' \u2014 bun-queue');
+        document.title = (job.name || 'Job ' + job.id) + ' \u2014 bun-queue';
 
         if (job.duration) {
           $('duration-display').style.display = 'flex';
