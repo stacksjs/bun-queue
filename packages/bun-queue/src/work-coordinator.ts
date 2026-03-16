@@ -111,18 +111,16 @@ export class WorkCoordinator {
         workersAssigned: 0,
       })
 
-      await this.redisClient.send('MULTI', [])
-      // Add to instances set
-      await this.redisClient.send('SADD', [instancesKey, this.instanceId])
-      // Set instance details
-      await this.redisClient.send('SET', [
-        instanceKey,
-        instanceInfo,
-        'PX',
-        // Set expiry to 3x poll interval
-        (this.pollInterval * 3).toString(),
+      // Register atomically using Lua
+      const lua = `
+        redis.call('SADD', KEYS[1], ARGV[1])
+        redis.call('SET', KEYS[2], ARGV[2], 'PX', ARGV[3])
+        return 1
+      `
+      await this.redisClient.send('EVAL', [
+        lua, '2', instancesKey, instanceKey,
+        this.instanceId, instanceInfo, (this.pollInterval * 3).toString(),
       ])
-      await this.redisClient.send('EXEC', [])
 
       this.logger.debug(`Registered instance ${this.instanceId}`)
     }
@@ -140,12 +138,16 @@ export class WorkCoordinator {
       const instanceKey = `${this.keyPrefix}:instance:${this.instanceId}`
       const workersKey = `${this.keyPrefix}:workers:${this.instanceId}`
 
-      await this.redisClient.send('MULTI', [])
-      // Remove from instances set
-      await this.redisClient.send('SREM', [instancesKey, this.instanceId])
-      // Remove instance details
-      await this.redisClient.send('DEL', [instanceKey, workersKey])
-      await this.redisClient.send('EXEC', [])
+      // Unregister atomically using Lua
+      const lua = `
+        redis.call('SREM', KEYS[1], ARGV[1])
+        redis.call('DEL', KEYS[2], KEYS[3])
+        return 1
+      `
+      await this.redisClient.send('EVAL', [
+        lua, '3', instancesKey, instanceKey, workersKey,
+        this.instanceId,
+      ])
 
       this.logger.debug(`Unregistered instance ${this.instanceId}`)
     }

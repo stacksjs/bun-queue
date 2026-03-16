@@ -24,23 +24,7 @@ export class BatchProcessor<T = any> {
     const timestamp = Date.now()
     const opts = mergeOptions(options) as BatchOptions
 
-    // Create a multi command
-    await this.redisClient.send('MULTI', [])
-
-    // Store batch metadata
-    await this.redisClient.send('HMSET', [
-      this.getBatchKey(batchId),
-      'id',
-      batchId,
-      'timestamp',
-      timestamp.toString(),
-      'status',
-      'waiting',
-      'opts',
-      JSON.stringify(opts),
-    ])
-
-    // Add all jobs to the queue and associate them with this batch
+    // Add all jobs to the queue first
     const jobIds: string[] = []
 
     for (const jobData of jobs) {
@@ -52,16 +36,22 @@ export class BatchProcessor<T = any> {
       })
 
       jobIds.push(job.id)
-
-      // Add job to batch set
-      await this.redisClient.send('SADD', [
-        this.getBatchJobsKey(batchId),
-        job.id,
-      ])
     }
 
-    // Execute the multi command
-    await this.redisClient.send('EXEC', [])
+    // Store batch metadata and job associations atomically
+    const batchKey = this.getBatchKey(batchId)
+    const batchJobsKey = this.getBatchJobsKey(batchId)
+    const lua = `
+      redis.call('HMSET', KEYS[1], 'id', ARGV[1], 'timestamp', ARGV[2], 'status', 'waiting', 'opts', ARGV[3])
+      for i = 4, #ARGV do
+        redis.call('SADD', KEYS[2], ARGV[i])
+      end
+      return 1
+    `
+    await this.redisClient.send('EVAL', [
+      lua, '2', batchKey, batchJobsKey,
+      batchId, timestamp.toString(), JSON.stringify(opts), ...jobIds,
+    ])
 
     // Emit batch added event
     this.queue.events.emit('batchAdded', batchId, jobIds)
@@ -173,10 +163,22 @@ export class BatchProcessor<T = any> {
       return null
     }
 
-    const batchData = await this.redisClient.hgetall(batchKey)
+    const rawBatchData = await this.redisClient.hgetall(batchKey)
 
-    if (!batchData) {
+    if (!rawBatchData) {
       return null
+    }
+
+    // Handle both array format (ioredis send) and object format (Bun/ioredis hgetall)
+    let batchData: Record<string, string>
+    if (Array.isArray(rawBatchData)) {
+      batchData = {}
+      for (let i = 0; i < rawBatchData.length; i += 2) {
+        batchData[rawBatchData[i] as string] = rawBatchData[i + 1] as string
+      }
+    }
+    else {
+      batchData = rawBatchData as Record<string, string>
     }
 
     return {
@@ -208,20 +210,20 @@ export class BatchProcessor<T = any> {
   async removeBatch(batchId: string): Promise<void> {
     const jobs = await this.getBatchJobs(batchId)
 
-    // Create a multi command
-    await this.redisClient.send('MULTI', [])
-
-    // Remove all jobs
+    // Remove all jobs first
     for (const job of jobs) {
       await this.queue.removeJob(job.id)
     }
 
-    // Remove batch data
-    await this.redisClient.send('DEL', [this.getBatchKey(batchId)])
-    await this.redisClient.send('DEL', [this.getBatchJobsKey(batchId)])
-
-    // Execute the multi command
-    await this.redisClient.send('EXEC', [])
+    // Remove batch data atomically
+    const lua = `
+      redis.call('DEL', KEYS[1])
+      redis.call('DEL', KEYS[2])
+      return 1
+    `
+    await this.redisClient.send('EVAL', [
+      lua, '2', this.getBatchKey(batchId), this.getBatchJobsKey(batchId),
+    ])
   }
 
   private getBatchKey(batchId: string): string {

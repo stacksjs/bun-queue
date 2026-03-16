@@ -175,7 +175,8 @@ export class Queue<T = any> {
    */
   private async init(): Promise<void> {
     try {
-      await scriptLoader.load(this.redisClient, 'src/commands')
+      const commandsDir = import.meta.dir + '/commands'
+      await scriptLoader.load(this.redisClient, commandsDir)
       this.events.emitReady()
       this.logger.info(`Queue ${this.name} initialized successfully`)
     }
@@ -221,10 +222,21 @@ export class Queue<T = any> {
         ? (Array.isArray(opts.dependsOn) ? opts.dependsOn : [opts.dependsOn])
         : undefined
 
-      // Create a multi command
-      await this.redisClient.send('MULTI', [])
+      // --- Pre-check dependencies BEFORE starting transaction ---
+      let hasPendingDependency = false
+      if (dependencies && dependencies.length > 0) {
+        for (const depId of dependencies) {
+          const depJob = await this.getJob(depId)
+          if (!depJob) {
+            this.logger.warn(`Dependency job ${depId} does not exist for job ${jobId}`)
+          }
+          else if (!depJob.finishedOn) {
+            hasPendingDependency = true
+          }
+        }
+      }
 
-      // Store the job data
+      // --- Store job data ---
       await this.redisClient.send('HMSET', [
         jobKey,
         'id',
@@ -245,83 +257,41 @@ export class Queue<T = any> {
         '0',
       ])
 
-      // If we have dependencies, store them and create a dependency list
+      // Store dependency metadata
       if (dependencies && dependencies.length > 0) {
-        // Store the dependencies with the job
         await this.redisClient.send('HSET', [
           jobKey,
           'dependencies',
           JSON.stringify(dependencies),
         ])
 
-        // Check if all dependencies exist
-        const dependencyKeys = dependencies.map(depId => this.getJobKey(depId))
-        let allDependenciesExist = true
-
-        for (const depKey of dependencyKeys) {
-          const exists = await this.redisClient.exists(depKey)
-          if (!exists) {
-            allDependenciesExist = false
-            this.logger.warn(`Dependency job ${depKey} does not exist for job ${jobId}`)
-            break
-          }
-        }
-
-        if (!allDependenciesExist) {
-          // If dependencies don't exist, add the job but don't process it yet
-          this.logger.warn(`Job ${jobId} has dependencies that don't exist, adding to waiting list anyway`)
-        }
-
-        // Store job ID in a dependency waiting set for each dependency
+        // Register this job as a dependent of each dependency
         for (const depId of dependencies) {
           const dependentKey = `${this.getJobKey(depId)}:dependents`
           await this.redisClient.send('SADD', [dependentKey, jobId])
         }
 
-        // Add to a special dependencies list if any dependency is not completed
-        for (const depId of dependencies) {
-          const depJob = await this.getJob(depId)
-          if (depJob && !depJob.finishedOn) {
-            // At least one dependency is not finished, add to dependency wait list
-            await this.redisClient.send('SADD', [this.getKey('dependency-wait'), jobId])
-            // Don't add to the waiting/delayed list yet
-            await this.redisClient.send('EXEC', [])
-
-            const job = new Job<T>(this, jobId)
-            await job.refresh()
-
-            // Emit events
-            this.events.emitJobAdded(jobId, this.name)
-            if (this.metrics) {
-              this.metrics.trackJobAdded()
-            }
-
-            return job
-          }
+        if (hasPendingDependency) {
+          // Wait in dependency queue until dependencies complete
+          await this.redisClient.send('SADD', [this.getKey('dependency-wait'), jobId])
         }
       }
 
-      // If we get here, either we have no dependencies or all dependencies are already completed
-      if (opts.delay && opts.delay > 0) {
-        // Add to delayed set
-        const processAt = timestamp + opts.delay
-        await this.redisClient.send('ZADD', [
-          this.getKey('delayed'),
-          processAt.toString(),
-          jobId,
-        ])
-
-        // Emit delayed event
-        this.events.emitJobDelayed(jobId, opts.delay)
+      // Only add to waiting/delayed if no pending dependencies
+      if (!hasPendingDependency) {
+        if (opts.delay && opts.delay > 0) {
+          const processAt = timestamp + opts.delay
+          await this.redisClient.send('ZADD', [
+            this.getKey('delayed'),
+            processAt.toString(),
+            jobId,
+          ])
+        }
+        else {
+          const pushCmd = opts.lifo ? 'RPUSH' : 'LPUSH'
+          await this.redisClient.send(pushCmd, [this.getKey('waiting'), jobId])
+        }
       }
-      else {
-        // Add to waiting list
-        const pushCmd = opts.lifo ? 'RPUSH' : 'LPUSH'
-        await this.redisClient.send(pushCmd, [this.getKey('waiting'), jobId])
-      }
-
-      // Execute the multi command
-      await this.redisClient.send('EXEC', [])
 
       const job = new Job<T>(this, jobId)
       await job.refresh()
@@ -330,6 +300,9 @@ export class Queue<T = any> {
       this.events.emitJobAdded(jobId, this.name)
       if (this.metrics) {
         this.metrics.trackJobAdded()
+      }
+      if (opts.delay && opts.delay > 0 && !hasPendingDependency) {
+        this.events.emitJobDelayed(jobId, opts.delay)
       }
 
       return job
@@ -909,16 +882,11 @@ export class Queue<T = any> {
       return 0
 
     try {
-      // Use pipeline for better performance
-      await this.redisClient.send('MULTI', [])
-
-      // Keep track of successful removes
       let removedCount = 0
 
       for (const jobId of jobIds) {
         const jobKey = this.getJobKey(jobId)
 
-        // Check if job exists first
         const exists = await this.redisClient.exists(jobKey)
         if (!exists)
           continue
@@ -930,23 +898,14 @@ export class Queue<T = any> {
           await this.redisClient.send('SREM', [this.getKey(list), jobId])
         }
 
-        // Remove from delayed set
         await this.redisClient.send('ZREM', [this.getKey('delayed'), jobId])
 
-        // Remove dependent jobs links
         const dependentKey = `${jobKey}:dependents`
-
-        // Remove the job hash and the dependent key
         await this.redisClient.send('DEL', [jobKey, dependentKey])
 
         removedCount++
-
-        // Emit event
         this.events.emitJobRemoved(jobId)
       }
-
-      // Execute all commands
-      await this.redisClient.send('EXEC', [])
 
       this.logger.debug(`Bulk removed ${removedCount} jobs from queue ${this.name}`)
       return removedCount
@@ -967,37 +926,25 @@ export class Queue<T = any> {
       return 0
 
     try {
-      // Use pipeline for better performance
-      await this.redisClient.send('MULTI', [])
-
       let pausedCount = 0
 
       for (const jobId of jobIds) {
         const jobKey = this.getJobKey(jobId)
 
-        // Check if job exists
         const exists = await this.redisClient.exists(jobKey)
         if (!exists)
           continue
 
-        // Check if it's in waiting or delayed
         const isWaiting = await this.redisClient.send('LREM', [this.getKey('waiting'), '0', jobId])
         const isDelayed = await this.redisClient.send('ZREM', [this.getKey('delayed'), jobId])
 
-        if ((isWaiting && isWaiting > 0) || (isDelayed && isDelayed > 0)) {
-          // Add to paused list
+        if ((isWaiting && Number(isWaiting) > 0) || (isDelayed && Number(isDelayed) > 0)) {
           await this.redisClient.send('LPUSH', [this.getKey('paused'), jobId])
-
-          // Update job status
           await this.redisClient.send('HSET', [jobKey, 'status', 'paused'])
-
           pausedCount++
           this.logger.debug(`Job ${jobId} paused`)
         }
       }
-
-      // Execute all commands
-      await this.redisClient.send('EXEC', [])
 
       this.logger.debug(`Bulk paused ${pausedCount} jobs in queue ${this.name}`)
       return pausedCount
@@ -1018,36 +965,24 @@ export class Queue<T = any> {
       return 0
 
     try {
-      // Use pipeline for better performance
-      await this.redisClient.send('MULTI', [])
-
       let resumedCount = 0
 
       for (const jobId of jobIds) {
         const jobKey = this.getJobKey(jobId)
 
-        // Check if job exists
         const exists = await this.redisClient.exists(jobKey)
         if (!exists)
           continue
 
-        // Check if it's in paused list
         const isPaused = await this.redisClient.send('LREM', [this.getKey('paused'), '0', jobId])
 
-        if (isPaused && isPaused > 0) {
-          // Add back to waiting list
+        if (isPaused && Number(isPaused) > 0) {
           await this.redisClient.send('LPUSH', [this.getKey('waiting'), jobId])
-
-          // Update job status
           await this.redisClient.send('HSET', [jobKey, 'status', 'waiting'])
-
           resumedCount++
           this.logger.debug(`Job ${jobId} resumed`)
         }
       }
-
-      // Execute all commands
-      await this.redisClient.send('EXEC', [])
 
       this.logger.debug(`Bulk resumed ${resumedCount} jobs in queue ${this.name}`)
       return resumedCount

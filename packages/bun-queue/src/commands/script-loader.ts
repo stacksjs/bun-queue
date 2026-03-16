@@ -90,6 +90,10 @@ export class ScriptLoader {
    * Cache commands by dir
    */
   private commandCache = new Map<string, Command[]>()
+  /**
+   * Loaded script SHAs keyed by command name, per client
+   */
+  private scriptShas = new WeakMap<RedisClient, Map<string, { sha: string, numberOfKeys: number, lua: string }>>()
   private rootPath: string
 
   constructor() {
@@ -470,14 +474,80 @@ export class ScriptLoader {
         pathname,
         cache ?? new Map<string, ScriptMetadata>(),
       )
-      scripts.forEach((command: Command) => {
-        // Only define the command if not already defined
-        if (!(client as any)[command.name]) {
-          // Type assertion: defineCommand is available on ioredis client but not typed in bun
-          (client as any).defineCommand(command.name, command.options)
+
+      // Initialize SHA map for this client
+      let shaMap = this.scriptShas.get(client)
+      if (!shaMap) {
+        shaMap = new Map()
+        this.scriptShas.set(client, shaMap)
+      }
+
+      for (const command of scripts) {
+        if (!shaMap.has(command.name)) {
+          try {
+            // Pre-load script into Redis and cache SHA
+            const sha = await client.send('SCRIPT', ['LOAD', command.options.lua]) as string
+            shaMap.set(command.name, {
+              sha,
+              numberOfKeys: command.options.numberOfKeys,
+              lua: command.options.lua,
+            })
+          }
+          catch {
+            // Fallback: store lua for EVAL usage
+            shaMap.set(command.name, {
+              sha: '',
+              numberOfKeys: command.options.numberOfKeys,
+              lua: command.options.lua,
+            })
+          }
         }
-      })
+      }
     }
+  }
+
+  /**
+   * Execute a loaded Lua script by name using EVALSHA with EVAL fallback
+   */
+  async execCommand(
+    client: RedisClient,
+    commandName: string,
+    keys: string[],
+    args: string[],
+  ): Promise<any> {
+    const shaMap = this.scriptShas.get(client)
+    const script = shaMap?.get(commandName)
+    if (!script) {
+      throw new Error(`Script "${commandName}" not loaded. Call load() first.`)
+    }
+
+    const allArgs = [...keys, ...args]
+
+    // Try EVALSHA first (faster), fall back to EVAL
+    if (script.sha) {
+      try {
+        return await client.send('EVALSHA', [script.sha, keys.length.toString(), ...allArgs])
+      }
+      catch (err: any) {
+        // NOSCRIPT means the script was flushed — fall through to EVAL
+        if (!err?.message?.includes('NOSCRIPT')) {
+          throw err
+        }
+      }
+    }
+
+    // Fallback: EVAL with full script
+    const result = await client.send('EVAL', [script.lua, keys.length.toString(), ...allArgs])
+
+    // Re-cache SHA for next time
+    if (!script.sha) {
+      try {
+        script.sha = await client.send('SCRIPT', ['LOAD', script.lua]) as string
+      }
+      catch { /* ignore */ }
+    }
+
+    return result
   }
 
   /**

@@ -1,5 +1,6 @@
 import type { Queue } from './queue'
 import type { RateLimiter as RateLimiterOptions } from './types'
+import { scriptLoader } from './commands'
 
 export interface RateLimitResult {
   limited: boolean
@@ -41,13 +42,12 @@ export class RateLimiter {
       }
     }
 
-    const result = await this.queue.redisClient.send('rateLimit', [
-      key,
-      identifier,
-      this.options.max.toString(),
-      this.options.duration.toString(),
-      now.toString(),
-    ])
+    const result = await scriptLoader.execCommand(
+      this.queue.redisClient,
+      'rateLimit',
+      [key],
+      [identifier, this.options.max.toString(), this.options.duration.toString(), now.toString()],
+    )
 
     return {
       limited: result[0] === 1,
@@ -64,13 +64,12 @@ export class RateLimiter {
     const limitKey = this.queue.getKey('limit')
     const now = Date.now()
 
-    const result = await this.queue.redisClient.send('rateLimit', [
-      limitKey,
-      identifier,
-      this.options.max.toString(),
-      this.options.duration.toString(),
-      now.toString(),
-    ])
+    const result = await scriptLoader.execCommand(
+      this.queue.redisClient,
+      'rateLimit',
+      [limitKey],
+      [identifier, this.options.max.toString(), this.options.duration.toString(), now.toString()],
+    )
 
     return {
       limited: result[0] === 1,

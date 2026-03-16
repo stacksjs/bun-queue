@@ -36,40 +36,26 @@ export class DeadLetterQueue<T = any> {
     const deadLetterKey = `${deadLetterQueueKey}:${job.id}`
 
     try {
-      // Begin transaction
-      await this.queue.redisClient.send('MULTI', [])
-
-      // Store the job data in the dead letter queue
-      await this.queue.redisClient.send('HMSET', [
-        deadLetterKey,
-        'id',
-        job.id,
-        'originalQueue',
-        job.name,
-        'data',
-        JSON.stringify(job.data),
-        'failedReason',
-        reason || job.failedReason || '',
-        'attemptsMade',
-        job.attemptsMade.toString(),
-        'stacktrace',
-        JSON.stringify(job.stacktrace || []),
-        'timestamp',
-        Date.now().toString(),
-        'originalTimestamp',
-        job.timestamp.toString(),
+      // Move to dead letter queue atomically using Lua
+      const failedKey = this.queue.getKey('failed')
+      const removeFromOriginal = this.options.removeFromOriginalQueue ? '1' : '0'
+      const lua = `
+        redis.call('HMSET', KEYS[1], 'id', ARGV[1], 'originalQueue', ARGV[2], 'data', ARGV[3],
+          'failedReason', ARGV[4], 'attemptsMade', ARGV[5], 'stacktrace', ARGV[6],
+          'timestamp', ARGV[7], 'originalTimestamp', ARGV[8])
+        redis.call('LPUSH', KEYS[2], ARGV[1])
+        if ARGV[9] == '1' then
+          redis.call('LREM', KEYS[3], 0, ARGV[1])
+        end
+        return 1
+      `
+      await this.queue.redisClient.send('EVAL', [
+        lua, '3', deadLetterKey, deadLetterQueueKey, failedKey,
+        job.id, job.name, JSON.stringify(job.data),
+        reason || job.failedReason || '', job.attemptsMade.toString(),
+        JSON.stringify(job.stacktrace || []), Date.now().toString(),
+        job.timestamp.toString(), removeFromOriginal,
       ])
-
-      // Add to dead letter list
-      await this.queue.redisClient.send('LPUSH', [deadLetterQueueKey, job.id])
-
-      // If configured, remove from failed list
-      if (this.options.removeFromOriginalQueue) {
-        await this.queue.redisClient.send('LREM', [this.queue.getKey('failed'), '0', job.id])
-      }
-
-      // Execute transaction
-      await this.queue.redisClient.send('EXEC', [])
 
       this.logger.info(`Job ${job.id} moved to dead letter queue ${this.deadLetterQueueName}`)
 
@@ -103,11 +89,17 @@ export class DeadLetterQueue<T = any> {
         const deadLetterKey = `${deadLetterQueueKey}:${jobId}`
         const jobData = await this.queue.redisClient.send('HGETALL', [deadLetterKey])
 
-        if (jobData && Array.isArray(jobData) && jobData.length > 0) {
-          // Convert array to object
-          const jobObj: Record<string, string> = {}
-          for (let i = 0; i < jobData.length; i += 2) {
-            jobObj[jobData[i] as string] = jobData[i + 1] as string
+        if (jobData && ((Array.isArray(jobData) && jobData.length > 0) || (!Array.isArray(jobData) && typeof jobData === 'object' && Object.keys(jobData).length > 0))) {
+          // Convert to object - handle both array format (ioredis) and object format (Bun)
+          let jobObj: Record<string, string>
+          if (Array.isArray(jobData)) {
+            jobObj = {}
+            for (let i = 0; i < jobData.length; i += 2) {
+              jobObj[jobData[i] as string] = jobData[i + 1] as string
+            }
+          }
+          else {
+            jobObj = jobData as Record<string, string>
           }
 
           // Create job instance
@@ -141,15 +133,21 @@ export class DeadLetterQueue<T = any> {
       // Get job data from dead letter queue
       const jobData = await this.queue.redisClient.send('HGETALL', [deadLetterKey])
 
-      if (!jobData || !Array.isArray(jobData) || jobData.length === 0) {
+      if (!jobData || (Array.isArray(jobData) && jobData.length === 0) || (!Array.isArray(jobData) && typeof jobData === 'object' && Object.keys(jobData).length === 0)) {
         this.logger.warn(`Job ${jobId} not found in dead letter queue`)
         return null
       }
 
-      // Convert array to object
-      const jobObj: Record<string, string> = {}
-      for (let i = 0; i < jobData.length; i += 2) {
-        jobObj[jobData[i] as string] = jobData[i + 1] as string
+      // Convert to object - handle both array format (ioredis) and object format (Bun)
+      let jobObj: Record<string, string>
+      if (Array.isArray(jobData)) {
+        jobObj = {}
+        for (let i = 0; i < jobData.length; i += 2) {
+          jobObj[jobData[i] as string] = jobData[i + 1] as string
+        }
+      }
+      else {
+        jobObj = jobData as Record<string, string>
       }
 
       // Parse job data
@@ -168,11 +166,15 @@ export class DeadLetterQueue<T = any> {
       // Add job back to original queue (assuming the queue exists)
       const newJob = await this.queue.add(data, jobOptions)
 
-      // Remove from dead letter queue
-      await this.queue.redisClient.send('MULTI', [])
-      await this.queue.redisClient.send('LREM', [deadLetterQueueKey, '0', jobId])
-      await this.queue.redisClient.send('DEL', [deadLetterKey])
-      await this.queue.redisClient.send('EXEC', [])
+      // Remove from dead letter queue atomically
+      const lua = `
+        redis.call('LREM', KEYS[1], 0, ARGV[1])
+        redis.call('DEL', KEYS[2])
+        return 1
+      `
+      await this.queue.redisClient.send('EVAL', [
+        lua, '2', deadLetterQueueKey, deadLetterKey, jobId,
+      ])
 
       this.logger.info(`Job ${jobId} republished from dead letter queue to ${queueName}`)
 
@@ -197,10 +199,14 @@ export class DeadLetterQueue<T = any> {
     const deadLetterKey = `${deadLetterQueueKey}:${jobId}`
 
     try {
-      await this.queue.redisClient.send('MULTI', [])
-      await this.queue.redisClient.send('LREM', [deadLetterQueueKey, '0', jobId])
-      await this.queue.redisClient.send('DEL', [deadLetterKey])
-      await this.queue.redisClient.send('EXEC', [])
+      const lua = `
+        redis.call('LREM', KEYS[1], 0, ARGV[1])
+        redis.call('DEL', KEYS[2])
+        return 1
+      `
+      await this.queue.redisClient.send('EVAL', [
+        lua, '2', deadLetterQueueKey, deadLetterKey, jobId,
+      ])
 
       this.logger.info(`Job ${jobId} removed from dead letter queue`)
       return true
@@ -225,17 +231,10 @@ export class DeadLetterQueue<T = any> {
         return
       }
 
-      // Remove each job key
-      await this.queue.redisClient.send('MULTI', [])
-
-      for (const jobId of jobIds) {
-        const deadLetterKey = `${deadLetterQueueKey}:${jobId}`
-        await this.queue.redisClient.send('DEL', [deadLetterKey])
-      }
-
-      // Clear the list
-      await this.queue.redisClient.send('DEL', [deadLetterQueueKey])
-      await this.queue.redisClient.send('EXEC', [])
+      // Remove all job keys and the list atomically
+      const keys = [deadLetterQueueKey, ...jobIds.map((id: string) => `${deadLetterQueueKey}:${id}`)]
+      const lua = `for i = 1, #KEYS do redis.call('DEL', KEYS[i]) end return 1`
+      await this.queue.redisClient.send('EVAL', [lua, keys.length.toString(), ...keys])
 
       this.logger.info(`Dead letter queue ${this.deadLetterQueueName} cleared (${jobIds.length} jobs)`)
     }

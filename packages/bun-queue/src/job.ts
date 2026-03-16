@@ -41,14 +41,20 @@ export class Job<T = any> {
     const jobKey = this.queue.getJobKey(this.id)
     const jobData = await this.queue.redisClient.send('HGETALL', [jobKey])
 
-    if (!jobData || !Array.isArray(jobData) || jobData.length === 0) {
+    if (!jobData || (Array.isArray(jobData) && jobData.length === 0) || (typeof jobData === 'object' && Object.keys(jobData).length === 0)) {
       throw new Error(`Job ${this.id} not found`)
     }
 
-    // Convert array to object
-    const jobObj: Record<string, string> = {}
-    for (let i = 0; i < jobData.length; i += 2) {
-      jobObj[jobData[i] as string] = jobData[i + 1] as string
+    // Bun's RedisClient returns an object, ioredis returns a flat array
+    let jobObj: Record<string, string>
+    if (Array.isArray(jobData)) {
+      jobObj = {}
+      for (let i = 0; i < jobData.length; i += 2) {
+        jobObj[jobData[i] as string] = jobData[i + 1] as string
+      }
+    }
+    else {
+      jobObj = jobData as Record<string, string>
     }
 
     const parsed = parseJob(jobObj)
@@ -92,25 +98,24 @@ export class Job<T = any> {
    */
   async moveToCompleted(returnvalue: any = null): Promise<void> {
     const jobKey = this.queue.getJobKey(this.id)
-    await this.queue.redisClient.send('MULTI', [])
-
-    // Remove from active
-    this.queue.redisClient.send('LREM', [this.queue.getKey('active'), '0', this.id])
-
-    // Add to completed
-    this.queue.redisClient.send('LPUSH', [this.queue.getKey('completed'), this.id])
-
-    // Update job data
     const now = Date.now()
-    this.queue.redisClient.send('HMSET', [
+
+    // Use Lua for atomicity without MULTI (avoids nested MULTI on shared connection)
+    const lua = `
+      redis.call('LREM', KEYS[1], 0, ARGV[1])
+      redis.call('LPUSH', KEYS[2], ARGV[1])
+      redis.call('HMSET', KEYS[3], 'finishedOn', ARGV[2], 'returnvalue', ARGV[3])
+      return 1
+    `
+    await this.queue.redisClient.send('EVAL', [
+      lua, '3',
+      this.queue.getKey('active'),
+      this.queue.getKey('completed'),
       jobKey,
-      'finishedOn',
+      this.id,
       now.toString(),
-      'returnvalue',
       JSON.stringify(returnvalue),
     ])
-
-    await this.queue.redisClient.send('EXEC', [])
 
     this.finishedOn = now
     this.returnvalue = returnvalue
@@ -129,13 +134,6 @@ export class Job<T = any> {
    */
   async moveToFailed(err: Error, failedReason?: string): Promise<void> {
     const jobKey = this.queue.getJobKey(this.id)
-    await this.queue.redisClient.send('MULTI', [])
-
-    // Remove from active
-    this.queue.redisClient.send('LREM', [this.queue.getKey('active'), '0', this.id])
-
-    // Add to failed
-    this.queue.redisClient.send('LPUSH', [this.queue.getKey('failed'), this.id])
 
     // Update stacktrace
     const stacktrace = this.stacktrace || []
@@ -146,21 +144,26 @@ export class Job<T = any> {
       stacktrace.splice(0, stacktrace.length - 10)
     }
 
-    // Update job data
     const now = Date.now()
-    this.queue.redisClient.send('HMSET', [
+
+    // Use Lua for atomicity without MULTI (avoids nested MULTI on shared connection)
+    const lua = `
+      redis.call('LREM', KEYS[1], 0, ARGV[1])
+      redis.call('LPUSH', KEYS[2], ARGV[1])
+      redis.call('HMSET', KEYS[3], 'finishedOn', ARGV[2], 'failedReason', ARGV[3], 'stacktrace', ARGV[4], 'attemptsMade', ARGV[5])
+      return 1
+    `
+    await this.queue.redisClient.send('EVAL', [
+      lua, '3',
+      this.queue.getKey('active'),
+      this.queue.getKey('failed'),
       jobKey,
-      'finishedOn',
+      this.id,
       now.toString(),
-      'failedReason',
       failedReason || err.message,
-      'stacktrace',
       JSON.stringify(stacktrace),
-      'attemptsMade',
       (this.attemptsMade + 1).toString(),
     ])
-
-    await this.queue.redisClient.send('EXEC', [])
 
     this.finishedOn = now
     this.failedReason = failedReason || err.message

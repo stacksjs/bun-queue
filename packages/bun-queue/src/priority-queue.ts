@@ -91,9 +91,6 @@ export class PriorityQueue<T = any> {
       // Store the job
       const jobKey = this.getJobKey(jobId)
 
-      // Begin transaction
-      await this.redisClient.send('MULTI', [])
-
       // Store the job data with priority
       await this.redisClient.send('HMSET', [
         jobKey,
@@ -141,6 +138,16 @@ export class PriorityQueue<T = any> {
           }
         }
 
+        // Check if any dependency is not yet completed
+        let hasPendingDependency = false
+        for (const depId of dependencies) {
+          const depJob = await this.getJob(depId)
+          if (depJob && !depJob.finishedOn) {
+            hasPendingDependency = true
+            break
+          }
+        }
+
         // Store job ID in a dependency waiting set for each dependency
         for (const depId of dependencies) {
           const dependentKey = `${this.getJobKey(depId)}:dependents`
@@ -148,17 +155,13 @@ export class PriorityQueue<T = any> {
         }
 
         // Add to dependency wait list if dependencies are not completed
-        for (const depId of dependencies) {
-          const depJob = await this.getJob(depId)
-          if (depJob && !depJob.finishedOn) {
-            await this.redisClient.send('SADD', [this.getKey('dependency-wait'), jobId])
-            await this.redisClient.send('EXEC', [])
+        if (hasPendingDependency) {
+          await this.redisClient.send('SADD', [this.getKey('dependency-wait'), jobId])
 
-            const job = new Job<T>(this.baseQueue, jobId)
-            await job.refresh()
-            this.events.emitJobAdded(jobId, this.name)
-            return job
-          }
+          const job = new Job<T>(this.baseQueue, jobId)
+          await job.refresh()
+          this.events.emitJobAdded(jobId, this.name)
+          return job
         }
       }
 
@@ -179,9 +182,6 @@ export class PriorityQueue<T = any> {
         const pushCmd = opts.lifo ? 'RPUSH' : 'LPUSH'
         await this.redisClient.send(pushCmd, [priorityKey, jobId])
       }
-
-      // Execute transaction
-      await this.redisClient.send('EXEC', [])
 
       // Get the job with full details
       const job = new Job<T>(this.baseQueue, jobId)
@@ -303,15 +303,15 @@ export class PriorityQueue<T = any> {
     // Empty regular queue
     await this.baseQueue.empty()
 
-    // Empty priority queues
-    await this.redisClient.send('MULTI', [])
-
+    // Empty priority queues using Lua for atomicity
+    const keys: string[] = []
     for (let priority = 0; priority < this.priorityLevels; priority++) {
-      const priorityKey = this.getPriorityKey(priority)
-      await this.redisClient.send('DEL', [priorityKey])
+      keys.push(this.getPriorityKey(priority))
     }
-
-    await this.redisClient.send('EXEC', [])
+    if (keys.length > 0) {
+      const lua = `for i = 1, #KEYS do redis.call('DEL', KEYS[i]) end return 1`
+      await this.redisClient.send('EVAL', [lua, keys.length.toString(), ...keys])
+    }
   }
 
   /**
@@ -332,19 +332,19 @@ export class PriorityQueue<T = any> {
         const jobIds = await this.redisClient.send('LRANGE', [priorityKey, '0', '-1'])
 
         if (jobIds && jobIds.length > 0) {
-          // Move jobs to the front of the waiting queue in reverse order
-          // (to maintain priority within the level)
-          await this.redisClient.send('MULTI', [])
-
-          // Remove from priority queue
-          await this.redisClient.send('DEL', [priorityKey])
-
-          // Add to waiting queue in reverse order to maintain priority
-          for (let i = jobIds.length - 1; i >= 0; i--) {
-            await this.redisClient.send('LPUSH', [this.getKey('waiting'), jobIds[i]])
-          }
-
-          await this.redisClient.send('EXEC', [])
+          // Move jobs to the front of the waiting queue atomically
+          const waitingKey = this.getKey('waiting')
+          const lua = `
+            redis.call('DEL', KEYS[1])
+            for i = #ARGV, 1, -1 do
+              redis.call('LPUSH', KEYS[2], ARGV[i])
+            end
+            return 1
+          `
+          await this.redisClient.send('EVAL', [
+            lua, '2', priorityKey, waitingKey,
+            ...jobIds,
+          ])
         }
       }
     }
@@ -395,16 +395,8 @@ export class PriorityQueue<T = any> {
         return
       }
 
-      // Begin transaction to reorder jobs
-      await this.redisClient.send('MULTI', [])
-
-      // Remove all jobs from their current priority queues
-      for (let priority = 0; priority < this.priorityLevels; priority++) {
-        const priorityKey = this.getPriorityKey(priority)
-        await this.redisClient.send('DEL', [priorityKey])
-      }
-
       // Get current job details and recompute priorities
+      const jobsToRequeue: Array<{ jobId: string, priority: number }> = []
       for (const jobId of allJobIds) {
         const job = await this.getJob(jobId)
 
@@ -417,14 +409,34 @@ export class PriorityQueue<T = any> {
             jobPriorities[jobId] = currentPriority
           }
 
-          // Add job to the appropriate priority queue
-          const priorityKey = this.getPriorityKey(jobPriorities[jobId])
-          await this.redisClient.send('RPUSH', [priorityKey, jobId])
+          jobsToRequeue.push({ jobId, priority: jobPriorities[jobId] })
         }
       }
 
-      // Execute transaction
-      await this.redisClient.send('EXEC', [])
+      // Reorder atomically using Lua
+      // KEYS: all priority queue keys
+      // ARGV: pairs of [priority_index, jobId] for requeuing
+      const priorityKeys: string[] = []
+      for (let priority = 0; priority < this.priorityLevels; priority++) {
+        priorityKeys.push(this.getPriorityKey(priority))
+      }
+
+      const luaArgs: string[] = []
+      for (const { jobId, priority } of jobsToRequeue) {
+        luaArgs.push(priority.toString(), jobId)
+      }
+
+      const lua = `
+        for i = 1, #KEYS do redis.call('DEL', KEYS[i]) end
+        for i = 1, #ARGV, 2 do
+          local pIdx = tonumber(ARGV[i]) + 1
+          redis.call('RPUSH', KEYS[pIdx], ARGV[i+1])
+        end
+        return 1
+      `
+      await this.redisClient.send('EVAL', [
+        lua, priorityKeys.length.toString(), ...priorityKeys, ...luaArgs,
+      ])
 
       this.logger.debug(`Reordered ${allJobIds.length} jobs across ${this.priorityLevels} priority levels`)
     }

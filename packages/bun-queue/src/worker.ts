@@ -234,10 +234,18 @@ export class Worker<T = any> {
    * Move a job from waiting to active
    */
   private async moveToActive(jobId: string): Promise<void> {
-    await this.queue.redisClient.send('MULTI', [])
-    await this.queue.redisClient.send('LREM', [this.queue.getKey('waiting'), '1', jobId])
-    await this.queue.redisClient.send('LPUSH', [this.queue.getKey('active'), jobId])
-    await this.queue.redisClient.send('EXEC', [])
+    // Use Lua for atomicity without MULTI (avoids nested MULTI on shared connection)
+    const lua = `
+      redis.call('LREM', KEYS[1], 1, ARGV[1])
+      redis.call('LPUSH', KEYS[2], ARGV[1])
+      return 1
+    `
+    await this.queue.redisClient.send('EVAL', [
+      lua, '2',
+      this.queue.getKey('waiting'),
+      this.queue.getKey('active'),
+      jobId,
+    ])
   }
 
   /**
@@ -257,10 +265,17 @@ export class Worker<T = any> {
       return
 
     for (const jobId of jobs) {
-      await this.queue.redisClient.send('MULTI', [])
-      await this.queue.redisClient.send('ZREM', [this.queue.getKey('delayed'), jobId])
-      await this.queue.redisClient.send('LPUSH', [this.queue.getKey('waiting'), jobId])
-      await this.queue.redisClient.send('EXEC', [])
+      const lua = `
+        redis.call('ZREM', KEYS[1], ARGV[1])
+        redis.call('LPUSH', KEYS[2], ARGV[1])
+        return 1
+      `
+      await this.queue.redisClient.send('EVAL', [
+        lua, '2',
+        this.queue.getKey('delayed'),
+        this.queue.getKey('waiting'),
+        jobId,
+      ])
     }
   }
 

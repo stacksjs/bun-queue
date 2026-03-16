@@ -79,10 +79,17 @@ class StalledJobChecker {
         // Check if we should retry this job
         if (job.attemptsMade < this.maxRetries) {
           // Move the job back to the waiting queue for retry
-          await this.queue.redisClient.send('MULTI', [])
-          await this.queue.redisClient.send('LREM', [this.queue.getKey('active'), '0', job.id])
-          await this.queue.redisClient.send('LPUSH', [this.queue.getKey('waiting'), job.id])
-          await this.queue.redisClient.send('EXEC', [])
+          const lua = `
+            redis.call('LREM', KEYS[1], 0, ARGV[1])
+            redis.call('LPUSH', KEYS[2], ARGV[1])
+            return 1
+          `
+          await this.queue.redisClient.send('EVAL', [
+            lua, '2',
+            this.queue.getKey('active'),
+            this.queue.getKey('waiting'),
+            job.id,
+          ])
 
           this.logger.info(`Moved stalled job ${job.id} back to waiting queue for retry`)
 
