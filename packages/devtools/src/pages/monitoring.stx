@@ -151,122 +151,125 @@ Real-time Monitoring — bun-queue
 @endsection
 
 @push('scripts')
-  <script>
-    import type { DashboardStats } from '../types/dashboard'
-    import type { QueueMetrics } from '../types/queue'
-    import type { EventTemplate, MonitoringEvent } from '../types/monitoring'
+  <script data-stx-scoped>
+    stx.mountEl('#page-content', function() {
 
-    const REFRESH_INTERVAL = 3000
-    const MAX_EVENTS = 50
+      const REFRESH_INTERVAL = 3000
+      const MAX_EVENTS = 50
 
-    // Reactive state
-    const connected = state<boolean>(true)
-    const autoRefreshEnabled = state<boolean>(true)
-    const jobsPerSec = state<string>('--')
-    const avgLatency = state<string>('--')
-    const errorRate = state<string>('--')
-    const activeWorkers = state<string>('--')
-    const events = state<MonitoringEvent[]>([])
-    const queues = state<QueueMetrics[]>([])
+      // Reactive state
+      const connected = state(true)
+      const autoRefreshEnabled = state(true)
+      const jobsPerSec = state('--')
+      const avgLatency = state('--')
+      const errorRate = state('--')
+      const activeWorkers = state('--')
+      const events = state([])
+      const queues = state([])
 
-    // Mock event types
-    const eventTypes: EventTemplate[] = [
-      { type: 'completed', message: 'Job {name} completed successfully', dot: 'completed' },
-      { type: 'started', message: 'Job {name} started processing', dot: 'started' },
-      { type: 'failed', message: 'Job {name} failed: timeout exceeded', dot: 'failed' },
-      { type: 'queued', message: 'Job {name} added to queue', dot: 'queued' },
-      { type: 'completed', message: 'Job {name} completed in {dur}ms', dot: 'completed' },
-    ]
+      // Mock event types
+      const eventTypes = [
+        { type: 'completed', message: 'Job {name} completed successfully', dot: 'completed' },
+        { type: 'started', message: 'Job {name} started processing', dot: 'started' },
+        { type: 'failed', message: 'Job {name} failed: timeout exceeded', dot: 'failed' },
+        { type: 'queued', message: 'Job {name} added to queue', dot: 'queued' },
+        { type: 'completed', message: 'Job {name} completed in {dur}ms', dot: 'completed' },
+      ]
 
-    const jobNames: string[] = [
-      'Send Welcome Email', 'Process Profile Picture', 'Import Customer Data',
-      'Generate Monthly Report', 'Send Push Notification', 'Daily Database Backup',
-      'Process Analytics Data', 'Optimize Product Images', 'Send Weekly Newsletter',
-      'Generate Sales Report'
-    ]
+      const jobNames = [
+        'Send Welcome Email', 'Process Profile Picture', 'Import Customer Data',
+        'Generate Monthly Report', 'Send Push Notification', 'Daily Database Backup',
+        'Process Analytics Data', 'Optimize Product Images', 'Send Weekly Newsletter',
+        'Generate Sales Report'
+      ]
 
-    function generateEvent(): MonitoringEvent {
-      const template = eventTypes[Math.floor(Math.random() * eventTypes.length)]
-      const name = jobNames[Math.floor(Math.random() * jobNames.length)]
-      const dur = String(Math.floor(Math.random() * 2000 + 100))
-      const now = new Date()
-      const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      function generateEvent() {
+        const template = eventTypes[Math.floor(Math.random() * eventTypes.length)]
+        const name = jobNames[Math.floor(Math.random() * jobNames.length)]
+        const dur = String(Math.floor(Math.random() * 2000 + 100))
+        const now = new Date()
+        const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+        return {
+          type: template.type,
+          dot: template.dot,
+          message: template.message.replace('{name}', name).replace('{dur}', dur),
+          time: time,
+        }
+      }
+
+      function dotColor(dot) {
+        const map = {
+          completed: 'bg-emerald-500',
+          started: 'bg-indigo-500',
+          failed: 'bg-red-500',
+          queued: 'bg-amber-500',
+        }
+        return map[dot] || 'bg-zinc-500'
+      }
+
+      function healthColor(errorRateValue) {
+        if (errorRateValue > 5) return 'bg-red-500'
+        if (errorRateValue > 1) return 'bg-amber-500'
+        return 'bg-emerald-500'
+      }
+
+      function clearEvents() {
+        events.set([])
+      }
+
+      function toggleAutoRefresh() {
+        autoRefreshEnabled.set(!autoRefreshEnabled());
+      }
+
+      function refreshMonitoring() {
+        fetch('/api/stats')
+          .then(function(statsRes) { return statsRes.json(); })
+          .then(function(stats) {
+            jobsPerSec.set((stats.throughputPerMinute / 60).toFixed(1));
+            avgLatency.set(String(stats.avgLatency));
+            errorRate.set(((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2));
+            activeWorkers.set(String(stats.activeJobs));
+
+            // Add a new event to the list
+            const newEvent = generateEvent();
+            const currentEvents = [newEvent].concat(events());
+            events.set(currentEvents.slice(0, MAX_EVENTS));
+
+            return fetch('/api/queues/metrics');
+          })
+          .then(function(queuesRes) { return queuesRes.json(); })
+          .then(function(queueData) {
+            queues.set(queueData);
+            connected.set(true);
+          })
+          .catch(function(err) {
+            console.error('Monitoring refresh failed:', err);
+            connected.set(false);
+          });
+      }
+
+      useInterval(function() {
+        if (autoRefreshEnabled()) {
+          refreshMonitoring();
+        }
+      }, REFRESH_INTERVAL);
+
+      onMount(function() {
+        // Initialize with some events
+        const initialEvents = [];
+        for (let i = 0; i < 12; i++) {
+          initialEvents.push(generateEvent());
+        }
+        events.set(initialEvents);
+
+        refreshMonitoring();
+      })
+
       return {
-        type: template.type,
-        dot: template.dot,
-        message: template.message.replace('{name}', name).replace('{dur}', dur),
-        time,
+        connected, autoRefreshEnabled, jobsPerSec, avgLatency, errorRate, activeWorkers,
+        events, queues,
+        dotColor, healthColor, clearEvents, toggleAutoRefresh
       }
-    }
-
-    function dotColor(dot: string): string {
-      const map: Record<string, string> = {
-        completed: 'bg-emerald-500',
-        started: 'bg-indigo-500',
-        failed: 'bg-red-500',
-        queued: 'bg-amber-500',
-      }
-      return map[dot] || 'bg-zinc-500'
-    }
-
-    function healthColor(errorRateValue: number): string {
-      if (errorRateValue > 5) return 'bg-red-500'
-      if (errorRateValue > 1) return 'bg-amber-500'
-      return 'bg-emerald-500'
-    }
-
-    function clearEvents(): void {
-      events([])
-    }
-
-    // Auto-refresh using useInterval composable
-    const refresh = useInterval(REFRESH_INTERVAL, { immediate: true })
-    refresh.subscribe(() => refreshMonitoring())
-
-    function toggleAutoRefresh(): void {
-      if (autoRefreshEnabled()) {
-        autoRefreshEnabled(false)
-        refresh.pause()
-      } else {
-        autoRefreshEnabled(true)
-        refresh.resume()
-      }
-    }
-
-    async function refreshMonitoring(): Promise<void> {
-      try {
-        const statsRes = await fetch('/api/stats')
-        const stats: DashboardStats = await statsRes.json()
-
-        jobsPerSec((stats.throughputPerMinute / 60).toFixed(1))
-        avgLatency(String(stats.avgLatency))
-        errorRate(((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2))
-        activeWorkers(String(stats.activeJobs))
-
-        // Add a new event to the list
-        const newEvent = generateEvent()
-        const currentEvents = [newEvent, ...events()]
-        events(currentEvents.slice(0, MAX_EVENTS))
-
-        // Load queue health data
-        const queuesRes = await fetch('/api/queues/metrics')
-        const queueData: QueueMetrics[] = await queuesRes.json()
-        queues(queueData)
-
-        connected(true)
-      } catch (err) {
-        console.error('Monitoring refresh failed:', err)
-        connected(false)
-      }
-    }
-
-    onMount(() => {
-      // Initialize with some events
-      const initialEvents: MonitoringEvent[] = []
-      for (let i = 0; i < 12; i++) {
-        initialEvents.push(generateEvent())
-      }
-      events(initialEvents)
     })
   </script>
 @endpush

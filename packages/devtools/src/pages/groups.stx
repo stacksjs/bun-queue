@@ -33,22 +33,22 @@ Job Groups — bun-queue
 
     <div>
       <!-- Loading state -->
-      <div @show="loading()" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
+      <div :show="loading()" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
         Loading groups...
       </div>
 
       <!-- Error state -->
-      <div @show="!loading() && errorMessage()" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
+      <div :show="!loading() && errorMessage()" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
         {{ errorMessage() }}
       </div>
 
       <!-- Empty state -->
-      <div @show="!loading() && !errorMessage() && filteredGroups().length === 0" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
+      <div :show="!loading() && !errorMessage() && filteredGroups().length === 0" class="text-center py-12 text-zinc-500 text-[0.8125rem]">
         No groups found. Jobs assigned to groups will appear here.
       </div>
 
       <!-- Group cards grid -->
-      <div @show="!loading() && !errorMessage() && filteredGroups().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div :show="!loading() && !errorMessage() && filteredGroups().length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <template @for="group in filteredGroups()">
           <div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500 flex flex-col">
             <div class="flex items-center justify-between mb-4">
@@ -85,44 +85,43 @@ Job Groups — bun-queue
 @endsection
 
 @push('scripts')
-  <script>
-    import type { JobGroup } from '../types/group'
+  <script data-stx-scoped>
+    stx.mountEl('#page-content', function() {
 
-    const allGroups = state<JobGroup[]>([])
-    const searchQuery = state('')
-    const loading = state(true)
-    const errorMessage = state('')
+      const allGroups = state([])
+      const searchQuery = state('')
+      const loading = state(true)
+      const errorMessage = state('')
 
-    const filteredGroups = derived(() => {
-      const query = searchQuery().toLowerCase().trim()
-      if (!query) return allGroups()
-      return allGroups().filter((g: JobGroup) => {
-        const name = (g.name || g.id || '').toLowerCase()
-        return name.includes(query)
+      const filteredGroups = derived(function() {
+        const query = searchQuery().toLowerCase().trim()
+        if (!query) return allGroups()
+        return allGroups().filter(function(g) {
+          const name = (g.name || g.id || '').toLowerCase()
+          return name.includes(query)
+        })
       })
-    })
 
-    function groupJobCount(group: JobGroup): number {
-      return group.jobCount || group.total || 0
-    }
-
-    async function loadGroups(): Promise<void> {
-      loading.set(true)
-      errorMessage.set('')
-      try {
-        const res = await fetch('/api/groups')
-        const groups: JobGroup[] = await res.json()
-        allGroups.set(groups)
-      } catch (e) {
-        console.error('Failed to load groups:', e)
-        errorMessage.set('Failed to load groups.')
-      } finally {
-        loading.set(false)
+      function groupJobCount(group) {
+        return group.jobCount || group.total || 0
       }
-    }
 
-    onMount(() => {
-      loadGroups()
+      function loadGroups() {
+        loading.set(true)
+        errorMessage.set('')
+        fetch('/api/groups')
+          .then(function(res) { return res.json() })
+          .then(function(groups) { allGroups.set(groups) })
+          .catch(function(e) {
+            console.error('Failed to load groups:', e)
+            errorMessage.set('Failed to load groups.')
+          })
+          .finally(function() { loading.set(false) })
+      }
+
+      onMount(function() { loadGroups() })
+
+      return { allGroups, searchQuery, loading, errorMessage, filteredGroups, groupJobCount, loadGroups }
     })
   </script>
 @endpush

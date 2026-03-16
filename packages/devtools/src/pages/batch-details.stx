@@ -93,13 +93,13 @@ Batch Details — bun-queue
       </div>
 
       <!-- Loading state -->
-      <div @show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
+      <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
 
       <!-- Empty state -->
-      <div @show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this batch.</div>
+      <div :show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this batch.</div>
 
       <!-- Table -->
-      <table @show="!loading() && jobs().length > 0" class="w-full border-collapse">
+      <table :show="!loading() && jobs().length > 0" class="w-full border-collapse">
         <thead>
           <tr>
             <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>
@@ -134,91 +134,92 @@ Batch Details — bun-queue
 @endsection
 
 @push('scripts')
-  <script>
-    import type { Batch } from '../types/batch'
-    import type { JobData } from '../types/job'
+  <script data-stx-scoped>
+    stx.mountEl('#page-content', function() {
+      const route = useRoute();
+      const pathParts = route.path.split('/');
+      const batchId = decodeURIComponent(pathParts[pathParts.length - 1]);
 
-    const pathParts: string[] = window.location.pathname.split('/')
-    const batchId: string = decodeURIComponent(pathParts[pathParts.length - 1])
+      const batchName = state('Batch')
+      const batchStatus = state('pending')
+      const totalJobs = state(0)
+      const processedJobs = state(0)
+      const failedJobs = state(0)
+      const createdAt = state('\u2014')
+      const startedAt = state('\u2014')
+      const finishedAt = state('\u2014')
+      const jobs = state([])
+      const loading = state(true)
 
-    const batchName = state('Batch')
-    const batchStatus = state('pending')
-    const totalJobs = state(0)
-    const processedJobs = state(0)
-    const failedJobs = state(0)
-    const createdAt = state('\u2014')
-    const startedAt = state('\u2014')
-    const finishedAt = state('\u2014')
-    const jobs = state([])
-    const loading = state(true)
+      const pendingJobs = derived(function() {
+        return Math.max(0, totalJobs() - processedJobs() - failedJobs())
+      })
 
-    const pendingJobs = derived(() => {
-      return Math.max(0, totalJobs() - processedJobs() - failedJobs())
-    })
+      const progressPct = derived(function() {
+        const total = totalJobs()
+        const processed = processedJobs()
+        return total > 0 ? Math.round((processed / total) * 100) : 0
+      })
 
-    const progressPct = derived(() => {
-      const total = totalJobs()
-      const processed = processedJobs()
-      return total > 0 ? Math.round((processed / total) * 100) : 0
-    })
+      const ringOffset = derived(function() {
+        const circumference = 2 * Math.PI * 65
+        return circumference - (progressPct() / 100) * circumference
+      })
 
-    const ringOffset = derived(() => {
-      const circumference = 2 * Math.PI * 65
-      return circumference - (progressPct() / 100) * circumference
-    })
-
-    function badgeClass(status) {
-      const map = {
-        completed: 'bg-emerald-500/15 text-emerald-500',
-        finished: 'bg-emerald-500/15 text-emerald-500',
-        failed: 'bg-red-500/15 text-red-500',
-        processing: 'bg-indigo-500/15 text-indigo-400',
-        active: 'bg-indigo-500/15 text-indigo-400',
-        pending: 'bg-amber-500/15 text-amber-500',
-        waiting: 'bg-amber-500/15 text-amber-500',
+      function badgeClass(status) {
+        const map = {
+          completed: 'bg-emerald-500/15 text-emerald-500',
+          finished: 'bg-emerald-500/15 text-emerald-500',
+          failed: 'bg-red-500/15 text-red-500',
+          processing: 'bg-indigo-500/15 text-indigo-400',
+          active: 'bg-indigo-500/15 text-indigo-400',
+          pending: 'bg-amber-500/15 text-amber-500',
+          waiting: 'bg-amber-500/15 text-amber-500',
+        }
+        return map[status] || 'bg-zinc-500/15 text-zinc-500'
       }
-      return map[status] || 'bg-zinc-500/15 text-zinc-500'
-    }
 
-    function formatTime(ts) {
-      if (!ts) return '\u2014'
-      return new Date(ts).toLocaleString()
-    }
-
-    async function loadBatch() {
-      try {
-        const res = await fetch('/api/batches/' + encodeURIComponent(batchId))
-        const batch = await res.json()
-
-        batchName.set(batch.name || 'Batch ' + batch.id)
-        batchStatus.set(batch.status || 'pending')
-
-        document.title = (batch.name || 'Batch ' + batch.id) + ' \u2014 bun-queue'
-
-        totalJobs.set(batch.totalJobs || batch.total || 0)
-        processedJobs.set(batch.processedJobs || batch.processed || 0)
-        failedJobs.set(batch.failedJobs || batch.failed || 0)
-
-        createdAt.set(formatTime(batch.createdAt))
-        startedAt.set(formatTime(batch.startedAt))
-        finishedAt.set(formatTime(batch.finishedAt))
-      } catch (e) {
-        console.error('Failed to load batch:', e)
+      function formatTime(ts) {
+        if (!ts) return '\u2014'
+        return new Date(ts).toLocaleString()
       }
-    }
 
-    async function loadJobs() {
-      loading.set(true)
-      try {
-        const res = await fetch('/api/batches/' + encodeURIComponent(batchId) + '/jobs')
-        jobs.set(await res.json())
-      } catch (e) {
-        console.error('Failed to load batch jobs:', e)
+      function loadBatch() {
+        return fetch('/api/batches/' + encodeURIComponent(batchId))
+          .then(function(res) { return res.json() })
+          .then(function(batch) {
+            batchName.set(batch.name || 'Batch ' + batch.id)
+            batchStatus.set(batch.status || 'pending')
+
+            document.title = (batch.name || 'Batch ' + batch.id) + ' \u2014 bun-queue'
+
+            totalJobs.set(batch.totalJobs || batch.total || 0)
+            processedJobs.set(batch.processedJobs || batch.processed || 0)
+            failedJobs.set(batch.failedJobs || batch.failed || 0)
+
+            createdAt.set(formatTime(batch.createdAt))
+            startedAt.set(formatTime(batch.startedAt))
+            finishedAt.set(formatTime(batch.finishedAt))
+          })
+          .catch(function(e) { console.error('Failed to load batch:', e) })
       }
-      loading.set(false)
-    }
 
-    const autoRefresh = useInterval(10000, { immediate: true })
-    autoRefresh.subscribe(() => { loadBatch(); loadJobs() })
+      function loadJobs() {
+        loading.set(true)
+        return fetch('/api/batches/' + encodeURIComponent(batchId) + '/jobs')
+          .then(function(res) { return res.json() })
+          .then(function(data) { jobs.set(data) })
+          .catch(function(e) { console.error('Failed to load batch jobs:', e) })
+          .finally(function() { loading.set(false) })
+      }
+
+      onMount(function() {
+        loadBatch()
+        loadJobs()
+        useInterval(function() { loadBatch(); loadJobs(); }, 10000);
+      })
+
+      return { batchName, batchStatus, totalJobs, processedJobs, failedJobs, pendingJobs, progressPct, ringOffset, createdAt, startedAt, finishedAt, jobs, loading, badgeClass, formatTime, loadBatch, loadJobs }
+    })
   </script>
 @endpush

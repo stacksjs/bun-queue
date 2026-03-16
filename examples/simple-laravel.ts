@@ -122,7 +122,8 @@ async function demonstrateLaravelAPI() {
   if (isNewUser) {
     await dispatch(welcomeJob)
     console.log('✅ Welcome email dispatched for new user')
-  } else {
+  }
+else {
     console.log('ℹ️  User not new, skipping welcome email')
   }
 
@@ -145,7 +146,8 @@ async function simulateWorkers() {
       console.log(`🔄 Processing ${job.constructor.name}...`)
       const result = await job.handle()
       console.log(`✅ Job completed:`, result)
-    } catch (error) {
+    }
+catch (error) {
       console.log(`❌ Job failed:`, (error as Error).message)
     }
     console.log('') // Empty line for readability

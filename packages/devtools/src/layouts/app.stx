@@ -15,7 +15,7 @@
     .sidebar.collapsed .sidebar-toggle-btn { margin-left: auto; margin-right: auto; }
     .sidebar.collapsed .nav-label { opacity: 0; height: 0; padding: 0; overflow: hidden; }
     .sidebar.collapsed .nav-item-text { display: none; }
-    .main-wrapper.sidebar-collapsed { margin-left: 56px !important; }
+    .sidebar.collapsed ~ .main-wrapper { margin-left: 56px !important; }
 
     /* Active states */
     .nav-item.active { background: #6366f1; color: white; }
@@ -28,41 +28,25 @@
   <!-- Main Content -->
   <div class="main-wrapper transition-all duration-200 ease-in-out @yield('main-class', 'min-h-screen')" id="main-wrapper" ref="main-wrapper" style="margin-left: 240px;">
     @stack('styles')
-    @yield('content')
     @stack('scripts')
+    <div id="page-content" x-cloak>
+      @yield('content')
+    </div>
   </div>
 
-  <script>
-    const SIDEBAR_KEY = 'sidebar-collapsed'
-    const stored = localStorage.getItem(SIDEBAR_KEY)
-    const sidebarCollapsed = state(stored === 'true')
+  <script>window.STX_ROUTER_OPTIONS = { container: '#main-wrapper' }</script>
 
-    onMount(() => {
-      const sidebar = useRef('sidebar').current
-      const mainWrapper = useRef('main-wrapper').current
-      const sidebarToggle = useRef('sidebar-toggle').current
+  <script data-stx-scoped>
+    stx.mountEl('#sidebar', function() {
+      const collapsed = useLocalStorage('sidebar-collapsed', false);
 
-      if (!sidebar || !mainWrapper || !sidebarToggle) return
-
-      function applySidebarState(): void {
-        if (sidebarCollapsed()) {
-          sidebar.classList.add('collapsed')
-          mainWrapper.classList.add('sidebar-collapsed')
-        } else {
-          sidebar.classList.remove('collapsed')
-          mainWrapper.classList.remove('sidebar-collapsed')
-        }
+      function toggle() {
+        collapsed.set(!collapsed());
       }
 
-      applySidebarState()
-
-      sidebarToggle.addEventListener('click', () => {
-        sidebarCollapsed.set(!sidebarCollapsed())
-        localStorage.setItem(SIDEBAR_KEY, String(sidebarCollapsed()))
-        applySidebarState()
-      })
+      return { collapsed: collapsed, toggle: toggle };
     })
   </script>
-  @stxRouter('#main-wrapper')
+
 </body>
 </html>

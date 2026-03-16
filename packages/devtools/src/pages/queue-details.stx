@@ -77,7 +77,7 @@ Queue Details — bun-queue
         <span class="text-sm font-semibold text-zinc-50">Throughput</span>
       </div>
       <div class="relative h-[260px]">
-        <canvas id="throughput-chart"></canvas>
+        <canvas ref="throughput-chart"></canvas>
       </div>
     </div>
 
@@ -88,22 +88,22 @@ Queue Details — bun-queue
       </div>
 
       <!-- Loading state -->
-      <div @show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+      <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
         Loading jobs...
       </div>
 
       <!-- Empty state -->
-      <div @show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+      <div :show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
         No jobs found in this queue.
       </div>
 
       <!-- Error state -->
-      <div @show="!loading() && errorMessage()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+      <div :show="!loading() && errorMessage()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
         {{ errorMessage() }}
       </div>
 
       <!-- Jobs table -->
-      <table @show="!loading() && !errorMessage() && jobs().length > 0" class="w-full border-collapse">
+      <table :show="!loading() && !errorMessage() && jobs().length > 0" class="w-full border-collapse">
         <thead>
           <tr>
             <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>
@@ -138,142 +138,145 @@ Queue Details — bun-queue
 @endsection
 
 @push('scripts')
-  <script>
-    import type { JobData } from '../types/job'
-    import type { ThroughputData } from '../types/metrics'
-    import type { QueueDetail } from '../types/queue'
+  <script data-stx-scoped>
+    stx.mountEl('#page-content', function() {
+      const route = useRoute();
+      const pathParts = route.path.split('/');
+      const queueId = decodeURIComponent(pathParts[pathParts.length - 1]);
 
-    declare const Chart: any
+      const queueName = state(queueId)
+      const queueStatus = state('active')
+      const statTotal = state(0)
+      const statPending = state(0)
+      const statActive = state(0)
+      const statCompleted = state(0)
+      const statFailed = state(0)
+      const jobs = state([])
+      const loading = state(true)
+      const errorMessage = state('')
 
-    const pathParts: string[] = window.location.pathname.split('/')
-    const queueId: string = decodeURIComponent(pathParts[pathParts.length - 1])
+      const progressPct = derived(function() {
+        const total = statTotal()
+        if (total <= 0) return 0
+        return Math.round((statCompleted() / total) * 100)
+      })
 
-    const queueName = state(queueId)
-    const queueStatus = state('active')
-    const statTotal = state(0)
-    const statPending = state(0)
-    const statActive = state(0)
-    const statCompleted = state(0)
-    const statFailed = state(0)
-    const jobs = state<JobData[]>([])
-    const loading = state(true)
-    const errorMessage = state('')
+      let throughputChart = null
+      const throughputRef = useRef('throughput-chart')
 
-    const progressPct = derived(() => {
-      const total = statTotal()
-      if (total <= 0) return 0
-      return Math.round((statCompleted() / total) * 100)
-    })
-
-    let throughputChart: any = null
-
-    function statusBadgeClass(status: string): string {
-      const map: Record<string, string> = {
-        completed: 'bg-emerald-500/15 text-emerald-500',
-        failed: 'bg-red-500/15 text-red-500',
-        active: 'bg-emerald-500/15 text-emerald-500',
-        waiting: 'bg-amber-500/15 text-amber-500',
-        pending: 'bg-amber-500/15 text-amber-500',
-        paused: 'bg-zinc-500/15 text-zinc-500',
+      function statusBadgeClass(status) {
+        const map = {
+          completed: 'bg-emerald-500/15 text-emerald-500',
+          failed: 'bg-red-500/15 text-red-500',
+          active: 'bg-emerald-500/15 text-emerald-500',
+          waiting: 'bg-amber-500/15 text-amber-500',
+          pending: 'bg-amber-500/15 text-amber-500',
+          paused: 'bg-zinc-500/15 text-zinc-500',
+        }
+        return map[status] || 'bg-zinc-500/15 text-zinc-500'
       }
-      return map[status] || 'bg-zinc-500/15 text-zinc-500'
-    }
 
-    function formatTime(ts: string | null | undefined): string {
-      if (!ts) return '\u2014'
-      return new Date(ts).toLocaleString()
-    }
-
-    async function loadQueue(): Promise<void> {
-      try {
-        const res = await fetch('/api/queues')
-        const queues: QueueDetail[] = await res.json()
-        const q: QueueDetail | undefined = queues.find(q => q.id === queueId || q.name === queueId)
-        if (!q) return
-
-        queueName.set(q.name || queueId)
-        queueStatus.set(q.paused ? 'paused' : 'active')
-
-        const total: number = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0)
-        statTotal.set(total)
-        statPending.set(q.waiting || 0)
-        statActive.set(q.active || 0)
-        statCompleted.set(q.completed || 0)
-        statFailed.set(q.failed || 0)
-      } catch (e) {
-        console.error('Failed to load queue:', e)
+      function formatTime(ts) {
+        if (!ts) return '\u2014'
+        return new Date(ts).toLocaleString()
       }
-    }
 
-    async function loadJobs(): Promise<void> {
-      try {
-        const res = await fetch('/api/jobs?queue=' + encodeURIComponent(queueId))
-        const data: JobData[] = await res.json()
-        jobs.set(data || [])
-        errorMessage.set('')
-      } catch (e) {
-        console.error('Failed to load jobs:', e)
-        errorMessage.set('Failed to load jobs.')
-      } finally {
-        loading.set(false)
+      function loadQueue() {
+        fetch('/api/queues')
+          .then(function(res) { return res.json() })
+          .then(function(queues) {
+            const q = queues.find(function(q) { return q.id === queueId || q.name === queueId })
+            if (!q) return
+
+            queueName.set(q.name || queueId)
+            queueStatus.set(q.paused ? 'paused' : 'active')
+
+            const total = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0)
+            statTotal.set(total)
+            statPending.set(q.waiting || 0)
+            statActive.set(q.active || 0)
+            statCompleted.set(q.completed || 0)
+            statFailed.set(q.failed || 0)
+          })
+          .catch(function(e) {
+            console.error('Failed to load queue:', e)
+          })
       }
-    }
 
-    async function loadThroughput(): Promise<void> {
-      try {
-        const res = await fetch('/api/metrics?queue=' + encodeURIComponent(queueId))
-        const data: ThroughputData = await res.json()
+      function loadJobs() {
+        fetch('/api/jobs?queue=' + encodeURIComponent(queueId))
+          .then(function(res) { return res.json() })
+          .then(function(data) {
+            jobs.set(data || [])
+            errorMessage.set('')
+          })
+          .catch(function(e) {
+            console.error('Failed to load jobs:', e)
+            errorMessage.set('Failed to load jobs.')
+          })
+          .finally(function() {
+            loading.set(false)
+          })
+      }
 
-        const labels: string[] = data.throughput ? data.throughput.map(d => d.label || d.time) : []
-        const values: number[] = data.throughput ? data.throughput.map(d => d.value || d.count) : []
+      function loadThroughput() {
+        fetch('/api/metrics?queue=' + encodeURIComponent(queueId))
+          .then(function(res) { return res.json() })
+          .then(function(data) {
+            const labels = data.throughput ? data.throughput.map(function(d) { return d.label || d.time }) : []
+            const values = data.throughput ? data.throughput.map(function(d) { return d.value || d.count }) : []
 
-        const ctx = (document.getElementById('throughput-chart') as HTMLCanvasElement).getContext('2d')
+            const ctx = throughputRef.current.getContext('2d');
 
-        if (throughputChart) throughputChart.destroy()
+            if (throughputChart) throughputChart.destroy()
 
-        throughputChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Jobs / min',
-              data: values,
-              borderColor: '#6366f1',
-              backgroundColor: 'rgba(99, 102, 241, 0.1)',
-              fill: true,
-              tension: 0.4,
-              pointRadius: 0,
-              pointHoverRadius: 4,
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { display: false },
-            },
-            scales: {
-              x: {
-                grid: { color: 'rgba(39, 39, 42, 0.5)' },
-                ticks: { color: '#71717a', font: { size: 11 } },
+            throughputChart = new Chart(ctx, {
+              type: 'line',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Jobs / min',
+                  data: values,
+                  borderColor: '#6366f1',
+                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: 0,
+                  pointHoverRadius: 4,
+                }]
               },
-              y: {
-                beginAtZero: true,
-                grid: { color: 'rgba(39, 39, 42, 0.5)' },
-                ticks: { color: '#71717a', font: { size: 11 } },
-              },
-            },
-          }
-        })
-      } catch (e) {
-        console.error('Failed to load throughput:', e)
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                },
+                scales: {
+                  x: {
+                    grid: { color: 'rgba(39, 39, 42, 0.5)' },
+                    ticks: { color: '#71717a', font: { size: 11 } },
+                  },
+                  y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(39, 39, 42, 0.5)' },
+                    ticks: { color: '#71717a', font: { size: 11 } },
+                  },
+                },
+              }
+            })
+          })
+          .catch(function(e) {
+            console.error('Failed to load throughput:', e)
+          })
       }
-    }
 
-    onMount(() => {
-      loadQueue()
-      loadJobs()
-      loadThroughput()
+      onMount(function() {
+        loadQueue()
+        loadJobs()
+        loadThroughput()
+      })
+
+      return { queueName, queueStatus, statTotal, statPending, statActive, statCompleted, statFailed, jobs, loading, errorMessage, progressPct, statusBadgeClass, formatTime, loadQueue, loadJobs, loadThroughput }
     })
   </script>
 @endpush

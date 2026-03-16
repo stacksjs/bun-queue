@@ -83,13 +83,13 @@ bun-queue Dashboard
         </div>
 
         <!-- Loading state -->
-        <div @show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading recent jobs...</div>
+        <div :show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading recent jobs...</div>
 
         <!-- Empty state -->
-        <div @show="!loading() && recentJobs().length === 0" class="text-center py-8 text-zinc-500 text-sm">No recent jobs to display.</div>
+        <div :show="!loading() && recentJobs().length === 0" class="text-center py-8 text-zinc-500 text-sm">No recent jobs to display.</div>
 
         <!-- Jobs table -->
-        <table @show="!loading() && recentJobs().length > 0" class="w-full border-collapse">
+        <table :show="!loading() && recentJobs().length > 0" class="w-full border-collapse">
           <thead>
             <tr>
               <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Name</th>
@@ -121,13 +121,13 @@ bun-queue Dashboard
         </div>
 
         <!-- Loading state -->
-        <div @show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading queues...</div>
+        <div :show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading queues...</div>
 
         <!-- Empty state -->
-        <div @show="!loading() && queues().length === 0" class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>
+        <div :show="!loading() && queues().length === 0" class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>
 
         <!-- Queue cards -->
-        <div @show="!loading() && queues().length > 0" class="flex flex-col gap-3">
+        <div :show="!loading() && queues().length > 0" class="flex flex-col gap-3">
           <template @for="q in queues()">
             <div class="bg-[#1e1e26] rounded-md px-4 py-3 flex items-center justify-between hover:bg-indigo-500/[0.08] transition-colors duration-150">
               <div>
@@ -147,130 +147,137 @@ bun-queue Dashboard
 @endsection
 
 @push('scripts')
-  <script>
-    import type { DashboardStats } from '../types/dashboard'
-    import type { MetricsData } from '../types/metrics'
-    import type { JobData } from '../types/job'
-    import type { Queue } from '../types/queue'
+  <script data-stx-scoped>
+    stx.mountEl('#page-content', function() {
 
-    declare const Chart: any
+      const loading = state(true)
+      const activeQueues = state('--')
+      const waitingJobs = state('--')
+      const activeJobs = state('--')
+      const completedJobs = state('--')
+      const failedJobs = state('--')
+      const processingRate = state('--')
+      const recentJobs = state([])
+      const queues = state([])
 
-    const loading = state(true)
-    const activeQueues = state('--')
-    const waitingJobs = state('--')
-    const activeJobs = state('--')
-    const completedJobs = state('--')
-    const failedJobs = state('--')
-    const processingRate = state('--')
-    const recentJobs = state([])
-    const queues = state([])
+      let throughputChart = null
+      let queueStatusChart = null
 
-    let throughputChart: any = null
-    let queueStatusChart: any = null
+      const throughputCanvas = useRef('throughput-chart')
+      const queueStatusCanvas = useRef('queue-status-chart')
 
-    function badgeClass(status: string): string {
-      const map = {
-        completed: 'bg-emerald-500/15 text-emerald-500',
-        failed: 'bg-red-500/15 text-red-500',
-        active: 'bg-indigo-500/15 text-indigo-500',
-        waiting: 'bg-amber-500/15 text-amber-500',
-        delayed: 'bg-zinc-500/15 text-zinc-500'
+      function badgeClass(status) {
+        const map = {
+          completed: 'bg-emerald-500/15 text-emerald-500',
+          failed: 'bg-red-500/15 text-red-500',
+          active: 'bg-indigo-500/15 text-indigo-500',
+          waiting: 'bg-amber-500/15 text-amber-500',
+          delayed: 'bg-zinc-500/15 text-zinc-500'
+        }
+        return map[status] || 'bg-zinc-500/15 text-zinc-500'
       }
-      return map[status] || 'bg-zinc-500/15 text-zinc-500'
-    }
 
-    function formatDuration(duration: number | undefined): string {
-      return duration ? (duration / 1000).toFixed(1) + 's' : '\u2014'
-    }
+      function formatDuration(duration) {
+        return duration ? (duration / 1000).toFixed(1) + 's' : '\u2014'
+      }
 
-    async function loadDashboard(): Promise<void> {
-      loading.set(true)
-      try {
-        const statsRes = await fetch('/api/stats')
-        const stats: DashboardStats = await statsRes.json()
+      function loadDashboard() {
+        loading.set(true)
+        fetch('/api/stats')
+          .then(function(statsRes) { return statsRes.json() })
+          .then(function(stats) {
+            activeQueues.set(stats.totalQueues)
+            waitingJobs.set(stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs)
+            activeJobs.set(stats.activeJobs)
+            completedJobs.set(stats.completedJobs)
+            failedJobs.set(stats.failedJobs)
+            processingRate.set(stats.throughputPerMinute)
 
-        activeQueues.set(stats.totalQueues)
-        waitingJobs.set(stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs)
-        activeJobs.set(stats.activeJobs)
-        completedJobs.set(stats.completedJobs)
-        failedJobs.set(stats.failedJobs)
-        processingRate.set(stats.throughputPerMinute)
-
-        const metricsRes = await fetch('/api/metrics?timeRange=24h')
-        const metrics: MetricsData = await metricsRes.json()
-
-        if (throughputChart) throughputChart.destroy()
-        const throughputCanvas = useRef('throughput-chart').current as HTMLCanvasElement
-        const ctx1 = throughputCanvas.getContext('2d')
-        throughputChart = new Chart(ctx1, {
-          type: 'line',
-          data: {
-            labels: metrics.timestamps,
-            datasets: [{
-              label: 'Jobs/min',
-              data: metrics.throughput,
-              borderColor: '#6366f1',
-              backgroundColor: 'rgba(99, 102, 241, 0.1)',
-              fill: true,
-              tension: 0.4,
-              pointRadius: 0,
-              pointHitRadius: 10,
-              borderWidth: 2,
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              x: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 } },
-              y: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 } }, beginAtZero: true }
-            }
-          }
-        })
-
-        if (queueStatusChart) queueStatusChart.destroy()
-        const queueStatusCanvas = useRef('queue-status-chart').current as HTMLCanvasElement
-        const ctx2 = queueStatusCanvas.getContext('2d')
-        queueStatusChart = new Chart(ctx2, {
-          type: 'doughnut',
-          data: {
-            labels: ['Completed', 'Active', 'Waiting', 'Failed'],
-            datasets: [{
-              data: [stats.completedJobs, stats.activeJobs, stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs, stats.failedJobs],
-              backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
-              borderColor: '#141419',
-              borderWidth: 2,
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: 'bottom',
-                labels: { color: '#a1a1aa', font: { size: 11 }, padding: 16, usePointStyle: true, pointStyleWidth: 8 }
+            return fetch('/api/metrics?timeRange=24h')
+          })
+          .then(function(metricsRes) { return metricsRes.json() })
+          .then(function(metrics) {
+            if (throughputChart) throughputChart.destroy()
+            const ctx1 = throughputCanvas.current.getContext('2d')
+            throughputChart = new Chart(ctx1, {
+              type: 'line',
+              data: {
+                labels: metrics.timestamps,
+                datasets: [{
+                  label: 'Jobs/min',
+                  data: metrics.throughput,
+                  borderColor: '#6366f1',
+                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                  fill: true,
+                  tension: 0.4,
+                  pointRadius: 0,
+                  pointHitRadius: 10,
+                  borderWidth: 2,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                  x: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 } },
+                  y: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 } }, beginAtZero: true }
+                }
               }
-            },
-            cutout: '65%',
-          }
-        })
+            })
 
-        const jobsRes = await fetch('/api/jobs')
-        const jobs: JobData[] = await jobsRes.json()
-        recentJobs.set(jobs.slice(0, 5))
+            return fetch('/api/stats')
+          })
+          .then(function(statsRes2) { return statsRes2.json() })
+          .then(function(stats) {
+            if (queueStatusChart) queueStatusChart.destroy()
+            const ctx2 = queueStatusCanvas.current.getContext('2d')
+            queueStatusChart = new Chart(ctx2, {
+              type: 'doughnut',
+              data: {
+                labels: ['Completed', 'Active', 'Waiting', 'Failed'],
+                datasets: [{
+                  data: [stats.completedJobs, stats.activeJobs, stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs, stats.failedJobs],
+                  backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
+                  borderColor: '#141419',
+                  borderWidth: 2,
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                    labels: { color: '#a1a1aa', font: { size: 11 }, padding: 16, usePointStyle: true, pointStyleWidth: 8 }
+                  }
+                },
+                cutout: '65%',
+              }
+            })
 
-        const queuesRes = await fetch('/api/queues')
-        const queueData: Queue[] = await queuesRes.json()
-        queues.set(queueData)
-      } catch (err) {
-        console.error('Failed to load dashboard:', err)
+            return fetch('/api/jobs')
+          })
+          .then(function(jobsRes) { return jobsRes.json() })
+          .then(function(jobs) {
+            recentJobs.set(jobs.slice(0, 5))
+            return fetch('/api/queues')
+          })
+          .then(function(queuesRes) { return queuesRes.json() })
+          .then(function(queueData) {
+            queues.set(queueData)
+          })
+          .catch(function(err) {
+            console.error('Failed to load dashboard:', err)
+          })
+          .finally(function() {
+            loading.set(false)
+          })
       }
-      loading.set(false)
-    }
 
-    onMount(() => {
-      loadDashboard()
+      onMount(function() { loadDashboard() })
+
+      return { loading, activeQueues, waitingJobs, activeJobs, completedJobs, failedJobs, processingRate, recentJobs, queues, badgeClass, formatDuration, loadDashboard }
     })
   </script>
 @endpush

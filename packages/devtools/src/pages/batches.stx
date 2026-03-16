@@ -28,22 +28,22 @@ Batches — bun-queue
 
     <div>
       <!-- Loading state -->
-      <div @show="loading()" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
+      <div :show="loading()" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
         Loading batches...
       </div>
 
       <!-- Error state -->
-      <div @show="!loading() && errorMessage()" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
+      <div :show="!loading() && errorMessage()" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
         {{ errorMessage() }}
       </div>
 
       <!-- Empty state -->
-      <div @show="!loading() && !errorMessage() && batches().length === 0" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
+      <div :show="!loading() && !errorMessage() && batches().length === 0" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
         No batches found. Create a batch to see it here.
       </div>
 
       <!-- Batch cards grid -->
-      <div @show="!loading() && !errorMessage() && batches().length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div :show="!loading() && !errorMessage() && batches().length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <template @for="batch in batches()">
           <div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500">
             <!-- Header: name + status badge -->
@@ -90,7 +90,7 @@ Batches — bun-queue
             <!-- Timestamps -->
             <div class="flex gap-4 text-xs text-zinc-500 mb-3 flex-wrap">
               <span class="whitespace-nowrap">Created: {{ formatTime(batch.createdAt) }}</span>
-              <span @show="batch.finishedAt" class="whitespace-nowrap">Finished: {{ formatTime(batch.finishedAt) }}</span>
+              <span :show="batch.finishedAt" class="whitespace-nowrap">Finished: {{ formatTime(batch.finishedAt) }}</span>
             </div>
 
             <!-- View Details link -->
@@ -110,90 +110,91 @@ Batches — bun-queue
 @endsection
 
 @push('scripts')
-  <script>
-    import type { Batch } from '../types/batch'
+  <script data-stx-scoped>
+    stx.mountEl('#page-content', function() {
 
-    const batches = state<Batch[]>([])
-    const loading = state(true)
-    const errorMessage = state('')
+      const batches = state([])
+      const loading = state(true)
+      const errorMessage = state('')
 
-    function batchStatus(batch: Batch): string {
-      return batch.status || 'pending'
-    }
-
-    function batchName(batch: Batch): string {
-      return batch.name || 'Batch ' + batch.id
-    }
-
-    function batchTotal(batch: Batch): number {
-      return batch.totalJobs || batch.total || 0
-    }
-
-    function batchProcessed(batch: Batch): number {
-      return batch.processedJobs || batch.processed || 0
-    }
-
-    function batchFailed(batch: Batch): number {
-      return batch.failedJobs || batch.failed || 0
-    }
-
-    function batchPending(batch: Batch): number {
-      return Math.max(0, batchTotal(batch) - batchProcessed(batch) - batchFailed(batch))
-    }
-
-    function batchPct(batch: Batch): number {
-      const total = batchTotal(batch)
-      return total > 0 ? Math.round((batchProcessed(batch) / total) * 100) : 0
-    }
-
-    function statusBadgeClass(status: string): string {
-      const map: Record<string, string> = {
-        completed: 'bg-emerald-500/15 text-emerald-500',
-        finished: 'bg-emerald-500/15 text-emerald-500',
-        failed: 'bg-red-500/15 text-red-500',
-        processing: 'bg-indigo-500/15 text-indigo-400',
-        active: 'bg-indigo-500/15 text-indigo-400',
-        pending: 'bg-amber-500/15 text-amber-500',
-        waiting: 'bg-amber-500/15 text-amber-500',
+      function batchStatus(b) {
+        return b.status || 'pending'
       }
-      return map[status] || 'bg-zinc-500/15 text-zinc-500'
-    }
 
-    function progressBarColorClass(status: string): string {
-      const map: Record<string, string> = {
-        completed: 'bg-emerald-500',
-        finished: 'bg-emerald-500',
-        failed: 'bg-red-500',
-        processing: 'bg-indigo-500',
-        active: 'bg-indigo-500',
-        pending: 'bg-amber-500',
-        waiting: 'bg-amber-500',
+      function batchName(b) {
+        return b.name || 'Batch ' + b.id
       }
-      return map[status] || 'bg-indigo-500'
-    }
 
-    function formatTime(ts: string | null | undefined): string {
-      if (!ts) return '\u2014'
-      return new Date(ts).toLocaleString()
-    }
-
-    async function loadBatches(): Promise<void> {
-      loading.set(true)
-      errorMessage.set('')
-      try {
-        const res = await fetch('/api/batches')
-        const data: Batch[] = await res.json()
-        batches.set(data)
-      } catch (err) {
-        console.error('Failed to load batches:', err)
-        errorMessage.set('Failed to load batches. Please try again.')
-      } finally {
-        loading.set(false)
+      function batchTotal(b) {
+        return b.totalJobs || b.total || 0
       }
-    }
 
-    onMount(() => {
-      loadBatches()
+      function batchProcessed(b) {
+        return b.processedJobs || b.processed || 0
+      }
+
+      function batchFailed(b) {
+        return b.failedJobs || b.failed || 0
+      }
+
+      function batchPending(b) {
+        return Math.max(0, batchTotal(b) - batchProcessed(b) - batchFailed(b))
+      }
+
+      function batchPct(b) {
+        const total = batchTotal(b)
+        return total > 0 ? Math.round((batchProcessed(b) / total) * 100) : 0
+      }
+
+      function statusBadgeClass(status) {
+        const map = {
+          completed: 'bg-emerald-500/15 text-emerald-500',
+          finished: 'bg-emerald-500/15 text-emerald-500',
+          failed: 'bg-red-500/15 text-red-500',
+          processing: 'bg-indigo-500/15 text-indigo-400',
+          active: 'bg-indigo-500/15 text-indigo-400',
+          pending: 'bg-amber-500/15 text-amber-500',
+          waiting: 'bg-amber-500/15 text-amber-500',
+        }
+        return map[status] || 'bg-zinc-500/15 text-zinc-500'
+      }
+
+      function progressBarColorClass(status) {
+        const map = {
+          completed: 'bg-emerald-500',
+          finished: 'bg-emerald-500',
+          failed: 'bg-red-500',
+          processing: 'bg-indigo-500',
+          active: 'bg-indigo-500',
+          pending: 'bg-amber-500',
+          waiting: 'bg-amber-500',
+        }
+        return map[status] || 'bg-indigo-500'
+      }
+
+      function formatTime(ts) {
+        if (!ts) return '\u2014'
+        return new Date(ts).toLocaleString()
+      }
+
+      function loadBatches() {
+        loading.set(true)
+        errorMessage.set('')
+        fetch('/api/batches')
+          .then(function(res) { return res.json() })
+          .then(function(data) { batches.set(data) })
+          .catch(function(err) {
+            console.error('Failed to load batches:', err)
+            errorMessage.set('Failed to load batches. Please try again.')
+          })
+          .finally(function() { loading.set(false) })
+      }
+
+      onMount(function() {
+        loadBatches()
+      })
+
+      return { batches, loading, errorMessage, batchStatus, batchName, batchTotal, batchProcessed, batchFailed, batchPending, batchPct, statusBadgeClass, progressBarColorClass, formatTime, loadBatches }
     })
   </script>
 @endpush

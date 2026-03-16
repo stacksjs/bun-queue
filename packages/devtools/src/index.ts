@@ -1,6 +1,6 @@
 import type { DashboardConfig } from './types'
 import path from 'node:path'
-import { defaultConfig as stxDefaultConfig, processDirectives } from '@stacksjs/stx'
+import { defaultConfig as stxDefaultConfig, injectRouterScript, processDirectives } from '@stacksjs/stx'
 import { createApiRoutes, fetchBatchById, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobById, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueById, fetchQueues } from './api'
 import { resolveConfig } from './api'
 
@@ -22,7 +22,9 @@ async function renderStxPage(templateName: string): Promise<string> {
   }
 
   const context = { __filename: templatePath, __dirname: path.dirname(templatePath) }
-  return await processDirectives(content, context, templatePath, config, new Set())
+  let html = await processDirectives(content, context, templatePath, config, new Set())
+  html = injectRouterScript(html)
+  return html
 }
 
 export async function serveDashboard(options: DashboardConfig = {}): Promise<void> {
@@ -67,7 +69,8 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
             try {
               const conn = manager.connection(connName)
               for (const q of conn.queues.values()) qs.push(q)
-            } catch {}
+            }
+catch {}
           }
           return qs
         })() : []
@@ -76,7 +79,8 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
           try {
             const result = await q.retryJob(jobId)
             if (result) { retried = true; break }
-          } catch { /* try next queue */ }
+          }
+catch { /* try next queue */ }
         }
 
         return Response.json({ success: retried })
@@ -96,7 +100,8 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
             try {
               const conn = manager.connection(connName)
               for (const q of conn.queues.values()) qs.push(q)
-            } catch {}
+            }
+catch {}
           }
           return qs
         })() : []
@@ -106,7 +111,8 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
             await q.removeJob(jobId)
             deleted = true
             break
-          } catch { /* try next queue */ }
+          }
+catch { /* try next queue */ }
         }
 
         return Response.json({ success: deleted })

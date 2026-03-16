@@ -55,7 +55,7 @@ h-screen flex flex-col
 
   <!-- Graph -->
   <div class="graph-container flex-1 relative overflow-hidden" ref="graph-container">
-    <div @show="statusMessage()" class="flex items-center justify-center h-full text-zinc-500 text-sm">{{ statusMessage() }}</div>
+    <div :show="statusMessage()" class="flex items-center justify-center h-full text-zinc-500 text-sm">{{ statusMessage() }}</div>
   </div>
 
   <!-- Tooltip -->
@@ -67,174 +67,179 @@ h-screen flex flex-col
 @endsection
 
 @push('scripts')
-  <script>
-    import type { DependencyNode, DependencyLink, DependencyGraph } from '../types/dependency'
+  <script data-stx-scoped>
+    stx.mountEl('#page-content', function() {
 
-    declare const d3: any
+      const statusMessage = state('Loading dependency graph...')
 
-    const statusMessage = state('Loading dependency graph...')
+      const graphContainer = useRef('graph-container')
+      const tooltipRef = useRef('tooltip')
+      const tooltipNameRef = useRef('tooltip-name')
+      const tooltipIdRef = useRef('tooltip-id')
+      const tooltipStatusRef = useRef('tooltip-status')
 
-    const statusColors: Record<string, string> = {
-      completed: '#10b981',
-      active: '#6366f1',
-      waiting: '#f59e0b',
-      pending: '#f59e0b',
-      failed: '#ef4444',
-    }
-
-    function getStatusColor(status: string): string {
-      return statusColors[status] || '#71717a'
-    }
-
-    let simulation: any = null
-
-    async function loadDependencies(): Promise<void> {
-      try {
-        const res = await fetch('/api/dependencies')
-        const data: DependencyGraph = await res.json()
-
-        if (!data || !data.nodes || data.nodes.length === 0) {
-          statusMessage.set('No job dependencies found.')
-          return
-        }
-
-        statusMessage.set('')
-        buildGraph(data)
-      } catch (e) {
-        console.error('Failed to load dependencies:', e)
-        statusMessage.set('Failed to load dependency graph.')
+      const statusColors = {
+        completed: '#10b981',
+        active: '#6366f1',
+        waiting: '#f59e0b',
+        pending: '#f59e0b',
+        failed: '#ef4444',
       }
-    }
 
-    function buildGraph(data: DependencyGraph): void {
-      const container = useRef('graph-container').current as HTMLElement
-      const tooltipEl = useRef('tooltip').current as HTMLElement
-      const width: number = container.clientWidth
-      const height: number = container.clientHeight
+      function getStatusColor(status) {
+        return statusColors[status] || '#71717a'
+      }
 
-      const svg = d3.select(container)
-        .append('svg')
-        .attr('width', width)
-        .attr('height', height)
+      let simulation = null
 
-      svg.append('defs').append('marker')
-        .attr('id', 'arrowhead')
-        .attr('viewBox', '0 -5 10 10')
-        .attr('refX', 20)
-        .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('path')
-        .attr('d', 'M0,-5L10,0L0,5')
-        .attr('class', 'link-arrow')
+      function loadDependencies() {
+        fetch('/api/dependencies')
+          .then(function(res) { return res.json() })
+          .then(function(data) {
+            if (!data || !data.nodes || data.nodes.length === 0) {
+              statusMessage.set('No job dependencies found.')
+              return
+            }
 
-      const g = svg.append('g')
-
-      const zoom = d3.zoom()
-        .scaleExtent([0.1, 4])
-        .on('zoom', (event: any) => {
-          g.attr('transform', event.transform)
-        })
-
-      svg.call(zoom)
-      svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2))
-
-      const nodes: DependencyNode[] = data.nodes.map((d: DependencyNode) => ({ ...d }))
-      const links: DependencyLink[] = (data.links || data.edges || []).map((d: DependencyLink) => ({ ...d }))
-
-      simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id((d: any) => d.id).distance(120))
-        .force('charge', d3.forceManyBody().strength(-300))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(30))
-
-      const link = g.append('g')
-        .selectAll('line')
-        .data(links)
-        .join('line')
-        .attr('class', 'link')
-        .attr('marker-end', 'url(#arrowhead)')
-
-      const node = g.append('g')
-        .selectAll('g')
-        .data(nodes)
-        .join('g')
-
-      node.append('circle')
-        .attr('class', 'node-circle')
-        .attr('r', 12)
-        .attr('fill', (d: any) => getStatusColor(d.status))
-        .on('mouseover', function(event: any, d: any) {
-          d3.select(this).attr('r', 16).attr('stroke-width', 3)
-
-          const nameEl = useRef('tooltip-name').current as HTMLElement
-          const idEl = useRef('tooltip-id').current as HTMLElement
-          const statusEl = useRef('tooltip-status').current as HTMLElement
-
-          nameEl.textContent = d.name || d.label || 'Job'
-          idEl.textContent = 'ID: ' + d.id
-
-          const badgeStatus = d.status || 'waiting'
-          const badgeColors: Record<string, string> = {
-            completed: 'background: rgba(16, 185, 129, 0.2); color: #10b981;',
-            active: 'background: rgba(99, 102, 241, 0.2); color: #6366f1;',
-            waiting: 'background: rgba(245, 158, 11, 0.2); color: #f59e0b;',
-            failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
-          }
-          statusEl.innerHTML =
-            '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>'
-
-          tooltipEl.style.left = (event.pageX + 12) + 'px'
-          tooltipEl.style.top = (event.pageY - 10) + 'px'
-          tooltipEl.style.opacity = '1'
-        })
-        .on('mousemove', function(event: any) {
-          tooltipEl.style.left = (event.pageX + 12) + 'px'
-          tooltipEl.style.top = (event.pageY - 10) + 'px'
-        })
-        .on('mouseout', function() {
-          d3.select(this).attr('r', 12).attr('stroke-width', 2)
-          tooltipEl.style.opacity = '0'
-        })
-        .call(d3.drag()
-          .on('start', (event: any, d: any) => {
-            if (!event.active) simulation.alphaTarget(0.3).restart()
-            d.fx = d.x
-            d.fy = d.y
+            statusMessage.set('')
+            buildGraph(data)
           })
-          .on('drag', (event: any, d: any) => {
-            d.fx = event.x
-            d.fy = event.y
+          .catch(function(e) {
+            console.error('Failed to load dependencies:', e)
+            statusMessage.set('Failed to load dependency graph.')
           })
-          .on('end', (event: any, d: any) => {
-            if (!event.active) simulation.alphaTarget(0)
-            d.fx = null
-            d.fy = null
-          })
-        )
+      }
 
-      node.append('text')
-        .attr('class', 'node-label')
-        .attr('dy', 28)
-        .text((d: any) => {
-          const name = d.name || d.label || d.id || ''
-          return name.length > 16 ? name.slice(0, 14) + '...' : name
+      function buildGraph(data) {
+        const container = graphContainer.current
+        const tooltipEl = tooltipRef.current
+        const width = container.clientWidth
+        const height = container.clientHeight
+
+        const svg = d3.select(container)
+          .append('svg')
+          .attr('width', width)
+          .attr('height', height)
+
+        svg.append('defs').append('marker')
+          .attr('id', 'arrowhead')
+          .attr('viewBox', '0 -5 10 10')
+          .attr('refX', 20)
+          .attr('refY', 0)
+          .attr('markerWidth', 6)
+          .attr('markerHeight', 6)
+          .attr('orient', 'auto')
+          .append('path')
+          .attr('d', 'M0,-5L10,0L0,5')
+          .attr('class', 'link-arrow')
+
+        const g = svg.append('g')
+
+        const zoom = d3.zoom()
+          .scaleExtent([0.1, 4])
+          .on('zoom', function(event) {
+            g.attr('transform', event.transform)
+          })
+
+        svg.call(zoom)
+        svg.call(zoom.transform, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2))
+
+        const nodes = data.nodes.map(function(d) { return Object.assign({}, d) })
+        const links = (data.links || data.edges || []).map(function(d) { return Object.assign({}, d) })
+
+        simulation = d3.forceSimulation(nodes)
+          .force('link', d3.forceLink(links).id(function(d) { return d.id }).distance(120))
+          .force('charge', d3.forceManyBody().strength(-300))
+          .force('center', d3.forceCenter(width / 2, height / 2))
+          .force('collision', d3.forceCollide().radius(30))
+
+        const link = g.append('g')
+          .selectAll('line')
+          .data(links)
+          .join('line')
+          .attr('class', 'link')
+          .attr('marker-end', 'url(#arrowhead)')
+
+        const node = g.append('g')
+          .selectAll('g')
+          .data(nodes)
+          .join('g')
+
+        node.append('circle')
+          .attr('class', 'node-circle')
+          .attr('r', 12)
+          .attr('fill', function(d) { return getStatusColor(d.status) })
+          .on('mouseover', function(event, d) {
+            d3.select(this).attr('r', 16).attr('stroke-width', 3)
+
+            const nameEl = tooltipNameRef.current
+            const idEl = tooltipIdRef.current
+            const statusEl = tooltipStatusRef.current
+
+            nameEl.textContent = d.name || d.label || 'Job'
+            idEl.textContent = 'ID: ' + d.id
+
+            const badgeStatus = d.status || 'waiting'
+            const badgeColors = {
+              completed: 'background: rgba(16, 185, 129, 0.2); color: #10b981;',
+              active: 'background: rgba(99, 102, 241, 0.2); color: #6366f1;',
+              waiting: 'background: rgba(245, 158, 11, 0.2); color: #f59e0b;',
+              failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
+            }
+            statusEl.innerHTML =
+              '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>'
+
+            tooltipEl.style.left = (event.pageX + 12) + 'px'
+            tooltipEl.style.top = (event.pageY - 10) + 'px'
+            tooltipEl.style.opacity = '1'
+          })
+          .on('mousemove', function(event) {
+            tooltipEl.style.left = (event.pageX + 12) + 'px'
+            tooltipEl.style.top = (event.pageY - 10) + 'px'
+          })
+          .on('mouseout', function() {
+            d3.select(this).attr('r', 12).attr('stroke-width', 2)
+            tooltipEl.style.opacity = '0'
+          })
+          .call(d3.drag()
+            .on('start', function(event, d) {
+              if (!event.active) simulation.alphaTarget(0.3).restart()
+              d.fx = d.x
+              d.fy = d.y
+            })
+            .on('drag', function(event, d) {
+              d.fx = event.x
+              d.fy = event.y
+            })
+            .on('end', function(event, d) {
+              if (!event.active) simulation.alphaTarget(0)
+              d.fx = null
+              d.fy = null
+            })
+          )
+
+        node.append('text')
+          .attr('class', 'node-label')
+          .attr('dy', 28)
+          .text(function(d) {
+            const name = d.name || d.label || d.id || ''
+            return name.length > 16 ? name.slice(0, 14) + '...' : name
+          })
+
+        simulation.on('tick', function() {
+          link
+            .attr('x1', function(d) { return d.source.x })
+            .attr('y1', function(d) { return d.source.y })
+            .attr('x2', function(d) { return d.target.x })
+            .attr('y2', function(d) { return d.target.y })
+
+          node.attr('transform', function(d) { return 'translate(' + d.x + ',' + d.y + ')' })
         })
+      }
 
-      simulation.on('tick', () => {
-        link
-          .attr('x1', (d: any) => d.source.x)
-          .attr('y1', (d: any) => d.source.y)
-          .attr('x2', (d: any) => d.target.x)
-          .attr('y2', (d: any) => d.target.y)
+      onMount(function() { loadDependencies() })
 
-        node.attr('transform', (d: any) => 'translate(' + d.x + ',' + d.y + ')')
-      })
-    }
-
-    onMount(() => {
-      loadDependencies()
+      return { statusMessage, getStatusColor, loadDependencies, buildGraph }
     })
   </script>
 @endpush

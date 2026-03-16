@@ -105,12 +105,14 @@ async function main() {
         }
 
         console.log(`✅ Task "${id}" completed with exclusive access, counter: ${afterValue}`)
-      } finally {
+      }
+finally {
         // Always release the lock when done
         await lock.release(resourceName, token)
         console.log(`🔓 Lock released for "${id}"`)
       }
-    } else {
+    }
+else {
       // Non-exclusive tasks can run without manual locking
       // They're still protected from concurrent processing of the same job
       // by the built-in distributed job lock

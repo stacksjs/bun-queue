@@ -38,13 +38,13 @@ Jobs — bun-queue
     <!-- Jobs Table -->
     <div class="bg-[#141419] border border-zinc-800 rounded-lg overflow-hidden">
       <!-- Loading state -->
-      <div @show="loading()" class="text-center py-12 text-zinc-500 text-sm">Loading jobs...</div>
+      <div :show="loading()" class="text-center py-12 text-zinc-500 text-sm">Loading jobs...</div>
 
       <!-- Empty state -->
-      <div @show="!loading() && filteredJobs().length === 0" class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>
+      <div :show="!loading() && filteredJobs().length === 0" class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>
 
       <!-- Table -->
-      <table @show="!loading() && filteredJobs().length > 0" class="w-full border-collapse">
+      <table :show="!loading() && filteredJobs().length > 0" class="w-full border-collapse">
         <thead>
           <tr>
             <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Name</th>
@@ -68,7 +68,7 @@ Jobs — bun-queue
               <td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ job.createdAt }}</td>
               <td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ job.completedAt || job.failedAt || job.processedAt || job.createdAt }}</td>
               <td class="px-4 py-2.5 text-right border-b border-zinc-800 whitespace-nowrap">
-                <button @show="job.status === 'failed'" @click="retryJob(job.id)" class="text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3">Retry</button>
+                <button :show="job.status === 'failed'" @click="retryJob(job.id)" class="text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3">Retry</button>
                 <a :href="'/jobs/' + job.id" class="text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details</a>
               </td>
             </tr>
@@ -80,63 +80,63 @@ Jobs — bun-queue
 @endsection
 
 @push('scripts')
-  <script>
-    const allJobs = state([])
-    const activeFilter = state('all')
-    const searchQuery = state('')
-    const loading = state(true)
+  <script data-stx-scoped>
+    stx.mountEl('#page-content', function() {
 
-    const filteredJobs = derived(() => {
-      let jobs = allJobs()
-      const filter = activeFilter()
-      const query = searchQuery().toLowerCase().trim()
+      const allJobs = state([])
+      const activeFilter = state('all')
+      const searchQuery = state('')
+      const loading = state(true)
 
-      if (filter !== 'all') {
-        jobs = jobs.filter(j => j.status === filter)
+      const filteredJobs = derived(function() {
+        let jobs = allJobs()
+        const filter = activeFilter()
+        const query = searchQuery().toLowerCase().trim()
+
+        if (filter !== 'all') {
+          jobs = jobs.filter(function(j) { return j.status === filter })
+        }
+
+        if (query) {
+          jobs = jobs.filter(function(j) {
+            return j.name.toLowerCase().includes(query) ||
+              j.id.toLowerCase().includes(query) ||
+              j.queue.toLowerCase().includes(query)
+          })
+        }
+
+        return jobs
+      })
+
+      function badgeClass(status) {
+        const map = {
+          completed: 'bg-emerald-500/15 text-emerald-500',
+          failed: 'bg-red-500/15 text-red-500',
+          active: 'bg-indigo-500/15 text-indigo-500',
+          waiting: 'bg-amber-500/15 text-amber-500',
+          delayed: 'bg-zinc-500/15 text-zinc-500'
+        }
+        return map[status] || 'bg-zinc-500/15 text-zinc-500'
       }
 
-      if (query) {
-        jobs = jobs.filter(j =>
-          j.name.toLowerCase().includes(query) ||
-          j.id.toLowerCase().includes(query) ||
-          j.queue.toLowerCase().includes(query)
-        )
+      function retryJob(jobId) {
+        fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
+          .then(function() { return loadJobs() })
+          .catch(function(err) { console.error('Retry failed:', err) })
       }
 
-      return jobs
+      function loadJobs() {
+        loading.set(true)
+        return fetch('/api/jobs')
+          .then(function(res) { return res.json() })
+          .then(function(data) { allJobs.set(data) })
+          .catch(function(err) { console.error('Failed to load jobs:', err) })
+          .finally(function() { loading.set(false) })
+      }
+
+      onMount(function() { loadJobs() })
+
+      return { allJobs, activeFilter, searchQuery, loading, filteredJobs, badgeClass, retryJob, loadJobs }
     })
-
-    function badgeClass(status) {
-      const map = {
-        completed: 'bg-emerald-500/15 text-emerald-500',
-        failed: 'bg-red-500/15 text-red-500',
-        active: 'bg-indigo-500/15 text-indigo-500',
-        waiting: 'bg-amber-500/15 text-amber-500',
-        delayed: 'bg-zinc-500/15 text-zinc-500'
-      }
-      return map[status] || 'bg-zinc-500/15 text-zinc-500'
-    }
-
-    async function retryJob(jobId) {
-      try {
-        await fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
-        await loadJobs()
-      } catch (err) {
-        console.error('Retry failed:', err)
-      }
-    }
-
-    async function loadJobs() {
-      loading.set(true)
-      try {
-        const res = await fetch('/api/jobs')
-        allJobs.set(await res.json())
-      } catch (err) {
-        console.error('Failed to load jobs:', err)
-      }
-      loading.set(false)
-    }
-
-    onMount(() => { loadJobs() })
   </script>
 @endpush
