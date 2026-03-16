@@ -17,8 +17,11 @@
     .sidebar.collapsed .nav-item-text { display: none; }
     .sidebar.collapsed ~ .main-wrapper { margin-left: 56px !important; }
 
-    /* Active states */
-    .nav-item.active { background: #6366f1; color: white; }
+    /* Disable router inline style overrides — we use class-based active states */
+    .nav-item[style] { background: unset !important; color: unset !important; font-weight: unset !important; }
+
+    /* Active states via data-stx-link class management */
+    .nav-item.active { background: #6366f1 !important; color: white !important; }
     .nav-item.active svg { opacity: 1; }
   </style>
 </head>

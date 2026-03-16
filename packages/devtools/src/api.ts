@@ -411,6 +411,7 @@ export async function fetchJobById(config: DashboardConfig, id: string): Promise
   return mockJobs.find(j => j.id === id)
 }
 
+// eslint-disable-next-line pickier/no-unused-vars
 export async function fetchJobGroups(config: DashboardConfig): Promise<JobGroup[]> {
   // TODO: wire to real QueueGroup data when available
   return mockJobGroups
@@ -421,6 +422,7 @@ export async function fetchJobGroupById(config: DashboardConfig, id: string): Pr
   return groups.find(g => g.id === id)
 }
 
+// eslint-disable-next-line pickier/no-unused-vars
 export async function fetchBatches(config: DashboardConfig): Promise<Batch[]> {
   // TODO: wire to real BatchProcessor data when available
   return mockBatches
