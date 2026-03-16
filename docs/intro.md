@@ -33,7 +33,7 @@ Scale across multiple instances with built-in leader election and work coordinat
 ## Quick Example
 
 ```typescript
-import { Queue } from 'bun-queue'
+import { Queue } from '@stacksjs/bun-queue'
 
 // Create a queue
 const emailQueue = new Queue('emails')
@@ -80,6 +80,7 @@ emailQueue.process(5, async (job) => {
 - [Workers](/workers) - Process jobs with workers
 - [Priority Queues](/priority-queues) - Process jobs by importance
 - [Cron Jobs](/cron-jobs) - Schedule recurring jobs
+- [API Reference](/api-reference) - Complete API documentation
 
 ## Changelog
 

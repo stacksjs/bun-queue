@@ -1,118 +1,97 @@
+---
+title: Install
+description: Install bun-queue and its dependencies.
+---
+
 # Install
 
-_This is just an example of the bun-queue docs._
+## Prerequisites
 
-Installing `rpx` is easy. Simply pull it in via your package manager of choice, or download the binary directly.
+- [Bun](https://bun.sh) v1.0 or later
+- [Redis](https://redis.io) v6.0 or later
 
-## Package Managers
-
-Choose your package manager of choice:
+## Package Manager
 
 ::: code-group
 
-```sh [npm]
-npm install --save-dev @stacksjs/rpx
-# npm i -d @stacksjs/rpx
-
-# or, install globally via
-npm i -g @stacksjs/rpx
+```sh [bun]
+bun add @stacksjs/bun-queue
 ```
 
-```sh [bun]
-bun install --dev @stacksjs/rpx
-# bun add --dev @stacksjs/rpx
-# bun i -d @stacksjs/rpx
-
-# or, install globally via
-bun add --global @stacksjs/rpx
+```sh [npm]
+npm install @stacksjs/bun-queue
 ```
 
 ```sh [pnpm]
-pnpm add --save-dev @stacksjs/rpx
-# pnpm i -d @stacksjs/rpx
-
-# or, install globally via
-pnpm add --global @stacksjs/rpx
+pnpm add @stacksjs/bun-queue
 ```
 
 ```sh [yarn]
-yarn add --dev @stacksjs/rpx
-# yarn i -d @stacksjs/rpx
-
-# or, install globally via
-yarn global add @stacksjs/rpx
-```
-
-```sh [brew]
-brew install rpx # coming soon
-```
-
-```sh [pkgx]
-pkgx rpx # coming soon
+yarn add @stacksjs/bun-queue
 ```
 
 :::
 
-Read more about how to use it in the Usage section of the documentation.
+## Redis Setup
 
-## Binaries
+bun-queue requires a running Redis instance. If you don't have one:
 
-Choose the binary that matches your platform and architecture:
+```sh
+# macOS
+brew install redis
+brew services start redis
 
-::: code-group
+# Docker
+docker run -d --name redis -p 6379:6379 redis:latest
 
-```sh [macOS (arm64)]
-# Download the binary
-curl -L https://github.com/stacksjs/rpx/releases/download/v0.9.1/rpx-darwin-arm64 -o rpx
-
-# Make it executable
-chmod +x rpx
-
-# Move it to your PATH
-mv rpx /usr/local/bin/rpx
+# Linux
+sudo apt install redis-server
+sudo systemctl start redis
 ```
 
-```sh [macOS (x64)]
-# Download the binary
-curl -L https://github.com/stacksjs/rpx/releases/download/v0.9.1/rpx-darwin-x64 -o rpx
+Verify Redis is running:
 
-# Make it executable
-chmod +x rpx
-
-# Move it to your PATH
-mv rpx /usr/local/bin/rpx
+```sh
+redis-cli ping
+# PONG
 ```
 
-```sh [Linux (arm64)]
-# Download the binary
-curl -L https://github.com/stacksjs/rpx/releases/download/v0.9.1/rpx-linux-arm64 -o rpx
+## Environment Variables
 
-# Make it executable
-chmod +x rpx
+bun-queue reads the following environment variables:
 
-# Move it to your PATH
-mv rpx /usr/local/bin/rpx
+```sh
+# .env
+REDIS_URL=redis://localhost:6379
 ```
 
-```sh [Linux (x64)]
-# Download the binary
-curl -L https://github.com/stacksjs/rpx/releases/download/v0.9.1/rpx-linux-x64 -o rpx
+If `REDIS_URL` is not set, bun-queue defaults to `redis://localhost:6379`.
 
-# Make it executable
-chmod +x rpx
+## Verify Installation
 
-# Move it to your PATH
-mv rpx /usr/local/bin/rpx
+```typescript
+import { Queue } from '@stacksjs/bun-queue'
+
+const queue = new Queue('test')
+const isHealthy = await queue.ping()
+
+console.log('Connected:', isHealthy) // true
+await queue.close()
 ```
 
-```sh [Windows (x64)]
-# Download the binary
-curl -L https://github.com/stacksjs/rpx/releases/download/v0.9.1/rpx-windows-x64.exe -o rpx.exe
+## Dashboard (Optional)
 
-# Move it to your PATH (adjust the path as needed)
-move rpx.exe C:\Windows\System32\rpx.exe
+The devtools dashboard is included in the `@stacksjs/bun-queue-dashboard` package:
+
+```sh
+bun add @stacksjs/bun-queue-dashboard
 ```
 
-::: tip
-You can also find the `rpx` binaries in GitHub [releases](https://github.com/stacksjs/rpx/releases).
-:::
+```typescript
+import { Queue } from '@stacksjs/bun-queue'
+import { serveDashboard } from '@stacksjs/bun-queue-dashboard'
+
+const queues = [new Queue('emails'), new Queue('tasks')]
+await serveDashboard({ port: 4400, queues })
+// Open http://localhost:4400
+```
