@@ -17,12 +17,12 @@
     .sidebar.collapsed .nav-item-text { display: none; }
     .sidebar.collapsed ~ .main-wrapper { margin-left: 56px !important; }
 
-    /* Disable router inline style overrides — we use class-based active states */
-    .nav-item[style] { background: unset !important; color: unset !important; font-weight: unset !important; }
+    /* Override router inline styles on nav items — sidebar manages its own active state */
+    #sidebar .nav-item { background: unset !important; color: unset !important; font-weight: unset !important; }
 
-    /* Active states via data-stx-link class management */
-    .nav-item.active { background: #6366f1 !important; color: white !important; }
-    .nav-item.active svg { opacity: 1; }
+    /* Active state */
+    #sidebar .nav-item.active { background: #6366f1 !important; color: white !important; }
+    #sidebar .nav-item.active svg { opacity: 1; }
   </style>
 </head>
 <body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen @yield('body-class')">
@@ -42,12 +42,46 @@
   <script data-stx-scoped>
     stx.mountEl('#sidebar', function() {
       const collapsed = useLocalStorage('sidebar-collapsed', false);
+      const currentPath = state(location.pathname);
 
       function toggle() {
         collapsed.set(!collapsed());
       }
 
-      return { collapsed: collapsed, toggle: toggle };
+      function isActive(href) {
+        const cur = currentPath();
+        if (href === '/') return cur === '/';
+        return cur === href || cur.startsWith(href + '/');
+      }
+
+      function updateActiveLinks() {
+        const cur = currentPath();
+        const links = useRef('sidebar-nav').current;
+        if (!links) return;
+        links.querySelectorAll('.nav-item').forEach(function(a) {
+          const href = a.getAttribute('href') || '';
+          const active = href === '/' ? cur === '/' : (cur === href || cur.startsWith(href + '/'));
+          if (active) a.classList.add('active');
+          else a.classList.remove('active');
+        });
+      }
+
+      // Update on initial mount
+      onMount(function() { updateActiveLinks(); });
+
+      // Update on SPA navigation
+      useEventListener('stx:navigate', function() {
+        currentPath.set(location.pathname);
+        updateActiveLinks();
+      });
+
+      // Also catch popstate for back/forward
+      useEventListener('popstate', function() {
+        currentPath.set(location.pathname);
+        updateActiveLinks();
+      });
+
+      return { collapsed: collapsed, toggle: toggle, isActive: isActive };
     })
   </script>
 
