@@ -9,5 +9,5 @@ lib-cov
 logs
 node_modules
 temp
-docs/.vitepress/cache
-pantry
+dump.rdb
+/pantry

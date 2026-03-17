@@ -1,27 +1,129 @@
 {
   "version": "1.0.0",
-  "lockfileVersion": 1,
-  "generatedAt": "1772234882",
+  "lockfileVersion": 2,
+  "workspaces": {
+    "": {
+      "name": "@stacksjs/bun-queue",
+      "devDependencies": {
+        "@stacksjs/bunpress": "^0.1.1",
+        "@types/bun": "^1.3.10",
+        "better-dx": "^0.2.7"
+      }
+    },
+    "packages/bun-queue": {
+      "name": "@stacksjs/bun-queue",
+      "version": "0.1.0"
+    },
+    "packages/devtools": {
+      "name": "@stacksjs/bun-queue-dashboard",
+      "version": "0.1.0",
+      "dependencies": {
+        "@cwcss/crosswind": "^0.1.6",
+        "@stacksjs/bun-queue": "workspace:*",
+        "@stacksjs/stx": "^0.2.6"
+      },
+      "devDependencies": {
+        "bun-plugin-stx": "^0.2.6"
+      }
+    }
+  },
   "packages": {
-    "npm:@stacksjs/bun-queue@^0.0.1": {
-      "name": "npm:@stacksjs/bun-queue",
-      "version": "^0.0.1",
-      "source": "pkgx"
+    "@cwcss/crosswind@0.1.6": {
+      "name": "@cwcss/crosswind",
+      "version": "0.1.6",
+      "source": "npm",
+      "resolved": "https://registry.npmjs.org/@cwcss/crosswind/-/crosswind-0.1.6.tgz",
+      "integrity": "sha512-4NxFRgSSu8YQnLDj21kmUVxmwduCAvsrj3zOn5bKsaKvT/S+pBkHTl5+44d5cradQ872a+QCOOPVoEFmppsdYA==",
+      "dependencies": {
+        "@stacksjs/clapp": "^0.2.0",
+        "bunfig": "^0.15.0"
+      },
+      "bin": {
+        "crosswind": "./dist/bin/cli.js"
+      }
     },
-    "bun-plugin-stx@^0.2.5": {
+    "@stacksjs/bunpress@0.1.3": {
+      "name": "@stacksjs/bunpress",
+      "version": "0.1.3",
+      "source": "npm",
+      "resolved": "https://registry.npmjs.org/@stacksjs/bunpress/-/bunpress-0.1.3.tgz",
+      "integrity": "sha512-oIIQddMFqVoRpfMhsg0CDpL6tCV090pYdHcNzjUJmM0D0Zw/YGOMELeGKpmaF5xKUnqgCwU9NisyMjn8zqDnSQ==",
+      "dependencies": {
+        "@stacksjs/clapp": "^0.2.0",
+        "@stacksjs/stx": "^0.2.9",
+        "@stacksjs/ts-cloud": "^0.2.2",
+        "@stacksjs/ts-md": "^0.1.1",
+        "bunfig": "^0.15.6"
+      },
+      "bin": {
+        "bunpress": "./dist/bin/cli.js"
+      }
+    },
+    "@stacksjs/stx@0.2.10": {
+      "name": "@stacksjs/stx",
+      "version": "0.2.10",
+      "source": "npm",
+      "resolved": "https://registry.npmjs.org/@stacksjs/stx/-/stx-0.2.10.tgz",
+      "integrity": "sha512-X7sc4oqFpx9b8GwW8DlJpXkhtj03ZmBt8z/i57X6BmtIY5H8LHF64t8Ei4LjfYhM5UUo79y6VEPGbyKz3prfOQ==",
+      "dependencies": {
+        "@stacksjs/clapp": "^0.2.0",
+        "@stacksjs/desktop": "0.2.5",
+        "@stacksjs/sanitizer": "0.2.5",
+        "bun-plugin-stx": "0.2.5",
+        "bunfig": "^0.15.6",
+        "ts-syntax-highlighter": "^0.2.1"
+      },
+      "bin": {
+        "stx": "./dist/cli.js"
+      }
+    },
+    "@types/bun@1.3.10": {
+      "name": "@types/bun",
+      "version": "1.3.10",
+      "source": "npm",
+      "resolved": "https://registry.npmjs.org/@types/bun/-/bun-1.3.10.tgz",
+      "integrity": "sha512-0+rlrUrOrTSskibryHbvQkDOWRJwJZqZlxrUs1u4oOoTln8+WIXBPmAuCF35SWB2z4Zl3E84Nl/D0P7803nigQ==",
+      "dependencies": {
+        "bun-types": "1.3.10"
+      }
+    },
+    "better-dx@0.2.7": {
+      "name": "better-dx",
+      "version": "0.2.7",
+      "source": "npm",
+      "resolved": "https://registry.npmjs.org/better-dx/-/better-dx-0.2.7.tgz",
+      "integrity": "sha512-J5Msp8jYKl4/YrTt/IWE32ZZg36/+M5klkAhSZb6Av5LGuFd7tylTerKq/8AwZxAYl9h8ZXV79Paygc+YjmCyw==",
+      "peerDependencies": {
+        "@stacksjs/bumpx": "^0.2.4",
+        "@stacksjs/bunpress": "^0.1.1",
+        "@stacksjs/clarity": "^0.3.24",
+        "@stacksjs/gitlint": "^0.1.5",
+        "@stacksjs/logsmith": "^0.2.1",
+        "@types/bun": "^1.3.10",
+        "buddy-bot": "^0.9.17",
+        "bun-git-hooks": "^0.3.1",
+        "bun-plugin-dtsx": "^0.9.13",
+        "bunfig": "^0.15.6",
+        "pickier": "^0.1.20",
+        "ts-error-handling": "^0.1.1",
+        "typescript": "^5.9.3"
+      },
+      "bin": {
+        "better-dx": "./dist/bin/cli.js",
+        "dx": "./dist/bin/cli.js"
+      }
+    },
+    "bun-plugin-stx@^0.2.6": {
       "name": "bun-plugin-stx",
-      "version": "^0.2.5",
-      "source": "pkgx"
-    },
-    "npm:@stacksjs/stx@^0.2.5": {
-      "name": "npm:@stacksjs/stx",
-      "version": "^0.2.5",
-      "source": "pkgx"
-    },
-    "npm:@cwcss/crosswind@^0.1.6": {
-      "name": "npm:@cwcss/crosswind",
-      "version": "^0.1.6",
-      "source": "pkgx"
+      "version": "^0.2.6",
+      "source": "npm",
+      "dependencies": {
+        "@stacksjs/stx": "0.2.5"
+      },
+      "bin": {
+        "serve": "./dist/serve.js",
+        "stx-serve": "./dist/serve.js"
+      }
     }
   }
 }
