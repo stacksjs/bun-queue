@@ -4,6 +4,8 @@ export interface DashboardConfig {
   redis?: RedisConfig
   auth?: AuthConfig
   refreshInterval?: number
+  /** Port for the WebSocket broadcast server (default: 6001) */
+  broadcastPort?: number
   /** Pass an existing QueueManager instance to read real queue data */
   queueManager?: any
   /** Pass Queue instances directly (alternative to queueManager) */

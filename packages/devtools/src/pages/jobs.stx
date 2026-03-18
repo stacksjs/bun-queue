@@ -18,6 +18,17 @@ Jobs — bun-queue
         <h1 class="text-lg font-semibold text-zinc-50">Jobs</h1>
         <p class="text-sm text-zinc-500 mt-1">Browse and filter job history</p>
       </div>
+      <div :if="wsStatus() === 'OPEN'" class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-xs text-zinc-500">Live</span>
+      </div>
+    </div>
+
+    <!-- New items badge (scroll-to-pause) -->
+    <div :if="bufferedCount() > 0" class="mb-4">
+      <button @click="flushBuffer()" class="w-full py-2 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-sm font-medium text-indigo-400 cursor-pointer hover:bg-indigo-500/20 transition-colors duration-150">
+        {{ bufferedCount() }} new job{{ bufferedCount() > 1 ? 's' : '' }} — click to show
+      </button>
     </div>
 
     <!-- Toolbar -->
@@ -36,15 +47,15 @@ Jobs — bun-queue
     </div>
 
     <!-- Jobs Table -->
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg overflow-hidden">
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg overflow-hidden" ref="table-container">
       <!-- Loading state -->
-      <div :show="loading()" class="text-center py-12 text-zinc-500 text-sm">Loading jobs...</div>
+      <div :if="loading()" class="text-center py-12 text-zinc-500 text-sm">Loading jobs...</div>
 
       <!-- Empty state -->
-      <div :show="!loading() && filteredJobs().length === 0" class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>
+      <div :if="!loading() && filteredJobs().length === 0" class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>
 
       <!-- Table -->
-      <table :show="!loading() && filteredJobs().length > 0" class="w-full border-collapse">
+      <table :if="!loading() && filteredJobs().length > 0" class="w-full border-collapse">
         <thead>
           <tr>
             <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Name</th>
@@ -68,7 +79,7 @@ Jobs — bun-queue
               <td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ job.createdAt }}</td>
               <td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ job.completedAt || job.failedAt || job.processedAt || job.createdAt }}</td>
               <td class="px-4 py-2.5 text-right border-b border-zinc-800 whitespace-nowrap">
-                <button :show="job.status === 'failed'" @click="retryJob(job.id)" class="text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3">Retry</button>
+                <button :if="job.status === 'failed'" @click="retryJob(job.id)" class="text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3">Retry</button>
                 <a :href="'/jobs/' + job.id" class="text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details</a>
               </td>
             </tr>
@@ -83,15 +94,20 @@ Jobs — bun-queue
   <script data-stx-scoped>
     stx.mountEl('#page-content', function() {
 
-      const allJobs = state([])
-      const activeFilter = state('all')
-      const searchQuery = state('')
-      const loading = state(true)
+      var allJobs = state([])
+      var activeFilter = state('all')
+      var searchQuery = state('')
+      var loading = state(true)
 
-      const filteredJobs = derived(function() {
-        let jobs = allJobs()
-        const filter = activeFilter()
-        const query = searchQuery().toLowerCase().trim()
+      // Scroll-to-pause: buffer new items when user has scrolled up
+      var isAtTop = state(true)
+      var buffer = state([])
+      var bufferedCount = derived(function() { return buffer().length })
+
+      var filteredJobs = derived(function() {
+        var jobs = allJobs()
+        var filter = activeFilter()
+        var query = searchQuery().toLowerCase().trim()
 
         if (filter !== 'all') {
           jobs = jobs.filter(function(j) { return j.status === filter })
@@ -109,7 +125,7 @@ Jobs — bun-queue
       })
 
       function badgeClass(status) {
-        const map = {
+        var map = {
           completed: 'bg-emerald-500/15 text-emerald-500',
           failed: 'bg-red-500/15 text-red-500',
           active: 'bg-indigo-500/15 text-indigo-500',
@@ -134,9 +150,102 @@ Jobs — bun-queue
           .finally(function() { loading.set(false) })
       }
 
-      onMount(function() { loadJobs() })
+      function flushBuffer() {
+        var buffered = buffer()
+        if (buffered.length) {
+          allJobs.set(buffered.concat(allJobs()))
+          buffer.set([])
+        }
+      }
 
-      return { allJobs, activeFilter, searchQuery, loading, filteredJobs, badgeClass, retryJob, loadJobs }
+      function handleJobEvent(eventData) {
+        // Fetch the updated job data from the API
+        fetch('/api/jobs/' + encodeURIComponent(eventData.jobId))
+          .then(function(res) { return res.ok ? res.json() : null })
+          .then(function(job) {
+            if (!job) return
+
+            if (isAtTop()) {
+              // Auto-update: prepend new jobs, update existing ones
+              var current = allJobs()
+              var idx = current.findIndex(function(j) { return j.id === job.id })
+              if (idx >= 0) {
+                var updated = current.slice()
+                updated[idx] = job
+                allJobs.set(updated)
+              } else {
+                allJobs.set([job].concat(current))
+              }
+            } else {
+              // Buffered: add to buffer for later
+              var buf = buffer()
+              var bufIdx = buf.findIndex(function(j) { return j.id === job.id })
+              if (bufIdx >= 0) {
+                var updatedBuf = buf.slice()
+                updatedBuf[bufIdx] = job
+                buffer.set(updatedBuf)
+              } else {
+                buffer.set([job].concat(buf))
+              }
+            }
+          })
+          .catch(function(err) { console.error('Failed to fetch job update:', err) })
+      }
+
+      // Track scroll position to detect if user is at top
+      useEventListener('scroll', function() {
+        isAtTop.set(window.scrollY < 50)
+      }, { passive: true })
+
+      // WebSocket connection for real-time updates
+      var wsUrl = window.__BQ_WS_URL
+      var wsStatus = state('CLOSED')
+
+      onMount(function() {
+        loadJobs()
+
+        if (!wsUrl) return
+
+        var ws = useWebSocket(wsUrl, {
+          immediate: false,
+          onOpen: function() {
+            wsStatus.set('OPEN')
+            // Subscribe to the dashboard channel for all job events
+            ws.subscribe('dashboard')
+              .listen('job.added', handleJobEvent)
+              .listen('job.completed', handleJobEvent)
+              .listen('job.failed', handleJobEvent)
+              .listen('job.active', handleJobEvent)
+              .listen('job.stalled', handleJobEvent)
+              .listen('job.removed', function(data) {
+                var current = allJobs()
+                allJobs.set(current.filter(function(j) { return j.id !== data.jobId }))
+              })
+          },
+          onClose: function() { wsStatus.set('CLOSED') },
+          onError: function() { wsStatus.set('CLOSED') }
+        })
+
+        var connectTimer = setTimeout(function() { ws.connect() }, 200)
+
+        return function() { clearTimeout(connectTimer); ws.close() }
+      })
+
+      return {
+        allJobs: allJobs,
+        activeFilter: activeFilter,
+        searchQuery: searchQuery,
+        loading: loading,
+        filteredJobs: filteredJobs,
+        badgeClass: badgeClass,
+        retryJob: retryJob,
+        loadJobs: loadJobs,
+        bufferedCount: bufferedCount,
+        flushBuffer: flushBuffer,
+        wsStatus: wsStatus,
+        isAtTop: isAtTop,
+        buffer: buffer
+      }
     })
   </script>
 @endpush

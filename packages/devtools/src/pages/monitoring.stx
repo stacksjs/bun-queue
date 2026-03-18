@@ -167,34 +167,14 @@ Real-time Monitoring — bun-queue
       const events = state([])
       const queues = state([])
 
-      // Mock event types
-      const eventTypes = [
-        { type: 'completed', message: 'Job {name} completed successfully', dot: 'completed' },
-        { type: 'started', message: 'Job {name} started processing', dot: 'started' },
-        { type: 'failed', message: 'Job {name} failed: timeout exceeded', dot: 'failed' },
-        { type: 'queued', message: 'Job {name} added to queue', dot: 'queued' },
-        { type: 'completed', message: 'Job {name} completed in {dur}ms', dot: 'completed' },
-      ]
+      function formatEventTime() {
+        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+      }
 
-      const jobNames = [
-        'Send Welcome Email', 'Process Profile Picture', 'Import Customer Data',
-        'Generate Monthly Report', 'Send Push Notification', 'Daily Database Backup',
-        'Process Analytics Data', 'Optimize Product Images', 'Send Weekly Newsletter',
-        'Generate Sales Report'
-      ]
-
-      function generateEvent() {
-        const template = eventTypes[Math.floor(Math.random() * eventTypes.length)]
-        const name = jobNames[Math.floor(Math.random() * jobNames.length)]
-        const dur = String(Math.floor(Math.random() * 2000 + 100))
-        const now = new Date()
-        const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-        return {
-          type: template.type,
-          dot: template.dot,
-          message: template.message.replace('{name}', name).replace('{dur}', dur),
-          time: time,
-        }
+      function addEvent(dot, message) {
+        var ev = { dot: dot, message: message, time: formatEventTime() }
+        var current = [ev].concat(events())
+        events.set(current.slice(0, MAX_EVENTS))
       }
 
       function dotColor(dot) {
@@ -230,11 +210,6 @@ Real-time Monitoring — bun-queue
             errorRate.set(((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2));
             activeWorkers.set(String(stats.activeJobs));
 
-            // Add a new event to the list
-            const newEvent = generateEvent();
-            const currentEvents = [newEvent].concat(events());
-            events.set(currentEvents.slice(0, MAX_EVENTS));
-
             return fetch('/api/queues/metrics');
           })
           .then(function(queuesRes) { return queuesRes.json(); })
@@ -248,27 +223,59 @@ Real-time Monitoring — bun-queue
           });
       }
 
+      // Fallback polling when WebSocket is unavailable
       useInterval(function() {
-        if (autoRefreshEnabled()) {
+        if (autoRefreshEnabled() && !connected()) {
           refreshMonitoring();
         }
       }, REFRESH_INTERVAL);
 
-      onMount(function() {
-        // Initialize with some events
-        const initialEvents = [];
-        for (let i = 0; i < 12; i++) {
-          initialEvents.push(generateEvent());
-        }
-        events.set(initialEvents);
+      // WebSocket for real events
+      var wsUrl = window.__BQ_WS_URL
 
+      onMount(function() {
         refreshMonitoring();
+
+        if (!wsUrl) return
+
+        var ws = useWebSocket(wsUrl, {
+          immediate: false,
+          onOpen: function() {
+            connected.set(true)
+            ws.subscribe('dashboard')
+              .listen('job.added', function(data) {
+                addEvent('queued', 'Job ' + data.jobId + ' added to ' + data.queue)
+                refreshMonitoring()
+              })
+              .listen('job.active', function(data) {
+                addEvent('started', 'Job ' + data.jobId + ' started processing on ' + data.queue)
+              })
+              .listen('job.completed', function(data) {
+                addEvent('completed', 'Job ' + data.jobId + ' completed on ' + data.queue)
+                refreshMonitoring()
+              })
+              .listen('job.failed', function(data) {
+                addEvent('failed', 'Job ' + data.jobId + ' failed on ' + data.queue + ': ' + (data.error || 'unknown error'))
+                refreshMonitoring()
+              })
+              .listen('job.stalled', function(data) {
+                addEvent('failed', 'Job ' + data.jobId + ' stalled on ' + data.queue)
+              })
+          },
+          onClose: function() { connected.set(false) },
+          onError: function() { connected.set(false) }
+        })
+
+        var connectTimer = setTimeout(function() { ws.connect() }, 200)
+
+        return function() { clearTimeout(connectTimer); ws.close() }
       })
 
       return {
-        connected, autoRefreshEnabled, jobsPerSec, avgLatency, errorRate, activeWorkers,
-        events, queues,
-        dotColor, healthColor, clearEvents, toggleAutoRefresh
+        connected: connected, autoRefreshEnabled: autoRefreshEnabled, jobsPerSec: jobsPerSec,
+        avgLatency: avgLatency, errorRate: errorRate, activeWorkers: activeWorkers,
+        events: events, queues: queues,
+        dotColor: dotColor, healthColor: healthColor, clearEvents: clearEvents, toggleAutoRefresh: toggleAutoRefresh
       }
     })
   </script>

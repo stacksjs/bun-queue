@@ -21,6 +21,9 @@
     "redis",
     "job-queue"
   ],
+  "bin": {
+    "bun-queue-dashboard": "./src/cli.ts"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -35,7 +38,8 @@
   "files": [
     "LICENSE.md",
     "README.md",
-    "dist"
+    "dist",
+    "src"
   ],
   "scripts": {
     "build": "bun --bun build.ts",
@@ -49,7 +53,8 @@
   "dependencies": {
     "@cwcss/crosswind": "^0.1.6",
     "@stacksjs/bun-queue": "workspace:*",
-    "@stacksjs/stx": "^0.2.6"
+    "@stacksjs/stx": "^0.2.6",
+    "ts-broadcasting": "^0.0.1"
   },
   "devDependencies": {
     "bun-plugin-stx": "^0.2.6"

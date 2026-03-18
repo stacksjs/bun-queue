@@ -22,7 +22,13 @@ bun-queue Dashboard
         <h1 class="text-lg font-semibold text-zinc-50">Dashboard Overview</h1>
         <p class="text-sm text-zinc-500 mt-1">Real-time job queue monitoring</p>
       </div>
-      <button class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" @click="loadDashboard()">Refresh</button>
+      <div class="flex items-center gap-3">
+        <div :if="wsStatus() === 'OPEN'" class="flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-xs text-zinc-500">Live</span>
+        </div>
+        <button class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" @click="loadDashboard()">Refresh</button>
+      </div>
     </div>
 
     <!-- Stat Cards -->
@@ -275,9 +281,49 @@ bun-queue Dashboard
           })
       }
 
-      onMount(function() { loadDashboard() })
+      // Real-time updates via WebSocket
+      var wsUrl = window.__BQ_WS_URL
+      var wsStatus = state('CLOSED')
 
-      return { loading, activeQueues, waitingJobs, activeJobs, completedJobs, failedJobs, processingRate, recentJobs, queues, badgeClass, formatDuration, loadDashboard }
+      // Debounce dashboard reload to avoid hammering the API on burst events
+      var reloadTimer = null
+      function scheduleReload() {
+        if (reloadTimer) return
+        reloadTimer = setTimeout(function() {
+          reloadTimer = null
+          loadDashboard()
+        }, 2000)
+      }
+
+      onMount(function() {
+        loadDashboard()
+
+        if (!wsUrl) return
+
+        var ws = useWebSocket(wsUrl, {
+          immediate: false,
+          onOpen: function() {
+            wsStatus.set('OPEN')
+            ws.subscribe('dashboard')
+              .listen('job.added', scheduleReload)
+              .listen('job.completed', scheduleReload)
+              .listen('job.failed', scheduleReload)
+              .listen('job.active', scheduleReload)
+          },
+          onClose: function() { wsStatus.set('CLOSED') },
+          onError: function() { wsStatus.set('CLOSED') }
+        })
+
+        var connectTimer = setTimeout(function() { ws.connect() }, 200)
+
+        return function() {
+          clearTimeout(connectTimer)
+          if (reloadTimer) clearTimeout(reloadTimer)
+          ws.close()
+        }
+      })
+
+      return { loading, activeQueues, waitingJobs, activeJobs, completedJobs, failedJobs, processingRate, recentJobs, queues, badgeClass, formatDuration, loadDashboard, wsStatus }
     })
   </script>
 @endpush

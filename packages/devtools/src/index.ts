@@ -1,6 +1,7 @@
 import type { DashboardConfig } from './types'
 import path from 'node:path'
 import { defaultConfig as stxDefaultConfig, injectRouterScript, processDirectives } from '@stacksjs/stx'
+import { BroadcastServer } from 'ts-broadcasting'
 import { createApiRoutes, fetchBatchById, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobById, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueById, fetchQueues } from './api'
 import { resolveConfig } from './api'
 
@@ -10,7 +11,9 @@ export { createApiRoutes, fetchBatches, fetchDashboardStats, fetchDependencyGrap
 
 const PAGES_DIR = path.join(import.meta.dir, 'pages')
 
-async function renderStxPage(templateName: string): Promise<string> {
+let broadcastServer: BroadcastServer | null = null
+
+async function renderStxPage(templateName: string, wsUrl: string): Promise<string> {
   const templatePath = path.join(PAGES_DIR, `${templateName}.stx`)
   const content = await Bun.file(templatePath).text()
 
@@ -24,12 +27,89 @@ async function renderStxPage(templateName: string): Promise<string> {
   const context = { __filename: templatePath, __dirname: path.dirname(templatePath) }
   let html = await processDirectives(content, context, templatePath, config, new Set())
   html = injectRouterScript(html)
+
+  // Inject WebSocket URL for real-time updates
+  html = html.replace('</head>', `<script>window.__BQ_WS_URL = "${wsUrl}";</script>\n</head>`)
+
   return html
+}
+
+function wireQueueEvents(queues: any[]): void {
+  if (!broadcastServer) return
+
+  for (const queue of queues) {
+    const queueName = queue.name
+
+    queue.events.on('jobAdded', (jobId: string) => {
+      broadcastServer!.broadcast(`queue.${queueName}`, 'job.added', { jobId, queue: queueName, timestamp: Date.now() })
+      broadcastServer!.broadcast('dashboard', 'job.added', { jobId, queue: queueName, timestamp: Date.now() })
+    })
+
+    queue.events.on('jobCompleted', (jobId: string, result: any) => {
+      broadcastServer!.broadcast(`queue.${queueName}`, 'job.completed', { jobId, queue: queueName, result, timestamp: Date.now() })
+      broadcastServer!.broadcast('dashboard', 'job.completed', { jobId, queue: queueName, timestamp: Date.now() })
+    })
+
+    queue.events.on('jobFailed', (jobId: string, error: Error) => {
+      broadcastServer!.broadcast(`queue.${queueName}`, 'job.failed', { jobId, queue: queueName, error: error.message, timestamp: Date.now() })
+      broadcastServer!.broadcast('dashboard', 'job.failed', { jobId, queue: queueName, error: error.message, timestamp: Date.now() })
+    })
+
+    queue.events.on('jobActive', (jobId: string) => {
+      broadcastServer!.broadcast(`queue.${queueName}`, 'job.active', { jobId, queue: queueName, timestamp: Date.now() })
+      broadcastServer!.broadcast('dashboard', 'job.active', { jobId, queue: queueName, timestamp: Date.now() })
+    })
+
+    queue.events.on('jobProgress', (jobId: string, progress: number) => {
+      broadcastServer!.broadcast(`queue.${queueName}`, 'job.progress', { jobId, queue: queueName, progress, timestamp: Date.now() })
+    })
+
+    queue.events.on('jobStalled', (jobId: string) => {
+      broadcastServer!.broadcast(`queue.${queueName}`, 'job.stalled', { jobId, queue: queueName, timestamp: Date.now() })
+      broadcastServer!.broadcast('dashboard', 'job.stalled', { jobId, queue: queueName, timestamp: Date.now() })
+    })
+
+    queue.events.on('jobRemoved', (jobId: string) => {
+      broadcastServer!.broadcast(`queue.${queueName}`, 'job.removed', { jobId, queue: queueName, timestamp: Date.now() })
+      broadcastServer!.broadcast('dashboard', 'job.removed', { jobId, queue: queueName, timestamp: Date.now() })
+    })
+
+    queue.events.on('batchAdded', (batchId: string, jobIds: string[]) => {
+      broadcastServer!.broadcast('dashboard', 'batch.added', { batchId, jobCount: jobIds.length, queue: queueName, timestamp: Date.now() })
+    })
+
+    queue.events.on('batchCompleted', (batchId: string) => {
+      broadcastServer!.broadcast('dashboard', 'batch.completed', { batchId, queue: queueName, timestamp: Date.now() })
+    })
+  }
 }
 
 export async function serveDashboard(options: DashboardConfig = {}): Promise<void> {
   const config = resolveConfig(options)
   const apiRoutes = createApiRoutes(config)
+
+  // Start WebSocket broadcast server for real-time updates
+  const broadcastPort = options.broadcastPort || 6001
+  broadcastServer = new BroadcastServer({
+    connections: {
+      default: {
+        driver: 'bun',
+        host: '0.0.0.0',
+        port: broadcastPort,
+      },
+    },
+    default: 'default',
+    debug: false,
+  })
+  await broadcastServer.start()
+
+  // Wire queue events to broadcast channels
+  const allQueues = config.queues || []
+  if (allQueues.length) {
+    wireQueueEvents(allQueues)
+  }
+
+  const wsUrl = `ws://localhost:${broadcastPort}/app`
 
   const server = Bun.serve({
     port: config.port,
@@ -175,7 +255,7 @@ catch { /* try next queue */ }
       }
 
       if (pageMap[path]) {
-        const html = await renderStxPage(pageMap[path])
+        const html = await renderStxPage(pageMap[path], wsUrl)
         return new Response(html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } })
       }
 
@@ -189,7 +269,7 @@ catch { /* try next queue */ }
 
       for (const { pattern, template } of dynamicPages) {
         if (pattern.test(path)) {
-          const html = await renderStxPage(template)
+          const html = await renderStxPage(template, wsUrl)
           return new Response(html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } })
         }
       }
@@ -199,4 +279,5 @@ catch { /* try next queue */ }
   })
 
   console.log(`bun-queue dashboard running at http://${server.hostname}:${server.port}`)
+  console.log(`WebSocket broadcast server running at ws://localhost:${broadcastPort}/app`)
 }
