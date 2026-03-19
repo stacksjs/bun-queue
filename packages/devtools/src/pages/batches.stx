@@ -51,7 +51,7 @@ Batches — bun-queue
               <span class="text-[0.9375rem] font-semibold text-zinc-50">{{ batchName(batch) }}</span>
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium"
-                :class="statusBadgeClass(batchStatus(batch))"
+                :class="badgeClass(batchStatus(batch))"
               >
                 {{ batchStatus(batch) }}
               </span>
@@ -110,91 +110,69 @@ Batches — bun-queue
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
+  <script client>
+    interface Batch {
+      id: string
+      name?: string
+      status?: string
+      totalJobs?: number
+      total?: number
+      processedJobs?: number
+      processed?: number
+      failedJobs?: number
+      failed?: number
+      createdAt?: string
+      finishedAt?: string
+    }
 
-      const batches = state([])
-      const loading = state(true)
-      const errorMessage = state('')
+    const batches = state<Batch[]>([])
+    const loading = state<boolean>(true)
+    const errorMessage = state<string>('')
 
-      function batchStatus(b) {
-        return b.status || 'pending'
-      }
+    function batchStatus(b: Batch): string {
+      return b.status || 'pending'
+    }
 
-      function batchName(b) {
-        return b.name || 'Batch ' + b.id
-      }
+    function batchName(b: Batch): string {
+      return b.name || 'Batch ' + b.id
+    }
 
-      function batchTotal(b) {
-        return b.totalJobs || b.total || 0
-      }
+    function batchTotal(b: Batch): number {
+      return b.totalJobs || b.total || 0
+    }
 
-      function batchProcessed(b) {
-        return b.processedJobs || b.processed || 0
-      }
+    function batchProcessed(b: Batch): number {
+      return b.processedJobs || b.processed || 0
+    }
 
-      function batchFailed(b) {
-        return b.failedJobs || b.failed || 0
-      }
+    function batchFailed(b: Batch): number {
+      return b.failedJobs || b.failed || 0
+    }
 
-      function batchPending(b) {
-        return Math.max(0, batchTotal(b) - batchProcessed(b) - batchFailed(b))
-      }
+    function batchPending(b: Batch): number {
+      return Math.max(0, batchTotal(b) - batchProcessed(b) - batchFailed(b))
+    }
 
-      function batchPct(b) {
-        const total = batchTotal(b)
-        return total > 0 ? Math.round((batchProcessed(b) / total) * 100) : 0
-      }
+    function batchPct(b: Batch): number {
+      const total: number = batchTotal(b)
+      return total > 0 ? Math.round((batchProcessed(b) / total) * 100) : 0
+    }
 
-      function statusBadgeClass(status) {
-        const map = {
-          completed: 'bg-emerald-500/15 text-emerald-500',
-          finished: 'bg-emerald-500/15 text-emerald-500',
-          failed: 'bg-red-500/15 text-red-500',
-          processing: 'bg-indigo-500/15 text-indigo-400',
-          active: 'bg-indigo-500/15 text-indigo-400',
-          pending: 'bg-amber-500/15 text-amber-500',
-          waiting: 'bg-amber-500/15 text-amber-500',
-        }
-        return map[status] || 'bg-zinc-500/15 text-zinc-500'
-      }
+    function loadBatches(): void {
+      loading.set(true)
+      errorMessage.set('')
+      fetch('/api/batches')
+        .then((res: Response) => res.json())
+        .then((data: Batch[]) => { batches.set(data) })
+        .catch((err: unknown) => {
+          console.error('Failed to load batches:', err)
+          errorMessage.set('Failed to load batches. Please try again.')
+        })
+        .finally(() => { loading.set(false) })
+    }
 
-      function progressBarColorClass(status) {
-        const map = {
-          completed: 'bg-emerald-500',
-          finished: 'bg-emerald-500',
-          failed: 'bg-red-500',
-          processing: 'bg-indigo-500',
-          active: 'bg-indigo-500',
-          pending: 'bg-amber-500',
-          waiting: 'bg-amber-500',
-        }
-        return map[status] || 'bg-indigo-500'
-      }
-
-      function formatTime(ts) {
-        if (!ts) return '\u2014'
-        return new Date(ts).toLocaleString()
-      }
-
-      function loadBatches() {
-        loading.set(true)
-        errorMessage.set('')
-        fetch('/api/batches')
-          .then(function(res) { return res.json() })
-          .then(function(data) { batches.set(data) })
-          .catch(function(err) {
-            console.error('Failed to load batches:', err)
-            errorMessage.set('Failed to load batches. Please try again.')
-          })
-          .finally(function() { loading.set(false) })
-      }
-
-      onMount(function() {
-        loadBatches()
-      })
-
-      return { batches, loading, errorMessage, batchStatus, batchName, batchTotal, batchProcessed, batchFailed, batchPending, batchPct, statusBadgeClass, progressBarColorClass, formatTime, loadBatches }
+    onMount((): void => {
+      loadBatches()
     })
   </script>
 @endpush

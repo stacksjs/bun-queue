@@ -85,43 +85,51 @@ Job Groups — bun-queue
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
+  <script client>
+    interface Group {
+      id: string
+      name?: string
+      jobCount?: number
+      total?: number
+      active?: number
+      activeJobs?: number
+      completed?: number
+      completedJobs?: number
+      failed?: number
+      failedJobs?: number
+    }
 
-      const allGroups = state([])
-      const searchQuery = state('')
-      const loading = state(true)
-      const errorMessage = state('')
+    const allGroups = state<Group[]>([])
+    const searchQuery = state<string>('')
+    const loading = state<boolean>(true)
+    const errorMessage = state<string>('')
 
-      const filteredGroups = derived(function() {
-        const query = searchQuery().toLowerCase().trim()
-        if (!query) return allGroups()
-        return allGroups().filter(function(g) {
-          const name = (g.name || g.id || '').toLowerCase()
-          return name.includes(query)
-        })
+    const filteredGroups = derived<Group[]>(() => {
+      const query: string = searchQuery().toLowerCase().trim()
+      if (!query) return allGroups()
+      return allGroups().filter((g: Group) => {
+        const name: string = (g.name || g.id || '').toLowerCase()
+        return name.includes(query)
       })
-
-      function groupJobCount(group) {
-        return group.jobCount || group.total || 0
-      }
-
-      function loadGroups() {
-        loading.set(true)
-        errorMessage.set('')
-        fetch('/api/groups')
-          .then(function(res) { return res.json() })
-          .then(function(groups) { allGroups.set(groups) })
-          .catch(function(e) {
-            console.error('Failed to load groups:', e)
-            errorMessage.set('Failed to load groups.')
-          })
-          .finally(function() { loading.set(false) })
-      }
-
-      onMount(function() { loadGroups() })
-
-      return { allGroups, searchQuery, loading, errorMessage, filteredGroups, groupJobCount, loadGroups }
     })
+
+    function groupJobCount(group: Group): number {
+      return group.jobCount || group.total || 0
+    }
+
+    function loadGroups(): void {
+      loading.set(true)
+      errorMessage.set('')
+      fetch('/api/groups')
+        .then((res: Response) => res.json())
+        .then((groups: Group[]) => { allGroups.set(groups) })
+        .catch((e: unknown) => {
+          console.error('Failed to load groups:', e)
+          errorMessage.set('Failed to load groups.')
+        })
+        .finally(() => { loading.set(false) })
+    }
+
+    onMount((): void => { loadGroups() })
   </script>
 @endpush

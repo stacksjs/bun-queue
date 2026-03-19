@@ -64,7 +64,7 @@ Queues — bun-queue
               <span class="text-[0.9375rem] font-semibold text-zinc-50">{{ q.name }}</span>
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium"
-                :class="statusBadgeClass(q.status)"
+                :class="queueBadgeClass(q.status)"
               >
                 {{ statusLabel(q.status) }}
               </span>
@@ -98,56 +98,43 @@ Queues — bun-queue
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
+  <script client>
+    interface QueueItem {
+      id: string
+      name: string
+      status: string
+      jobCount: number
+      pendingJobs: number
+      activeJobs: number
+      completedJobs: number
+    }
 
-      const allQueues = state([])
-      const searchQuery = state('')
-      const loading = state(true)
-      const errorMessage = state('')
+    const allQueues = state<QueueItem[]>([])
+    const searchQuery = state<string>('')
+    const loading = state<boolean>(true)
+    const errorMessage = state<string>('')
 
-      const filteredQueues = derived(function() {
-        const query = searchQuery().toLowerCase().trim()
-        if (!query) return allQueues()
-        return allQueues().filter(function(q) {
-          return q.name.toLowerCase().includes(query) || q.id.toLowerCase().includes(query)
-        })
-      })
-
-      function statusBadgeClass(status) {
-        const map = {
-          active: 'bg-emerald-500/15 text-emerald-500',
-          paused: 'bg-amber-500/15 text-amber-500',
-          stopped: 'bg-red-500/15 text-red-500',
-        }
-        return map[status] || 'bg-zinc-500/15 text-zinc-500'
-      }
-
-      function statusLabel(status) {
-        const map = {
-          active: 'Active',
-          paused: 'Paused',
-          stopped: 'Stopped',
-        }
-        return map[status] || status
-      }
-
-      function loadQueues() {
-        loading.set(true)
-        errorMessage.set('')
-        fetch('/api/queues')
-          .then(function(res) { return res.json() })
-          .then(function(queues) { allQueues.set(queues) })
-          .catch(function(err) {
-            console.error('Failed to load queues:', err)
-            errorMessage.set('Failed to load queues. Please try again.')
-          })
-          .finally(function() { loading.set(false) })
-      }
-
-      onMount(function() { loadQueues() })
-
-      return { allQueues, searchQuery, loading, errorMessage, filteredQueues, statusBadgeClass, statusLabel, loadQueues }
+    const filteredQueues = derived<QueueItem[]>(() => {
+      const query: string = searchQuery().toLowerCase().trim()
+      if (!query) return allQueues()
+      return allQueues().filter((q: QueueItem) =>
+        q.name.toLowerCase().includes(query) || q.id.toLowerCase().includes(query)
+      )
     })
+
+    function loadQueues(): void {
+      loading.set(true)
+      errorMessage.set('')
+      fetch('/api/queues')
+        .then((res: Response) => res.json())
+        .then((queues: QueueItem[]) => { allQueues.set(queues) })
+        .catch((err: unknown) => {
+          console.error('Failed to load queues:', err)
+          errorMessage.set('Failed to load queues. Please try again.')
+        })
+        .finally(() => { loading.set(false) })
+    }
+
+    onMount((): void => { loadQueues() })
   </script>
 @endpush

@@ -90,135 +90,107 @@ Performance Metrics — bun-queue
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
+  <script client>
+    interface MetricsData {
+      timestamps: string[]
+      throughput: number[]
+      latency: number[]
+      errorRate: number[]
+    }
 
-      let throughputChart = null
-      let latencyChart = null
-      let errorRateChart = null
+    interface StatsData {
+      uptime: number
+    }
 
-      const throughputRef = useRef('throughput-chart')
-      const latencyRef = useRef('latency-chart')
-      const errorRateRef = useRef('error-rate-chart')
+    let throughputChart: Chart | null = null
+    let latencyChart: Chart | null = null
+    let errorRateChart: Chart | null = null
 
-      const timeRanges = state(['24h', '7d', '30d'])
-      const activeRange = state('24h')
-      const statThroughput = state('--')
-      const statLatency = state('--')
-      const statErrorRate = state('--')
-      const statUptime = state('--')
+    const throughputRef = useRef<HTMLCanvasElement>('throughput-chart')
+    const latencyRef = useRef<HTMLCanvasElement>('latency-chart')
+    const errorRateRef = useRef<HTMLCanvasElement>('error-rate-chart')
 
-      function selectRange(range) {
-        activeRange.set(range)
-        loadMetrics(range)
-      }
+    const timeRanges = state<string[]>(['24h', '7d', '30d'])
+    const activeRange = state<string>('24h')
+    const statThroughput = state<string>('--')
+    const statLatency = state<string>('--')
+    const statErrorRate = state<string>('--')
+    const statUptime = state<string>('--')
 
-      function chartOptions() {
-        return {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: {
-              grid: { color: 'rgba(39,39,42,0.5)' },
-              ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 10 }
+    function selectRange(range: string): void {
+      activeRange.set(range)
+      loadMetrics(range)
+    }
+
+    function loadMetrics(timeRange: string): void {
+      Promise.all([
+        fetch('/api/metrics?timeRange=' + timeRange),
+        fetch('/api/stats'),
+      ])
+        .then((responses: Response[]) =>
+          Promise.all([responses[0].json(), responses[1].json()])
+        )
+        .then((results: [MetricsData, StatsData]) => {
+          const mData: MetricsData = results[0]
+          const sData: StatsData = results[1]
+
+          statThroughput.set(
+            mData.throughput.length > 0
+              ? String(Math.round(mData.throughput.reduce((a: number, b: number) => a + b, 0) / mData.throughput.length))
+              : '0'
+          )
+          statLatency.set(
+            mData.latency.length > 0
+              ? String(Math.round(mData.latency.reduce((a: number, b: number) => a + b, 0) / mData.latency.length))
+              : '0'
+          )
+          statErrorRate.set(
+            mData.errorRate.length > 0
+              ? (mData.errorRate.reduce((a: number, b: number) => a + b, 0) / mData.errorRate.length).toFixed(2)
+              : '0.00'
+          )
+          statUptime.set(String(Math.round(sData.uptime / 3600)))
+
+          if (throughputChart) throughputChart.destroy()
+          throughputChart = new Chart(throughputRef.current.getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: mData.timestamps,
+              datasets: [createLineDataset('Throughput (jobs/min)', mData.throughput, 'rgb(99, 102, 241)')]
             },
-            y: {
-              grid: { color: 'rgba(39,39,42,0.5)' },
-              ticks: { color: '#71717a', font: { size: 10 } },
-              beginAtZero: true
-            }
-          },
-          interaction: { intersect: false, mode: 'index' },
-        }
-      }
-
-      function createLineDataset(label, data, color) {
-        return {
-          label: label,
-          data: data,
-          borderColor: color,
-          backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'),
-          fill: true,
-          tension: 0.4,
-          pointRadius: 0,
-          pointHitRadius: 10,
-          borderWidth: 2,
-        }
-      }
-
-      function loadMetrics(timeRange) {
-        Promise.all([
-          fetch('/api/metrics?timeRange=' + timeRange),
-          fetch('/api/stats'),
-        ])
-          .then(function(responses) {
-            return Promise.all([responses[0].json(), responses[1].json()])
+            options: chartOptions()
           })
-          .then(function(results) {
-            const mData = results[0]
-            const sData = results[1]
 
-            statThroughput.set(
-              mData.throughput.length > 0
-                ? String(Math.round(mData.throughput.reduce(function(a, b) { return a + b }, 0) / mData.throughput.length))
-                : '0'
-            )
-            statLatency.set(
-              mData.latency.length > 0
-                ? String(Math.round(mData.latency.reduce(function(a, b) { return a + b }, 0) / mData.latency.length))
-                : '0'
-            )
-            statErrorRate.set(
-              mData.errorRate.length > 0
-                ? (mData.errorRate.reduce(function(a, b) { return a + b }, 0) / mData.errorRate.length).toFixed(2)
-                : '0.00'
-            )
-            statUptime.set(String(Math.round(sData.uptime / 3600)))
-
-            if (throughputChart) throughputChart.destroy();
-            throughputChart = new Chart(throughputRef.current.getContext('2d'), {
-              type: 'line',
-              data: {
-                labels: mData.timestamps,
-                datasets: [createLineDataset('Throughput (jobs/min)', mData.throughput, 'rgb(99, 102, 241)')]
-              },
-              options: chartOptions()
-            })
-
-            if (latencyChart) latencyChart.destroy();
-            latencyChart = new Chart(latencyRef.current.getContext('2d'), {
-              type: 'line',
-              data: {
-                labels: mData.timestamps,
-                datasets: [createLineDataset('Latency (ms)', mData.latency, 'rgb(245, 158, 11)')]
-              },
-              options: chartOptions()
-            })
-
-            if (errorRateChart) errorRateChart.destroy();
-            errorRateChart = new Chart(errorRateRef.current.getContext('2d'), {
-              type: 'line',
-              data: {
-                labels: mData.timestamps,
-                datasets: [createLineDataset('Error Rate (%)', mData.errorRate, 'rgb(239, 68, 68)')]
-              },
-              options: chartOptions()
-            })
+          if (latencyChart) latencyChart.destroy()
+          latencyChart = new Chart(latencyRef.current.getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: mData.timestamps,
+              datasets: [createLineDataset('Latency (ms)', mData.latency, 'rgb(245, 158, 11)')]
+            },
+            options: chartOptions()
           })
-          .catch(function(err) {
-            console.error('Failed to load metrics:', err)
+
+          if (errorRateChart) errorRateChart.destroy()
+          errorRateChart = new Chart(errorRateRef.current.getContext('2d'), {
+            type: 'line',
+            data: {
+              labels: mData.timestamps,
+              datasets: [createLineDataset('Error Rate (%)', mData.errorRate, 'rgb(239, 68, 68)')]
+            },
+            options: chartOptions()
           })
-      }
+        })
+        .catch((err: unknown) => {
+          console.error('Failed to load metrics:', err)
+        })
+    }
 
-      onMount(function() {
-        const params = useSearchParams();
-        const initRange = params.get('timeRange') || '24h';
-        activeRange.set(initRange)
-        loadMetrics(initRange)
-      })
-
-      return { timeRanges, activeRange, statThroughput, statLatency, statErrorRate, statUptime, selectRange, loadMetrics }
+    onMount((): void => {
+      const params = useSearchParams()
+      const initRange: string = params.get('timeRange') || '24h'
+      activeRange.set(initRange)
+      loadMetrics(initRange)
     })
   </script>
 @endpush

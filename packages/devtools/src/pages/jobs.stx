@@ -91,161 +91,140 @@ Jobs — bun-queue
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
+  <script client>
+    interface Job {
+      id: string
+      name: string
+      queue: string
+      status: string
+      createdAt: string
+      completedAt?: string
+      failedAt?: string
+      processedAt?: string
+    }
 
-      var allJobs = state([])
-      var activeFilter = state('all')
-      var searchQuery = state('')
-      var loading = state(true)
+    interface JobEvent {
+      jobId: string
+      queue: string
+    }
 
-      // Scroll-to-pause: buffer new items when user has scrolled up
-      var isAtTop = state(true)
-      var buffer = state([])
-      var bufferedCount = derived(function() { return buffer().length })
+    const allJobs = state<Job[]>([])
+    const activeFilter = state<string>('all')
+    const searchQuery = state<string>('')
+    const loading = state<boolean>(true)
 
-      var filteredJobs = derived(function() {
-        var jobs = allJobs()
-        var filter = activeFilter()
-        var query = searchQuery().toLowerCase().trim()
+    const isAtTop = state<boolean>(true)
+    const buffer = state<Job[]>([])
+    const bufferedCount = derived<number>(() => buffer().length)
 
-        if (filter !== 'all') {
-          jobs = jobs.filter(function(j) { return j.status === filter })
-        }
+    const filteredJobs = derived<Job[]>(() => {
+      let jobs: Job[] = allJobs()
+      const filter: string = activeFilter()
+      const query: string = searchQuery().toLowerCase().trim()
 
-        if (query) {
-          jobs = jobs.filter(function(j) {
-            return j.name.toLowerCase().includes(query) ||
-              j.id.toLowerCase().includes(query) ||
-              j.queue.toLowerCase().includes(query)
-          })
-        }
-
-        return jobs
-      })
-
-      function badgeClass(status) {
-        var map = {
-          completed: 'bg-emerald-500/15 text-emerald-500',
-          failed: 'bg-red-500/15 text-red-500',
-          active: 'bg-indigo-500/15 text-indigo-500',
-          waiting: 'bg-amber-500/15 text-amber-500',
-          delayed: 'bg-zinc-500/15 text-zinc-500'
-        }
-        return map[status] || 'bg-zinc-500/15 text-zinc-500'
+      if (filter !== 'all') {
+        jobs = jobs.filter((j: Job) => j.status === filter)
       }
 
-      function retryJob(jobId) {
-        fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
-          .then(function() { return loadJobs() })
-          .catch(function(err) { console.error('Retry failed:', err) })
+      if (query) {
+        jobs = jobs.filter((j: Job) =>
+          j.name.toLowerCase().includes(query) ||
+          j.id.toLowerCase().includes(query) ||
+          j.queue.toLowerCase().includes(query)
+        )
       }
 
-      function loadJobs() {
-        loading.set(true)
-        return fetch('/api/jobs')
-          .then(function(res) { return res.json() })
-          .then(function(data) { allJobs.set(data) })
-          .catch(function(err) { console.error('Failed to load jobs:', err) })
-          .finally(function() { loading.set(false) })
+      return jobs
+    })
+
+    function retryJob(jobId: string): void {
+      fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
+        .then(() => loadJobs())
+        .catch((err: unknown) => { console.error('Retry failed:', err) })
+    }
+
+    function loadJobs(): Promise<void> {
+      loading.set(true)
+      return fetch('/api/jobs')
+        .then((res: Response) => res.json())
+        .then((data: Job[]) => { allJobs.set(data) })
+        .catch((err: unknown) => { console.error('Failed to load jobs:', err) })
+        .finally(() => { loading.set(false) })
+    }
+
+    function flushBuffer(): void {
+      const buffered: Job[] = buffer()
+      if (buffered.length) {
+        allJobs.set(buffered.concat(allJobs()))
+        buffer.set([])
       }
+    }
 
-      function flushBuffer() {
-        var buffered = buffer()
-        if (buffered.length) {
-          allJobs.set(buffered.concat(allJobs()))
-          buffer.set([])
-        }
-      }
+    function handleJobEvent(eventData: JobEvent): void {
+      fetch('/api/jobs/' + encodeURIComponent(eventData.jobId))
+        .then((res: Response) => res.ok ? res.json() : null)
+        .then((job: Job | null) => {
+          if (!job) return
 
-      function handleJobEvent(eventData) {
-        // Fetch the updated job data from the API
-        fetch('/api/jobs/' + encodeURIComponent(eventData.jobId))
-          .then(function(res) { return res.ok ? res.json() : null })
-          .then(function(job) {
-            if (!job) return
-
-            if (isAtTop()) {
-              // Auto-update: prepend new jobs, update existing ones
-              var current = allJobs()
-              var idx = current.findIndex(function(j) { return j.id === job.id })
-              if (idx >= 0) {
-                var updated = current.slice()
-                updated[idx] = job
-                allJobs.set(updated)
-              } else {
-                allJobs.set([job].concat(current))
-              }
+          if (isAtTop()) {
+            const current: Job[] = allJobs()
+            const idx: number = current.findIndex((j: Job) => j.id === job.id)
+            if (idx >= 0) {
+              const updated: Job[] = current.slice()
+              updated[idx] = job
+              allJobs.set(updated)
             } else {
-              // Buffered: add to buffer for later
-              var buf = buffer()
-              var bufIdx = buf.findIndex(function(j) { return j.id === job.id })
-              if (bufIdx >= 0) {
-                var updatedBuf = buf.slice()
-                updatedBuf[bufIdx] = job
-                buffer.set(updatedBuf)
-              } else {
-                buffer.set([job].concat(buf))
-              }
+              allJobs.set([job].concat(current))
             }
-          })
-          .catch(function(err) { console.error('Failed to fetch job update:', err) })
-      }
-
-      // Track scroll position to detect if user is at top
-      useEventListener('scroll', function() {
-        isAtTop.set(window.scrollY < 50)
-      }, { passive: true })
-
-      // WebSocket connection for real-time updates
-      var wsUrl = window.__BQ_WS_URL
-      var wsStatus = state('CLOSED')
-
-      onMount(function() {
-        loadJobs()
-
-        if (!wsUrl) return
-
-        var ws = useWebSocket(wsUrl, {
-          immediate: false,
-          onOpen: function() {
-            wsStatus.set('OPEN')
-            // Subscribe to the dashboard channel for all job events
-            ws.subscribe('dashboard')
-              .listen('job.added', handleJobEvent)
-              .listen('job.completed', handleJobEvent)
-              .listen('job.failed', handleJobEvent)
-              .listen('job.active', handleJobEvent)
-              .listen('job.stalled', handleJobEvent)
-              .listen('job.removed', function(data) {
-                var current = allJobs()
-                allJobs.set(current.filter(function(j) { return j.id !== data.jobId }))
-              })
-          },
-          onClose: function() { wsStatus.set('CLOSED') },
-          onError: function() { wsStatus.set('CLOSED') }
+          } else {
+            const buf: Job[] = buffer()
+            const bufIdx: number = buf.findIndex((j: Job) => j.id === job.id)
+            if (bufIdx >= 0) {
+              const updatedBuf: Job[] = buf.slice()
+              updatedBuf[bufIdx] = job
+              buffer.set(updatedBuf)
+            } else {
+              buffer.set([job].concat(buf))
+            }
+          }
         })
+        .catch((err: unknown) => { console.error('Failed to fetch job update:', err) })
+    }
 
-        var connectTimer = setTimeout(function() { ws.connect() }, 200)
+    useEventListener('scroll', () => {
+      isAtTop.set(window.scrollY < 50)
+    }, { passive: true })
 
-        return function() { clearTimeout(connectTimer); ws.close() }
+    const wsUrl: string | undefined = window.__BQ_WS_URL
+    const wsStatus = state<string>('CLOSED')
+
+    onMount((): (() => void) | void => {
+      loadJobs()
+
+      if (!wsUrl) return
+
+      const ws = useWebSocket(wsUrl, {
+        immediate: false,
+        onOpen: () => {
+          wsStatus.set('OPEN')
+          ws.subscribe('dashboard')
+            .listen('job.added', handleJobEvent)
+            .listen('job.completed', handleJobEvent)
+            .listen('job.failed', handleJobEvent)
+            .listen('job.active', handleJobEvent)
+            .listen('job.stalled', handleJobEvent)
+            .listen('job.removed', (data: JobEvent) => {
+              const current: Job[] = allJobs()
+              allJobs.set(current.filter((j: Job) => j.id !== data.jobId))
+            })
+        },
+        onClose: () => { wsStatus.set('CLOSED') },
+        onError: () => { wsStatus.set('CLOSED') }
       })
 
-      return {
-        allJobs: allJobs,
-        activeFilter: activeFilter,
-        searchQuery: searchQuery,
-        loading: loading,
-        filteredJobs: filteredJobs,
-        badgeClass: badgeClass,
-        retryJob: retryJob,
-        loadJobs: loadJobs,
-        bufferedCount: bufferedCount,
-        flushBuffer: flushBuffer,
-        wsStatus: wsStatus,
-        isAtTop: isAtTop,
-        buffer: buffer
-      }
+      const connectTimer = setTimeout(() => { ws.connect() }, 200)
+
+      return () => { clearTimeout(connectTimer); ws.close() }
     })
   </script>
 @endpush

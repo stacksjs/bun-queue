@@ -10,8 +10,29 @@ export { JobStatus } from './types'
 export { createApiRoutes, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueMetrics, fetchQueues } from './api'
 
 const PAGES_DIR = path.join(import.meta.dir, 'pages')
+const FUNCTIONS_ENTRY = path.join(import.meta.dir, 'functions', 'browser.ts')
 
 let broadcastServer: BroadcastServer | null = null
+let bundledFunctionsJs: string | null = null
+
+async function buildFunctionsBundle(): Promise<string> {
+  if (bundledFunctionsJs) return bundledFunctionsJs
+
+  const result = await Bun.build({
+    entrypoints: [FUNCTIONS_ENTRY],
+    target: 'browser',
+    minify: false,
+    format: 'iife',
+  })
+
+  if (!result.success) {
+    console.error('Failed to build functions bundle:', result.logs)
+    return ''
+  }
+
+  bundledFunctionsJs = await result.outputs[0].text()
+  return bundledFunctionsJs
+}
 
 async function renderStxPage(templateName: string, wsUrl: string): Promise<string> {
   const templatePath = path.join(PAGES_DIR, `${templateName}.stx`)
@@ -240,6 +261,12 @@ catch { /* try next queue */ }
           return Response.json({ error: 'Batch not found' }, { status: 404 })
         const allJobs = await fetchJobs(config)
         return Response.json(allJobs.slice(0, batch.totalJobs > 10 ? 10 : batch.totalJobs))
+      }
+
+      // Shared functions bundle
+      if (path === '/bq-utils.js') {
+        const js = await buildFunctionsBundle()
+        return new Response(js, { headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'no-store' } })
       }
 
       // Static page routes

@@ -153,177 +153,183 @@ bun-queue Dashboard
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
+  <script client>
+    interface DashboardStats {
+      totalQueues: number
+      totalJobs: number
+      activeJobs: number
+      completedJobs: number
+      failedJobs: number
+      throughputPerMinute: number
+    }
 
-      const loading = state(true)
-      const activeQueues = state('--')
-      const waitingJobs = state('--')
-      const activeJobs = state('--')
-      const completedJobs = state('--')
-      const failedJobs = state('--')
-      const processingRate = state('--')
-      const recentJobs = state([])
-      const queues = state([])
+    interface DashboardJob {
+      name: string
+      queue: string
+      status: string
+      duration?: number
+    }
 
-      let throughputChart = null
-      let queueStatusChart = null
+    interface DashboardQueue {
+      name: string
+      activeJobs: number
+      pendingJobs: number
+      failedJobs: number
+    }
 
-      const throughputCanvas = useRef('throughput-chart')
-      const queueStatusCanvas = useRef('queue-status-chart')
+    interface MetricsData {
+      timestamps: string[]
+      throughput: number[]
+    }
 
-      function badgeClass(status) {
-        const map = {
-          completed: 'bg-emerald-500/15 text-emerald-500',
-          failed: 'bg-red-500/15 text-red-500',
-          active: 'bg-indigo-500/15 text-indigo-500',
-          waiting: 'bg-amber-500/15 text-amber-500',
-          delayed: 'bg-zinc-500/15 text-zinc-500'
-        }
-        return map[status] || 'bg-zinc-500/15 text-zinc-500'
-      }
+    const loading = state<boolean>(true)
+    const activeQueues = state<string | number>('--')
+    const waitingJobs = state<string | number>('--')
+    const activeJobs = state<string | number>('--')
+    const completedJobs = state<string | number>('--')
+    const failedJobs = state<string | number>('--')
+    const processingRate = state<string | number>('--')
+    const recentJobs = state<DashboardJob[]>([])
+    const queues = state<DashboardQueue[]>([])
 
-      function formatDuration(duration) {
-        return duration ? (duration / 1000).toFixed(1) + 's' : '\u2014'
-      }
+    let throughputChart: Chart | null = null
+    let queueStatusChart: Chart | null = null
 
-      function loadDashboard() {
-        loading.set(true)
-        fetch('/api/stats')
-          .then(function(statsRes) { return statsRes.json() })
-          .then(function(stats) {
-            activeQueues.set(stats.totalQueues)
-            waitingJobs.set(stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs)
-            activeJobs.set(stats.activeJobs)
-            completedJobs.set(stats.completedJobs)
-            failedJobs.set(stats.failedJobs)
-            processingRate.set(stats.throughputPerMinute)
+    const throughputCanvas = useRef<HTMLCanvasElement>('throughput-chart')
+    const queueStatusCanvas = useRef<HTMLCanvasElement>('queue-status-chart')
 
-            return fetch('/api/metrics?timeRange=24h')
-          })
-          .then(function(metricsRes) { return metricsRes.json() })
-          .then(function(metrics) {
-            if (throughputChart) throughputChart.destroy()
-            const ctx1 = throughputCanvas.current.getContext('2d')
-            throughputChart = new Chart(ctx1, {
-              type: 'line',
-              data: {
-                labels: metrics.timestamps,
-                datasets: [{
-                  label: 'Jobs/min',
-                  data: metrics.throughput,
-                  borderColor: '#6366f1',
-                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                  fill: true,
-                  tension: 0.4,
-                  pointRadius: 0,
-                  pointHitRadius: 10,
-                  borderWidth: 2,
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                  x: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 } },
-                  y: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 } }, beginAtZero: true }
-                }
-              }
-            })
+    function loadDashboard(): void {
+      loading.set(true)
+      fetch('/api/stats')
+        .then((statsRes: Response) => statsRes.json())
+        .then((stats: DashboardStats) => {
+          activeQueues.set(stats.totalQueues)
+          waitingJobs.set(stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs)
+          activeJobs.set(stats.activeJobs)
+          completedJobs.set(stats.completedJobs)
+          failedJobs.set(stats.failedJobs)
+          processingRate.set(stats.throughputPerMinute)
 
-            return fetch('/api/stats')
-          })
-          .then(function(statsRes2) { return statsRes2.json() })
-          .then(function(stats) {
-            if (queueStatusChart) queueStatusChart.destroy()
-            const ctx2 = queueStatusCanvas.current.getContext('2d')
-            queueStatusChart = new Chart(ctx2, {
-              type: 'doughnut',
-              data: {
-                labels: ['Completed', 'Active', 'Waiting', 'Failed'],
-                datasets: [{
-                  data: [stats.completedJobs, stats.activeJobs, stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs, stats.failedJobs],
-                  backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
-                  borderColor: '#141419',
-                  borderWidth: 2,
-                }]
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    position: 'bottom',
-                    labels: { color: '#a1a1aa', font: { size: 11 }, padding: 16, usePointStyle: true, pointStyleWidth: 8 }
-                  }
-                },
-                cutout: '65%',
-              }
-            })
-
-            return fetch('/api/jobs')
-          })
-          .then(function(jobsRes) { return jobsRes.json() })
-          .then(function(jobs) {
-            recentJobs.set(jobs.slice(0, 5))
-            return fetch('/api/queues')
-          })
-          .then(function(queuesRes) { return queuesRes.json() })
-          .then(function(queueData) {
-            queues.set(queueData)
-          })
-          .catch(function(err) {
-            console.error('Failed to load dashboard:', err)
-          })
-          .finally(function() {
-            loading.set(false)
-          })
-      }
-
-      // Real-time updates via WebSocket
-      var wsUrl = window.__BQ_WS_URL
-      var wsStatus = state('CLOSED')
-
-      // Debounce dashboard reload to avoid hammering the API on burst events
-      var reloadTimer = null
-      function scheduleReload() {
-        if (reloadTimer) return
-        reloadTimer = setTimeout(function() {
-          reloadTimer = null
-          loadDashboard()
-        }, 2000)
-      }
-
-      onMount(function() {
-        loadDashboard()
-
-        if (!wsUrl) return
-
-        var ws = useWebSocket(wsUrl, {
-          immediate: false,
-          onOpen: function() {
-            wsStatus.set('OPEN')
-            ws.subscribe('dashboard')
-              .listen('job.added', scheduleReload)
-              .listen('job.completed', scheduleReload)
-              .listen('job.failed', scheduleReload)
-              .listen('job.active', scheduleReload)
-          },
-          onClose: function() { wsStatus.set('CLOSED') },
-          onError: function() { wsStatus.set('CLOSED') }
+          return fetch('/api/metrics?timeRange=24h')
         })
+        .then((metricsRes: Response) => metricsRes.json())
+        .then((metrics: MetricsData) => {
+          if (throughputChart) throughputChart.destroy()
+          const ctx1 = throughputCanvas.current.getContext('2d')
+          throughputChart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+              labels: metrics.timestamps,
+              datasets: [{
+                label: 'Jobs/min',
+                data: metrics.throughput,
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 0,
+                pointHitRadius: 10,
+                borderWidth: 2,
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: { legend: { display: false } },
+              scales: {
+                x: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 } },
+                y: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 } }, beginAtZero: true }
+              }
+            }
+          })
 
-        var connectTimer = setTimeout(function() { ws.connect() }, 200)
+          return fetch('/api/stats')
+        })
+        .then((statsRes2: Response) => statsRes2.json())
+        .then((stats: DashboardStats) => {
+          if (queueStatusChart) queueStatusChart.destroy()
+          const ctx2 = queueStatusCanvas.current.getContext('2d')
+          queueStatusChart = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+              labels: ['Completed', 'Active', 'Waiting', 'Failed'],
+              datasets: [{
+                data: [stats.completedJobs, stats.activeJobs, stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs, stats.failedJobs],
+                backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
+                borderColor: '#141419',
+                borderWidth: 2,
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: {
+                  position: 'bottom',
+                  labels: { color: '#a1a1aa', font: { size: 11 }, padding: 16, usePointStyle: true, pointStyleWidth: 8 }
+                }
+              },
+              cutout: '65%',
+            }
+          })
 
-        return function() {
-          clearTimeout(connectTimer)
-          if (reloadTimer) clearTimeout(reloadTimer)
-          ws.close()
-        }
+          return fetch('/api/jobs')
+        })
+        .then((jobsRes: Response) => jobsRes.json())
+        .then((jobs: DashboardJob[]) => {
+          recentJobs.set(jobs.slice(0, 5))
+          return fetch('/api/queues')
+        })
+        .then((queuesRes: Response) => queuesRes.json())
+        .then((queueData: DashboardQueue[]) => {
+          queues.set(queueData)
+        })
+        .catch((err: unknown) => {
+          console.error('Failed to load dashboard:', err)
+        })
+        .finally(() => {
+          loading.set(false)
+        })
+    }
+
+    const wsUrl: string | undefined = window.__BQ_WS_URL
+    const wsStatus = state<string>('CLOSED')
+
+    let reloadTimer: ReturnType<typeof setTimeout> | null = null
+    function scheduleReload(): void {
+      if (reloadTimer) return
+      reloadTimer = setTimeout(() => {
+        reloadTimer = null
+        loadDashboard()
+      }, 2000)
+    }
+
+    onMount((): (() => void) | void => {
+      loadDashboard()
+
+      if (!wsUrl) return
+
+      const ws = useWebSocket(wsUrl, {
+        immediate: false,
+        onOpen: () => {
+          wsStatus.set('OPEN')
+          ws.subscribe('dashboard')
+            .listen('job.added', scheduleReload)
+            .listen('job.completed', scheduleReload)
+            .listen('job.failed', scheduleReload)
+            .listen('job.active', scheduleReload)
+        },
+        onClose: () => { wsStatus.set('CLOSED') },
+        onError: () => { wsStatus.set('CLOSED') }
       })
 
-      return { loading, activeQueues, waitingJobs, activeJobs, completedJobs, failedJobs, processingRate, recentJobs, queues, badgeClass, formatDuration, loadDashboard, wsStatus }
+      const connectTimer = setTimeout(() => { ws.connect() }, 200)
+
+      return () => {
+        clearTimeout(connectTimer)
+        if (reloadTimer) clearTimeout(reloadTimer)
+        ws.close()
+      }
     })
   </script>
 @endpush

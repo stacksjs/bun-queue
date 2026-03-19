@@ -98,76 +98,77 @@ Group Details — bun-queue
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
-      const route = useRoute();
-      const pathParts = route.path.split('/');
-      const groupId = decodeURIComponent(pathParts[pathParts.length - 1]);
+  <script client>
+    interface GroupData {
+      name?: string
+      totalJobs?: number
+      jobCount?: number
+      total?: number
+      active?: number
+      waiting?: number
+      completed?: number
+      failed?: number
+      createdAt?: string
+      updatedAt?: string
+    }
 
-      const groupName = state(groupId)
-      const statTotal = state(0)
-      const statActive = state(0)
-      const statWaiting = state(0)
-      const statCompleted = state(0)
-      const statFailed = state(0)
-      const metaCreated = state('\u2014')
-      const metaUpdated = state('\u2014')
-      const jobs = state([])
-      const loading = state(true)
+    interface GroupJob {
+      id: string
+      name?: string
+      status: string
+      createdAt?: string
+      updatedAt?: string
+    }
 
-      function badgeClass(status) {
-        const map = {
-          completed: 'bg-emerald-500/15 text-emerald-500',
-          failed: 'bg-red-500/15 text-red-500',
-          active: 'bg-indigo-500/15 text-indigo-400',
-          waiting: 'bg-amber-500/15 text-amber-500',
-          pending: 'bg-amber-500/15 text-amber-500',
-        }
-        return map[status] || 'bg-zinc-500/15 text-zinc-500'
-      }
+    const route = useRoute()
+    const pathParts: string[] = route.path.split('/')
+    const groupId: string = decodeURIComponent(pathParts[pathParts.length - 1])
 
-      function formatTime(ts) {
-        if (!ts) return '\u2014'
-        return new Date(ts).toLocaleString()
-      }
+    const groupName = state<string>(groupId)
+    const statTotal = state<number>(0)
+    const statActive = state<number>(0)
+    const statWaiting = state<number>(0)
+    const statCompleted = state<number>(0)
+    const statFailed = state<number>(0)
+    const metaCreated = state<string>('\u2014')
+    const metaUpdated = state<string>('\u2014')
+    const jobs = state<GroupJob[]>([])
+    const loading = state<boolean>(true)
 
-      function loadGroup() {
-        return fetch('/api/groups/' + encodeURIComponent(groupId))
-          .then(function(res) { return res.json() })
-          .then(function(group) {
-            groupName.set(group.name || groupId)
-            document.title = (group.name || groupId) + ' \u2014 bun-queue'
+    function loadGroup(): Promise<void> {
+      return fetch('/api/groups/' + encodeURIComponent(groupId))
+        .then((res: Response) => res.json())
+        .then((group: GroupData) => {
+          groupName.set(group.name || groupId)
+          useTitle((group.name || groupId) + ' \u2014 bun-queue')
 
-            statTotal.set(group.totalJobs || group.jobCount || group.total || 0)
-            statActive.set(group.active || 0)
-            statWaiting.set(group.waiting || 0)
-            statCompleted.set(group.completed || 0)
-            statFailed.set(group.failed || 0)
+          statTotal.set(group.totalJobs || group.jobCount || group.total || 0)
+          statActive.set(group.active || 0)
+          statWaiting.set(group.waiting || 0)
+          statCompleted.set(group.completed || 0)
+          statFailed.set(group.failed || 0)
 
-            metaCreated.set(formatTime(group.createdAt))
-            metaUpdated.set(formatTime(group.updatedAt))
-          })
-          .catch(function(e) { console.error('Failed to load group:', e) })
-      }
+          metaCreated.set(formatTime(group.createdAt))
+          metaUpdated.set(formatTime(group.updatedAt))
+        })
+        .catch((e: unknown) => { console.error('Failed to load group:', e) })
+    }
 
-      function loadJobs() {
-        return fetch('/api/groups/' + encodeURIComponent(groupId) + '/jobs')
-          .then(function(res) { return res.json() })
-          .then(function(data) { jobs.set(data || []) })
-          .catch(function(e) { console.error('Failed to load group jobs:', e) })
-          .finally(function() { loading.set(false) })
-      }
+    function loadJobs(): Promise<void> {
+      return fetch('/api/groups/' + encodeURIComponent(groupId) + '/jobs')
+        .then((res: Response) => res.json())
+        .then((data: GroupJob[]) => { jobs.set(data || []) })
+        .catch((e: unknown) => { console.error('Failed to load group jobs:', e) })
+        .finally(() => { loading.set(false) })
+    }
 
-      function loadAll() {
-        return Promise.all([loadGroup(), loadJobs()])
-      }
+    function loadAll(): Promise<void[]> {
+      return Promise.all([loadGroup(), loadJobs()])
+    }
 
-      onMount(function() {
-        loadAll()
-        useInterval(function() { loadAll(); }, 10000);
-      })
-
-      return { groupName, statTotal, statActive, statWaiting, statCompleted, statFailed, metaCreated, metaUpdated, jobs, loading, badgeClass, formatTime, loadGroup, loadJobs, loadAll }
+    onMount((): void => {
+      loadAll()
+      useInterval(() => { loadAll() }, 10000)
     })
   </script>
 @endpush

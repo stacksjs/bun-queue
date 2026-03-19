@@ -102,111 +102,112 @@ Job Details — bun-queue
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
-      const route = useRoute();
-      const pathParts = route.path.split('/');
-      const jobId = decodeURIComponent(pathParts[pathParts.length - 1]);
+  <script client>
+    interface JobDetail {
+      id: string
+      name?: string
+      status: string
+      duration?: number
+      error?: string | Record<string, unknown>
+      queue?: string
+      attempts?: number
+      maxAttempts?: number
+      createdAt?: string
+      processedAt?: string
+      completedAt?: string
+      failedAt?: string
+      data?: Record<string, unknown>
+    }
 
-      const loading = state(true)
-      const loadError = state(false)
-      const jobName = state('')
-      const status = state('')
-      const duration = state(null)
-      const error = state('')
-      const jobData = state(null)
+    const route = useRoute()
+    const pathParts: string[] = route.path.split('/')
+    const jobId: string = decodeURIComponent(pathParts[pathParts.length - 1])
 
-      // Metadata fields
-      const metaId = state('\u2014')
-      const metaQueue = state('\u2014')
-      const metaStatus = state('\u2014')
-      const metaAttempts = state('\u2014')
-      const metaCreated = state('\u2014')
-      const metaProcessed = state('\u2014')
-      const metaCompleted = state('\u2014')
-      const metaFailed = state('\u2014')
-      const metaDuration = state('\u2014')
+    const loading = state<boolean>(true)
+    const loadError = state<boolean>(false)
+    const jobName = state<string>('')
+    const status = state<string>('')
+    const duration = state<number | null>(null)
+    const error = state<string>('')
+    const jobData = state<Record<string, unknown> | null>(null)
 
-      const hasDuration = derived(function() { return duration() !== null })
-      const showError = derived(function() { return status() === 'failed' && error() !== '' })
-      const errorMessage = derived(function() { return error() })
-      const hasJobData = derived(function() { return jobData() !== null && Object.keys(jobData()).length > 0 })
-      const jobDataJson = derived(function() { return hasJobData() ? JSON.stringify(jobData(), null, 2) : '' })
+    const metaId = state<string>('\u2014')
+    const metaQueue = state<string>('\u2014')
+    const metaStatus = state<string>('\u2014')
+    const metaAttempts = state<string>('\u2014')
+    const metaCreated = state<string>('\u2014')
+    const metaProcessed = state<string>('\u2014')
+    const metaCompleted = state<string>('\u2014')
+    const metaFailed = state<string>('\u2014')
+    const metaDuration = state<string>('\u2014')
 
-      const badgeClass = derived(function() {
-        const s = status()
-        if (s === 'completed') return 'bg-emerald-500/15 text-emerald-500'
-        if (s === 'failed') return 'bg-red-500/15 text-red-500'
-        if (s === 'active') return 'bg-indigo-500/15 text-indigo-400'
-        if (s === 'waiting' || s === 'pending') return 'bg-amber-500/15 text-amber-500'
-        return 'bg-zinc-500/15 text-zinc-500'
-      })
+    const hasDuration = derived<boolean>(() => duration() !== null)
+    const showError = derived<boolean>(() => status() === 'failed' && error() !== '')
+    const errorMessage = derived<string>(() => error())
+    const hasJobData = derived<boolean>(() => jobData() !== null && Object.keys(jobData()!).length > 0)
+    const jobDataJson = derived<string>(() => hasJobData() ? JSON.stringify(jobData(), null, 2) : '')
 
-      function formatTime(ts) {
-        if (!ts) return '\u2014'
-        return new Date(ts).toLocaleString()
-      }
-
-      function loadJob() {
-        loading.set(true)
-        loadError.set(false)
-        fetch('/api/jobs/' + encodeURIComponent(jobId))
-          .then(function(res) { return res.json() })
-          .then(function(job) {
-            jobName.set(job.name || 'Job ' + job.id)
-            status.set(job.status)
-            duration.set(job.duration != null ? job.duration : null)
-
-            document.title = (job.name || 'Job ' + job.id) + ' \u2014 bun-queue'
-
-            if (job.status === 'failed' && job.error) {
-              error.set(typeof job.error === 'string' ? job.error : JSON.stringify(job.error, null, 2))
-            } else {
-              error.set('')
-            }
-
-            metaId.set(job.id)
-            metaQueue.set(job.queue || '\u2014')
-            metaStatus.set(job.status)
-            metaAttempts.set((job.attempts || 0) + ' / ' + (job.maxAttempts || 3))
-            metaCreated.set(formatTime(job.createdAt))
-            metaProcessed.set(formatTime(job.processedAt))
-            metaCompleted.set(formatTime(job.completedAt))
-            metaFailed.set(formatTime(job.failedAt))
-            metaDuration.set(job.duration ? job.duration + 'ms' : '\u2014')
-
-            jobData.set(job.data && Object.keys(job.data).length > 0 ? job.data : null)
-          })
-          .catch(function(e) {
-            console.error('Failed to load job:', e)
-            loadError.set(true)
-          })
-          .finally(function() {
-            loading.set(false)
-          })
-      }
-
-      function retryJob() {
-        fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
-          .then(function() { loadJob() })
-          .catch(function(e) { console.error('Retry failed:', e) })
-      }
-
-      function deleteJob() {
-        if (!confirm('Are you sure you want to delete this job?')) return
-        fetch('/api/jobs/' + encodeURIComponent(jobId), { method: 'DELETE' })
-          .then(function() { navigate('/jobs') })
-          .catch(function(e) { console.error('Delete failed:', e) })
-      }
-
-      onMount(function() { loadJob() })
-
-      return {
-        loading, loadError, jobName, status, duration, error, jobData,
-        metaId, metaQueue, metaStatus, metaAttempts, metaCreated, metaProcessed, metaCompleted, metaFailed, metaDuration,
-        hasDuration, showError, errorMessage, hasJobData, jobDataJson, badgeClass,
-        retryJob, deleteJob
-      }
+    const badgeClass = derived<string>(() => {
+      const s: string = status()
+      if (s === 'completed') return 'bg-emerald-500/15 text-emerald-500'
+      if (s === 'failed') return 'bg-red-500/15 text-red-500'
+      if (s === 'active') return 'bg-indigo-500/15 text-indigo-400'
+      if (s === 'waiting' || s === 'pending') return 'bg-amber-500/15 text-amber-500'
+      return 'bg-zinc-500/15 text-zinc-500'
     })
+
+    function loadJob(): void {
+      loading.set(true)
+      loadError.set(false)
+      fetch('/api/jobs/' + encodeURIComponent(jobId))
+        .then((res: Response) => res.json())
+        .then((job: JobDetail) => {
+          jobName.set(job.name || 'Job ' + job.id)
+          status.set(job.status)
+          duration.set(job.duration != null ? job.duration : null)
+
+          useTitle((job.name || 'Job ' + job.id) + ' \u2014 bun-queue')
+
+          if (job.status === 'failed' && job.error) {
+            error.set(typeof job.error === 'string' ? job.error : JSON.stringify(job.error, null, 2))
+          } else {
+            error.set('')
+          }
+
+          metaId.set(job.id)
+          metaQueue.set(job.queue || '\u2014')
+          metaStatus.set(job.status)
+          metaAttempts.set((job.attempts || 0) + ' / ' + (job.maxAttempts || 3))
+          metaCreated.set(formatTime(job.createdAt))
+          metaProcessed.set(formatTime(job.processedAt))
+          metaCompleted.set(formatTime(job.completedAt))
+          metaFailed.set(formatTime(job.failedAt))
+          metaDuration.set(job.duration ? job.duration + 'ms' : '\u2014')
+
+          jobData.set(job.data && Object.keys(job.data).length > 0 ? job.data : null)
+        })
+        .catch((e: unknown) => {
+          console.error('Failed to load job:', e)
+          loadError.set(true)
+        })
+        .finally(() => {
+          loading.set(false)
+        })
+    }
+
+    function retryJob(): void {
+      fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
+        .then(() => { loadJob() })
+        .catch((e: unknown) => { console.error('Retry failed:', e) })
+    }
+
+    function deleteJob(): void {
+      if (!confirm('Are you sure you want to delete this job?')) return
+      fetch('/api/jobs/' + encodeURIComponent(jobId), { method: 'DELETE' })
+        .then(() => { navigate('/jobs') })
+        .catch((e: unknown) => { console.error('Delete failed:', e) })
+    }
+
+    onMount((): void => { loadJob() })
   </script>
 @endpush

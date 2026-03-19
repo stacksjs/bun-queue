@@ -151,132 +151,125 @@ Real-time Monitoring — bun-queue
 @endsection
 
 @push('scripts')
-  <script data-stx-scoped>
-    stx.mountEl('#page-content', function() {
+  <script client>
+    interface MonitoringStats {
+      throughputPerMinute: number
+      avgLatency: number
+      failedJobs: number
+      totalJobs: number
+      activeJobs: number
+    }
 
-      const REFRESH_INTERVAL = 3000
-      const MAX_EVENTS = 50
+    interface EventEntry {
+      dot: string
+      message: string
+      time: string
+    }
 
-      // Reactive state
-      const connected = state(true)
-      const autoRefreshEnabled = state(true)
-      const jobsPerSec = state('--')
-      const avgLatency = state('--')
-      const errorRate = state('--')
-      const activeWorkers = state('--')
-      const events = state([])
-      const queues = state([])
+    interface QueueHealth {
+      name: string
+      active: number
+      waiting: number
+      throughput: number
+      avgProcessingTime: number
+      errorRate: number
+    }
 
-      function formatEventTime() {
-        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      }
+    interface WsEventData {
+      jobId: string
+      queue: string
+      error?: string
+    }
 
-      function addEvent(dot, message) {
-        var ev = { dot: dot, message: message, time: formatEventTime() }
-        var current = [ev].concat(events())
-        events.set(current.slice(0, MAX_EVENTS))
-      }
+    const connected = state<boolean>(true)
+    const autoRefreshEnabled = state<boolean>(true)
+    const jobsPerSec = state<string>('--')
+    const avgLatency = state<string>('--')
+    const errorRate = state<string>('--')
+    const activeWorkers = state<string>('--')
+    const events = state<EventEntry[]>([])
+    const queues = state<QueueHealth[]>([])
 
-      function dotColor(dot) {
-        const map = {
-          completed: 'bg-emerald-500',
-          started: 'bg-indigo-500',
-          failed: 'bg-red-500',
-          queued: 'bg-amber-500',
-        }
-        return map[dot] || 'bg-zinc-500'
-      }
+    function addEvent(dot: string, message: string): void {
+      const ev: EventEntry = { dot, message, time: formatEventTime() }
+      const current: EventEntry[] = [ev].concat(events())
+      events.set(current.slice(0, MAX_EVENTS))
+    }
 
-      function healthColor(errorRateValue) {
-        if (errorRateValue > 5) return 'bg-red-500'
-        if (errorRateValue > 1) return 'bg-amber-500'
-        return 'bg-emerald-500'
-      }
+    function clearEvents(): void {
+      events.set([])
+    }
 
-      function clearEvents() {
-        events.set([])
-      }
+    function toggleAutoRefresh(): void {
+      autoRefreshEnabled.set(!autoRefreshEnabled())
+    }
 
-      function toggleAutoRefresh() {
-        autoRefreshEnabled.set(!autoRefreshEnabled());
-      }
+    function refreshMonitoring(): void {
+      fetch('/api/stats')
+        .then((statsRes: Response) => statsRes.json())
+        .then((stats: MonitoringStats) => {
+          jobsPerSec.set((stats.throughputPerMinute / 60).toFixed(1))
+          avgLatency.set(String(stats.avgLatency))
+          errorRate.set(((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2))
+          activeWorkers.set(String(stats.activeJobs))
 
-      function refreshMonitoring() {
-        fetch('/api/stats')
-          .then(function(statsRes) { return statsRes.json(); })
-          .then(function(stats) {
-            jobsPerSec.set((stats.throughputPerMinute / 60).toFixed(1));
-            avgLatency.set(String(stats.avgLatency));
-            errorRate.set(((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2));
-            activeWorkers.set(String(stats.activeJobs));
-
-            return fetch('/api/queues/metrics');
-          })
-          .then(function(queuesRes) { return queuesRes.json(); })
-          .then(function(queueData) {
-            queues.set(queueData);
-            connected.set(true);
-          })
-          .catch(function(err) {
-            console.error('Monitoring refresh failed:', err);
-            connected.set(false);
-          });
-      }
-
-      // Fallback polling when WebSocket is unavailable
-      useInterval(function() {
-        if (autoRefreshEnabled() && !connected()) {
-          refreshMonitoring();
-        }
-      }, REFRESH_INTERVAL);
-
-      // WebSocket for real events
-      var wsUrl = window.__BQ_WS_URL
-
-      onMount(function() {
-        refreshMonitoring();
-
-        if (!wsUrl) return
-
-        var ws = useWebSocket(wsUrl, {
-          immediate: false,
-          onOpen: function() {
-            connected.set(true)
-            ws.subscribe('dashboard')
-              .listen('job.added', function(data) {
-                addEvent('queued', 'Job ' + data.jobId + ' added to ' + data.queue)
-                refreshMonitoring()
-              })
-              .listen('job.active', function(data) {
-                addEvent('started', 'Job ' + data.jobId + ' started processing on ' + data.queue)
-              })
-              .listen('job.completed', function(data) {
-                addEvent('completed', 'Job ' + data.jobId + ' completed on ' + data.queue)
-                refreshMonitoring()
-              })
-              .listen('job.failed', function(data) {
-                addEvent('failed', 'Job ' + data.jobId + ' failed on ' + data.queue + ': ' + (data.error || 'unknown error'))
-                refreshMonitoring()
-              })
-              .listen('job.stalled', function(data) {
-                addEvent('failed', 'Job ' + data.jobId + ' stalled on ' + data.queue)
-              })
-          },
-          onClose: function() { connected.set(false) },
-          onError: function() { connected.set(false) }
+          return fetch('/api/queues/metrics')
         })
+        .then((queuesRes: Response) => queuesRes.json())
+        .then((queueData: QueueHealth[]) => {
+          queues.set(queueData)
+          connected.set(true)
+        })
+        .catch((err: unknown) => {
+          console.error('Monitoring refresh failed:', err)
+          connected.set(false)
+        })
+    }
 
-        var connectTimer = setTimeout(function() { ws.connect() }, 200)
+    useInterval(() => {
+      if (autoRefreshEnabled() && !connected()) {
+        refreshMonitoring()
+      }
+    }, REFRESH_INTERVAL)
 
-        return function() { clearTimeout(connectTimer); ws.close() }
+    const wsUrl: string | undefined = window.__BQ_WS_URL
+
+    onMount((): (() => void) | void => {
+      refreshMonitoring()
+
+      if (!wsUrl) return
+
+      const ws = useWebSocket(wsUrl, {
+        immediate: false,
+        onOpen: () => {
+          connected.set(true)
+          ws.subscribe('dashboard')
+            .listen('job.added', (data: WsEventData) => {
+              addEvent('queued', 'Job ' + data.jobId + ' added to ' + data.queue)
+              refreshMonitoring()
+            })
+            .listen('job.active', (data: WsEventData) => {
+              addEvent('started', 'Job ' + data.jobId + ' started processing on ' + data.queue)
+            })
+            .listen('job.completed', (data: WsEventData) => {
+              addEvent('completed', 'Job ' + data.jobId + ' completed on ' + data.queue)
+              refreshMonitoring()
+            })
+            .listen('job.failed', (data: WsEventData) => {
+              addEvent('failed', 'Job ' + data.jobId + ' failed on ' + data.queue + ': ' + (data.error || 'unknown error'))
+              refreshMonitoring()
+            })
+            .listen('job.stalled', (data: WsEventData) => {
+              addEvent('failed', 'Job ' + data.jobId + ' stalled on ' + data.queue)
+            })
+        },
+        onClose: () => { connected.set(false) },
+        onError: () => { connected.set(false) }
       })
 
-      return {
-        connected: connected, autoRefreshEnabled: autoRefreshEnabled, jobsPerSec: jobsPerSec,
-        avgLatency: avgLatency, errorRate: errorRate, activeWorkers: activeWorkers,
-        events: events, queues: queues,
-        dotColor: dotColor, healthColor: healthColor, clearEvents: clearEvents, toggleAutoRefresh: toggleAutoRefresh
-      }
+      const connectTimer = setTimeout(() => { ws.connect() }, 200)
+
+      return () => { clearTimeout(connectTimer); ws.close() }
     })
   </script>
 @endpush
