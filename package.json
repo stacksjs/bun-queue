@@ -64,8 +64,8 @@
     "example:dead-letter-queue": "bun examples/dead-letter-queue.ts"
   },
   "devDependencies": {
-    "@stacksjs/bunpress": "^0.1.1",
-    "@types/bun": "^1.3.10",
+    "@stacksjs/bunpress": "^0.1.4",
+    "@types/bun": "^1.3.11",
     "better-dx": "^0.2.7"
   },
   "git-hooks": {
