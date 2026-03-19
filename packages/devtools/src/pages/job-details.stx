@@ -6,10 +6,10 @@ Job Details — bun-queue
 
 @section('content')
   <div class="max-w-[1200px] mx-auto p-6">
-    <a href="/jobs" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
+    <StxLink to="/jobs" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       Back to Jobs
-    </a>
+    </StxLink>
 
     <div class="flex items-center justify-between mb-6">
       <div>

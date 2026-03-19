@@ -85,7 +85,7 @@ bun-queue Dashboard
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
         <div class="flex items-center justify-between mb-4">
           <span class="text-sm font-semibold text-zinc-50">Recent Jobs</span>
-          <a href="/jobs" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</a>
+          <StxLink to="/jobs" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</StxLink>
         </div>
 
         <!-- Loading state -->
@@ -123,7 +123,7 @@ bun-queue Dashboard
       <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
         <div class="flex items-center justify-between mb-4">
           <span class="text-sm font-semibold text-zinc-50">Queue List</span>
-          <a href="/queues" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</a>
+          <StxLink to="/queues" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</StxLink>
         </div>
 
         <!-- Loading state -->

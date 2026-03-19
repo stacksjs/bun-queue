@@ -18,10 +18,7 @@
     .sidebar.collapsed .nav-item-text { display: none; }
     .sidebar.collapsed ~ .main-wrapper { margin-left: 56px !important; }
 
-    /* Override router inline styles on nav items — sidebar manages its own active state */
-    #sidebar .nav-item { background: unset !important; color: unset !important; font-weight: unset !important; }
-
-    /* Active state */
+    /* Active state — managed by StxLink + router via data-stx-active-class="active" */
     #sidebar .nav-item.active { background: #6366f1 !important; color: white !important; }
     #sidebar .nav-item.active svg { opacity: 1; }
   </style>
@@ -42,41 +39,10 @@
 
   <script client>
     const collapsed = useLocalStorage<boolean>('sidebar-collapsed', false)
-    const currentPath = state<string>(location.pathname)
 
     function toggle(): void {
       collapsed.set(!collapsed())
     }
-
-    function isActive(href: string): boolean {
-      const cur: string = currentPath()
-      if (href === '/') return cur === '/'
-      return cur === href || cur.startsWith(href + '/')
-    }
-
-    function updateActiveLinks(): void {
-      const cur: string = currentPath()
-      const links: HTMLElement | null = useRef<HTMLElement>('sidebar-nav').current
-      if (!links) return
-      links.querySelectorAll('.nav-item').forEach((a: Element) => {
-        const href: string = a.getAttribute('href') || ''
-        const active: boolean = href === '/' ? cur === '/' : (cur === href || cur.startsWith(href + '/'))
-        if (active) a.classList.add('active')
-        else a.classList.remove('active')
-      })
-    }
-
-    onMount((): void => { updateActiveLinks() })
-
-    useEventListener('stx:navigate', (): void => {
-      currentPath.set(location.pathname)
-      updateActiveLinks()
-    })
-
-    useEventListener('popstate', (): void => {
-      currentPath.set(location.pathname)
-      updateActiveLinks()
-    })
   </script>
 
 </body>
