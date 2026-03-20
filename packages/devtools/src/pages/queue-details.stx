@@ -77,22 +77,22 @@
     </div>
 
     <!-- Loading state -->
-    <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+    <div @show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
       Loading jobs...
     </div>
 
     <!-- Empty state -->
-    <div :show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+    <div @show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
       No jobs found in this queue.
     </div>
 
     <!-- Error state -->
-    <div :show="!loading() && errorMessage()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+    <div @show="!loading() && errorMessage()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
       {{ errorMessage() }}
     </div>
 
     <!-- Jobs table -->
-    <table :show="!loading() && !errorMessage() && jobs().length > 0" class="w-full border-collapse">
+    <table @show="!loading() && !errorMessage() && jobs().length > 0" class="w-full border-collapse">
       <thead>
         <tr>
           <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>

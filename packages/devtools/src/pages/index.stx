@@ -78,13 +78,13 @@
       </div>
 
       <!-- Loading state -->
-      <div :show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading recent jobs...</div>
+      <div @show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading recent jobs...</div>
 
       <!-- Empty state -->
-      <div :show="!loading() && recentJobs().length === 0" class="text-center py-8 text-zinc-500 text-sm">No recent jobs to display.</div>
+      <div @show="!loading() && recentJobs().length === 0" class="text-center py-8 text-zinc-500 text-sm">No recent jobs to display.</div>
 
       <!-- Jobs table -->
-      <table :show="!loading() && recentJobs().length > 0" class="w-full border-collapse">
+      <table @show="!loading() && recentJobs().length > 0" class="w-full border-collapse">
         <thead>
           <tr>
             <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Name</th>
@@ -116,13 +116,13 @@
       </div>
 
       <!-- Loading state -->
-      <div :show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading queues...</div>
+      <div @show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading queues...</div>
 
       <!-- Empty state -->
-      <div :show="!loading() && queues().length === 0" class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>
+      <div @show="!loading() && queues().length === 0" class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>
 
       <!-- Queue cards -->
-      <div :show="!loading() && queues().length > 0" class="flex flex-col gap-3">
+      <div @show="!loading() && queues().length > 0" class="flex flex-col gap-3">
         <template @for="q in queues()">
           <div class="bg-[#1e1e26] rounded-md px-4 py-3 flex items-center justify-between hover:bg-indigo-500/[0.08] transition-colors duration-150">
             <div>

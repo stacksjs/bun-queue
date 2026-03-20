@@ -12,7 +12,7 @@
       </h1>
       <p class="text-[0.8125rem] text-zinc-500 mt-1">Job details and execution information</p>
     </div>
-    <div :show="hasDuration()" class="inline-flex items-baseline gap-1 tabular-nums">
+    <div @show="hasDuration()" class="inline-flex items-baseline gap-1 tabular-nums">
       <span class="text-2xl font-bold text-indigo-500">{{ duration() }}</span>
       <span class="text-sm text-zinc-500">ms</span>
     </div>
@@ -31,7 +31,7 @@
   </div>
 
   <!-- Error panel -->
-  <div :show="showError()" class="bg-red-500/[0.08] border border-red-500/25 rounded-lg p-5 mb-6">
+  <div @show="showError()" class="bg-red-500/[0.08] border border-red-500/25 rounded-lg p-5 mb-6">
     <div class="flex items-center gap-2 text-sm font-semibold text-red-500 mb-3">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
       Error
@@ -84,12 +84,12 @@
     <div class="flex items-center justify-between mb-4">
       <span class="text-sm font-semibold text-zinc-50">Job Data</span>
     </div>
-    <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading job data...</div>
-    <div :show="!loading() && loadError()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load job details.</div>
-    <div :show="!loading() && !loadError() && hasJobData()">
+    <div @show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading job data...</div>
+    <div @show="!loading() && loadError()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load job details.</div>
+    <div @show="!loading() && !loadError() && hasJobData()">
       <pre class="bg-[#0a0a0f] border border-zinc-800 rounded-md p-4 overflow-x-auto font-mono text-[0.8125rem] leading-relaxed text-zinc-400 whitespace-pre-wrap break-words max-h-[400px] overflow-y-auto">{{ jobDataJson() }}</pre>
     </div>
-    <div :show="!loading() && !loadError() && !hasJobData()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No job data available.</div>
+    <div @show="!loading() && !loadError() && !hasJobData()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No job data available.</div>
   </div>
 </div>
 

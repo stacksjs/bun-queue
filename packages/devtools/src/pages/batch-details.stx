@@ -84,13 +84,13 @@
     </div>
 
     <!-- Loading state -->
-    <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
+    <div @show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading jobs...</div>
 
     <!-- Empty state -->
-    <div :show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this batch.</div>
+    <div @show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No jobs found in this batch.</div>
 
     <!-- Table -->
-    <table :show="!loading() && jobs().length > 0" class="w-full border-collapse">
+    <table @show="!loading() && jobs().length > 0" class="w-full border-collapse">
       <thead>
         <tr>
           <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>
