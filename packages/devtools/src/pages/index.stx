@@ -201,6 +201,7 @@
       })
       .then((metricsRes: Response) => metricsRes.json())
       .then((metrics: MetricsData) => {
+        if (!throughputCanvas.current) return
         if (throughputChart) throughputChart.destroy()
         const ctx1 = throughputCanvas.current.getContext('2d')
         throughputChart = new Chart(ctx1, {
@@ -234,6 +235,7 @@
       })
       .then((statsRes2: Response) => statsRes2.json())
       .then((stats: DashboardStats) => {
+        if (!queueStatusCanvas.current) return
         if (queueStatusChart) queueStatusChart.destroy()
         const ctx2 = queueStatusCanvas.current.getContext('2d')
         queueStatusChart = new Chart(ctx2, {

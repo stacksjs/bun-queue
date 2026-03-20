@@ -222,6 +222,7 @@
         const labels: string[] = data.throughput ? data.throughput.map((d: ThroughputPoint) => d.label || d.time || '') : []
         const values: number[] = data.throughput ? data.throughput.map((d: ThroughputPoint) => d.value || d.count || 0) : []
 
+        if (!throughputRef.current) return
         const ctx = throughputRef.current.getContext('2d')
 
         if (throughputChart) throughputChart.destroy()

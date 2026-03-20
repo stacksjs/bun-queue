@@ -138,6 +138,7 @@
         )
         statUptime.set(String(Math.round(sData.uptime / 3600)))
 
+        if (!throughputRef.current || !latencyRef.current || !errorRateRef.current) return
         if (throughputChart) throughputChart.destroy()
         throughputChart = new Chart(throughputRef.current.getContext('2d'), {
           type: 'line',
