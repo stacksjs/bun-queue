@@ -1,288 +1,274 @@
-@extends('../layouts/app')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 
-@section('title')
-Queue Details — bun-queue
-@endsection
+<style>
+  .progress-bar-fill { transition: width 0.5s ease; }
+</style>
 
-@push('head')
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-@endpush
+<div class="max-w-[1200px] mx-auto p-6">
+  <StxLink to="/queues" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Queues
+  </StxLink>
 
-@push('styles')
-  <style>
-    .progress-bar-fill { transition: width 0.5s ease; }
-  </style>
-@endpush
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
+        <span>{{ queueName() }}</span>
+        <span
+          class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium"
+          :class="queueBadgeClass(queueStatus())"
+        >
+          {{ queueStatus() }}
+        </span>
+      </h1>
+      <p class="text-[0.8125rem] text-zinc-500 mt-1">Queue details and job history</p>
+    </div>
+  </div>
 
-@section('content')
-  <div class="max-w-[1200px] mx-auto p-6">
-    <StxLink to="/queues" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Back to Queues
-    </StxLink>
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Jobs</div>
+      <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums">{{ statTotal() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Pending</div>
+      <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums">{{ statPending() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Active</div>
+      <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statActive() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Completed</div>
+      <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ statCompleted() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Failed</div>
+      <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ statFailed() }}</div>
+    </div>
+  </div>
 
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
-          <span>{{ queueName() }}</span>
-          <span
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium"
-            :class="queueBadgeClass(queueStatus())"
-          >
-            {{ queueStatus() }}
-          </span>
-        </h1>
-        <p class="text-[0.8125rem] text-zinc-500 mt-1">Queue details and job history</p>
-      </div>
+  <!-- Progress bar -->
+  <div class="mb-6">
+    <div class="flex justify-between mb-2 text-[0.8125rem]">
+      <span class="text-zinc-400">Completion Progress</span>
+      <span class="text-zinc-50 font-semibold tabular-nums">{{ progressPct() }}%</span>
+    </div>
+    <div class="w-full h-2 bg-[#1e1e26] rounded-full overflow-hidden">
+      <div class="progress-bar-fill h-full rounded-full bg-emerald-500" :style="'width: ' + progressPct() + '%'"></div>
+    </div>
+  </div>
+
+  <!-- Throughput chart -->
+  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm font-semibold text-zinc-50">Throughput</span>
+    </div>
+    <div class="relative h-[260px]">
+      <canvas ref="throughput-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Jobs table -->
+  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm font-semibold text-zinc-50">Jobs in this Queue</span>
     </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Total Jobs</div>
-        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums">{{ statTotal() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Pending</div>
-        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums">{{ statPending() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Active</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statActive() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Completed</div>
-        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ statCompleted() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wider">Failed</div>
-        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ statFailed() }}</div>
-      </div>
+    <!-- Loading state -->
+    <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+      Loading jobs...
     </div>
 
-    <!-- Progress bar -->
-    <div class="mb-6">
-      <div class="flex justify-between mb-2 text-[0.8125rem]">
-        <span class="text-zinc-400">Completion Progress</span>
-        <span class="text-zinc-50 font-semibold tabular-nums">{{ progressPct() }}%</span>
-      </div>
-      <div class="w-full h-2 bg-[#1e1e26] rounded-full overflow-hidden">
-        <div class="progress-bar-fill h-full rounded-full bg-emerald-500" :style="'width: ' + progressPct() + '%'"></div>
-      </div>
+    <!-- Empty state -->
+    <div :show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+      No jobs found in this queue.
     </div>
 
-    <!-- Throughput chart -->
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-sm font-semibold text-zinc-50">Throughput</span>
-      </div>
-      <div class="relative h-[260px]">
-        <canvas ref="throughput-chart"></canvas>
-      </div>
+    <!-- Error state -->
+    <div :show="!loading() && errorMessage()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
+      {{ errorMessage() }}
     </div>
 
     <!-- Jobs table -->
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-sm font-semibold text-zinc-50">Jobs in this Queue</span>
-      </div>
-
-      <!-- Loading state -->
-      <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
-        Loading jobs...
-      </div>
-
-      <!-- Empty state -->
-      <div :show="!loading() && jobs().length === 0" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
-        No jobs found in this queue.
-      </div>
-
-      <!-- Error state -->
-      <div :show="!loading() && errorMessage()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">
-        {{ errorMessage() }}
-      </div>
-
-      <!-- Jobs table -->
-      <table :show="!loading() && !errorMessage() && jobs().length > 0" class="w-full border-collapse">
-        <thead>
-          <tr>
-            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>
-            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Name</th>
-            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Status</th>
-            <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Attempts</th>
-            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Created</th>
-            <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Duration</th>
-            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>
+    <table :show="!loading() && !errorMessage() && jobs().length > 0" class="w-full border-collapse">
+      <thead>
+        <tr>
+          <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">ID</th>
+          <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Name</th>
+          <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Status</th>
+          <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Attempts</th>
+          <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Created</th>
+          <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800">Duration</th>
+          <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <template @for="job in jobs()">
+          <tr class="hover:bg-[#1e1e26]">
+            <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 font-mono text-xs">{{ job.id }}</td>
+            <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">{{ job.name || '—' }}</td>
+            <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="queueBadgeClass(job.status)">{{ job.status }}</span>
+            </td>
+            <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 text-right tabular-nums">{{ (job.attempts || 0) + '/' + (job.maxAttempts || 3) }}</td>
+            <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ formatTime(job.createdAt) }}</td>
+            <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums">{{ job.duration ? job.duration + 'ms' : '—' }}</td>
+            <td class="px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800">
+              <a :href="'/jobs/' + job.id" class="text-indigo-500 no-underline hover:underline">View</a>
+            </td>
           </tr>
-        </thead>
-        <tbody>
-          <template @for="job in jobs()">
-            <tr class="hover:bg-[#1e1e26]">
-              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 font-mono text-xs">{{ job.id }}</td>
-              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800">{{ job.name || '\u2014' }}</td>
-              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="queueBadgeClass(job.status)">{{ job.status }}</span>
-              </td>
-              <td class="px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 text-right tabular-nums">{{ (job.attempts || 0) + '/' + (job.maxAttempts || 3) }}</td>
-              <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ formatTime(job.createdAt) }}</td>
-              <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums">{{ job.duration ? job.duration + 'ms' : '\u2014' }}</td>
-              <td class="px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800">
-                <a :href="'/jobs/' + job.id" class="text-indigo-500 no-underline hover:underline">View</a>
-              </td>
-            </tr>
-          </template>
-        </tbody>
-      </table>
-    </div>
+        </template>
+      </tbody>
+    </table>
   </div>
-@endsection
+</div>
 
-@push('scripts')
-  <script client>
-    interface QueueData {
-      id: string
-      name: string
-      paused?: boolean
-      waiting?: number
-      active?: number
-      completed?: number
-      failed?: number
-    }
+<script client>
+  interface QueueData {
+    id: string
+    name: string
+    paused?: boolean
+    waiting?: number
+    active?: number
+    completed?: number
+    failed?: number
+  }
 
-    interface QueueJob {
-      id: string
-      name: string
-      status: string
-      attempts?: number
-      maxAttempts?: number
-      createdAt: string
-      duration?: number
-    }
+  interface QueueJob {
+    id: string
+    name: string
+    status: string
+    attempts?: number
+    maxAttempts?: number
+    createdAt: string
+    duration?: number
+  }
 
-    interface ThroughputPoint {
-      label?: string
-      time?: string
-      value?: number
-      count?: number
-    }
+  interface ThroughputPoint {
+    label?: string
+    time?: string
+    value?: number
+    count?: number
+  }
 
-    const route = useRoute()
-    const pathParts: string[] = route.path.split('/')
-    const queueId: string = decodeURIComponent(pathParts[pathParts.length - 1])
+  const route = useRoute()
+  const pathParts: string[] = route.path.split('/')
+  const queueId: string = decodeURIComponent(pathParts[pathParts.length - 1])
 
-    const queueName = state<string>(queueId)
-    const queueStatus = state<string>('active')
-    const statTotal = state<number>(0)
-    const statPending = state<number>(0)
-    const statActive = state<number>(0)
-    const statCompleted = state<number>(0)
-    const statFailed = state<number>(0)
-    const jobs = state<QueueJob[]>([])
-    const loading = state<boolean>(true)
-    const errorMessage = state<string>('')
+  const queueName = state<string>(queueId)
+  const queueStatus = state<string>('active')
+  const statTotal = state<number>(0)
+  const statPending = state<number>(0)
+  const statActive = state<number>(0)
+  const statCompleted = state<number>(0)
+  const statFailed = state<number>(0)
+  const jobs = state<QueueJob[]>([])
+  const loading = state<boolean>(true)
+  const errorMessage = state<string>('')
 
-    const progressPct = derived<number>(() => {
-      const total: number = statTotal()
-      if (total <= 0) return 0
-      return Math.round((statCompleted() / total) * 100)
-    })
+  const progressPct = derived<number>(() => {
+    const total: number = statTotal()
+    if (total <= 0) return 0
+    return Math.round((statCompleted() / total) * 100)
+  })
 
-    let throughputChart: Chart | null = null
-    const throughputRef = useRef<HTMLCanvasElement>('throughput-chart')
+  let throughputChart: Chart | null = null
+  const throughputRef = useRef<HTMLCanvasElement>('throughput-chart')
 
-    function loadQueue(): void {
-      fetch('/api/queues')
-        .then((res: Response) => res.json())
-        .then((queues: QueueData[]) => {
-          const q: QueueData | undefined = queues.find((q: QueueData) => q.id === queueId || q.name === queueId)
-          if (!q) return
+  function loadQueue(): void {
+    fetch('/api/queues')
+      .then((res: Response) => res.json())
+      .then((queues: QueueData[]) => {
+        const q: QueueData | undefined = queues.find((q: QueueData) => q.id === queueId || q.name === queueId)
+        if (!q) return
 
-          queueName.set(q.name || queueId)
-          queueStatus.set(q.paused ? 'paused' : 'active')
+        queueName.set(q.name || queueId)
+        queueStatus.set(q.paused ? 'paused' : 'active')
 
-          const total: number = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0)
-          statTotal.set(total)
-          statPending.set(q.waiting || 0)
-          statActive.set(q.active || 0)
-          statCompleted.set(q.completed || 0)
-          statFailed.set(q.failed || 0)
-        })
-        .catch((e: unknown) => {
-          console.error('Failed to load queue:', e)
-        })
-    }
+        const total: number = (q.waiting || 0) + (q.active || 0) + (q.completed || 0) + (q.failed || 0)
+        statTotal.set(total)
+        statPending.set(q.waiting || 0)
+        statActive.set(q.active || 0)
+        statCompleted.set(q.completed || 0)
+        statFailed.set(q.failed || 0)
+      })
+      .catch((e: unknown) => {
+        console.error('Failed to load queue:', e)
+      })
+  }
 
-    function loadJobs(): void {
-      fetch('/api/jobs?queue=' + encodeURIComponent(queueId))
-        .then((res: Response) => res.json())
-        .then((data: QueueJob[]) => {
-          jobs.set(data || [])
-          errorMessage.set('')
-        })
-        .catch((e: unknown) => {
-          console.error('Failed to load jobs:', e)
-          errorMessage.set('Failed to load jobs.')
-        })
-        .finally(() => {
-          loading.set(false)
-        })
-    }
+  function loadJobs(): void {
+    fetch('/api/jobs?queue=' + encodeURIComponent(queueId))
+      .then((res: Response) => res.json())
+      .then((data: QueueJob[]) => {
+        jobs.set(data || [])
+        errorMessage.set('')
+      })
+      .catch((e: unknown) => {
+        console.error('Failed to load jobs:', e)
+        errorMessage.set('Failed to load jobs.')
+      })
+      .finally(() => {
+        loading.set(false)
+      })
+  }
 
-    function loadThroughput(): void {
-      fetch('/api/metrics?queue=' + encodeURIComponent(queueId))
-        .then((res: Response) => res.json())
-        .then((data: { throughput?: ThroughputPoint[] }) => {
-          const labels: string[] = data.throughput ? data.throughput.map((d: ThroughputPoint) => d.label || d.time || '') : []
-          const values: number[] = data.throughput ? data.throughput.map((d: ThroughputPoint) => d.value || d.count || 0) : []
+  function loadThroughput(): void {
+    fetch('/api/metrics?queue=' + encodeURIComponent(queueId))
+      .then((res: Response) => res.json())
+      .then((data: { throughput?: ThroughputPoint[] }) => {
+        const labels: string[] = data.throughput ? data.throughput.map((d: ThroughputPoint) => d.label || d.time || '') : []
+        const values: number[] = data.throughput ? data.throughput.map((d: ThroughputPoint) => d.value || d.count || 0) : []
 
-          const ctx = throughputRef.current.getContext('2d')
+        const ctx = throughputRef.current.getContext('2d')
 
-          if (throughputChart) throughputChart.destroy()
+        if (throughputChart) throughputChart.destroy()
 
-          throughputChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-              labels,
-              datasets: [{
-                label: 'Jobs / min',
-                data: values,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-              }]
+        throughputChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              label: 'Jobs / min',
+              data: values,
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHoverRadius: 4,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
             },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
+            scales: {
+              x: {
+                grid: { color: 'rgba(39, 39, 42, 0.5)' },
+                ticks: { color: '#71717a', font: { size: 11 } },
               },
-              scales: {
-                x: {
-                  grid: { color: 'rgba(39, 39, 42, 0.5)' },
-                  ticks: { color: '#71717a', font: { size: 11 } },
-                },
-                y: {
-                  beginAtZero: true,
-                  grid: { color: 'rgba(39, 39, 42, 0.5)' },
-                  ticks: { color: '#71717a', font: { size: 11 } },
-                },
+              y: {
+                beginAtZero: true,
+                grid: { color: 'rgba(39, 39, 42, 0.5)' },
+                ticks: { color: '#71717a', font: { size: 11 } },
               },
-            }
-          })
+            },
+          }
         })
-        .catch((e: unknown) => {
-          console.error('Failed to load throughput:', e)
-        })
-    }
+      })
+      .catch((e: unknown) => {
+        console.error('Failed to load throughput:', e)
+      })
+  }
 
-    onMount((): void => {
-      loadQueue()
-      loadJobs()
-      loadThroughput()
-    })
-  </script>
-@endpush
+  onMount((): void => {
+    loadQueue()
+    loadJobs()
+    loadThroughput()
+  })
+</script>

@@ -1,178 +1,166 @@
-@extends('../layouts/app')
+<style>
+  .progress-bar-fill { transition: width 0.5s ease; }
+</style>
 
-@section('title')
-Batches — bun-queue
-@endsection
+<div class="max-w-[1200px] mx-auto p-6">
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
+    <div>
+      <h1 class="text-xl font-semibold text-zinc-50">Batches</h1>
+      <p class="text-[0.8125rem] text-zinc-500 mt-1">Monitor batch job progress and status</p>
+    </div>
+    <button
+      class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50"
+      @click="loadBatches()"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Refresh
+    </button>
+  </div>
 
-@push('styles')
-  <style>
-    .progress-bar-fill { transition: width 0.5s ease; }
-  </style>
-@endpush
-
-@section('content')
-  <div class="max-w-[1200px] mx-auto p-6">
-    <div class="flex items-center justify-between mb-6 flex-wrap gap-4">
-      <div>
-        <h1 class="text-xl font-semibold text-zinc-50">Batches</h1>
-        <p class="text-[0.8125rem] text-zinc-500 mt-1">Monitor batch job progress and status</p>
-      </div>
-      <button
-        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50"
-        @click="loadBatches()"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Refresh
-      </button>
+  <div>
+    <!-- Loading state -->
+    <div :show="loading()" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
+      Loading batches...
     </div>
 
-    <div>
-      <!-- Loading state -->
-      <div :show="loading()" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
-        Loading batches...
-      </div>
+    <!-- Error state -->
+    <div :show="!loading() && errorMessage()" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
+      {{ errorMessage() }}
+    </div>
 
-      <!-- Error state -->
-      <div :show="!loading() && errorMessage()" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
-        {{ errorMessage() }}
-      </div>
+    <!-- Empty state -->
+    <div :show="!loading() && !errorMessage() && batches().length === 0" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
+      No batches found. Create a batch to see it here.
+    </div>
 
-      <!-- Empty state -->
-      <div :show="!loading() && !errorMessage() && batches().length === 0" class="text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg">
-        No batches found. Create a batch to see it here.
-      </div>
+    <!-- Batch cards grid -->
+    <div :show="!loading() && !errorMessage() && batches().length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <template @for="batch in batches()">
+        <div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500">
+          <!-- Header: name + status badge -->
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[0.9375rem] font-semibold text-zinc-50">{{ batchName(batch) }}</span>
+            <span
+              class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium"
+              :class="badgeClass(batchStatus(batch))"
+            >
+              {{ batchStatus(batch) }}
+            </span>
+          </div>
 
-      <!-- Batch cards grid -->
-      <div :show="!loading() && !errorMessage() && batches().length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <template @for="batch in batches()">
-          <div class="bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500">
-            <!-- Header: name + status badge -->
-            <div class="flex items-center justify-between mb-4">
-              <span class="text-[0.9375rem] font-semibold text-zinc-50">{{ batchName(batch) }}</span>
-              <span
-                class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium"
-                :class="badgeClass(batchStatus(batch))"
-              >
-                {{ batchStatus(batch) }}
-              </span>
+          <!-- Progress bar -->
+          <div class="w-full h-1.5 bg-[#1e1e26] rounded-full overflow-hidden mb-2">
+            <div
+              class="progress-bar-fill h-full rounded-full"
+              :class="progressBarColorClass(batchStatus(batch))"
+              :style="'width: ' + batchPct(batch) + '%'"
+            ></div>
+          </div>
+          <div class="text-xs text-zinc-500 text-right tabular-nums mb-3">{{ batchPct(batch) }}% complete</div>
+
+          <!-- Stats grid -->
+          <div class="grid grid-cols-4 gap-2 mb-3">
+            <div class="text-center">
+              <div class="text-lg font-bold text-zinc-50 tabular-nums">{{ batchTotal(batch) }}</div>
+              <div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Total</div>
             </div>
-
-            <!-- Progress bar -->
-            <div class="w-full h-1.5 bg-[#1e1e26] rounded-full overflow-hidden mb-2">
-              <div
-                class="progress-bar-fill h-full rounded-full"
-                :class="progressBarColorClass(batchStatus(batch))"
-                :style="'width: ' + batchPct(batch) + '%'"
-              ></div>
+            <div class="text-center">
+              <div class="text-lg font-bold text-emerald-500 tabular-nums">{{ batchProcessed(batch) }}</div>
+              <div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Processed</div>
             </div>
-            <div class="text-xs text-zinc-500 text-right tabular-nums mb-3">{{ batchPct(batch) }}% complete</div>
-
-            <!-- Stats grid -->
-            <div class="grid grid-cols-4 gap-2 mb-3">
-              <div class="text-center">
-                <div class="text-lg font-bold text-zinc-50 tabular-nums">{{ batchTotal(batch) }}</div>
-                <div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Total</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-bold text-emerald-500 tabular-nums">{{ batchProcessed(batch) }}</div>
-                <div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Processed</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-bold text-red-500 tabular-nums">{{ batchFailed(batch) }}</div>
-                <div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Failed</div>
-              </div>
-              <div class="text-center">
-                <div class="text-lg font-bold text-amber-500 tabular-nums">{{ batchPending(batch) }}</div>
-                <div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Pending</div>
-              </div>
+            <div class="text-center">
+              <div class="text-lg font-bold text-red-500 tabular-nums">{{ batchFailed(batch) }}</div>
+              <div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Failed</div>
             </div>
-
-            <!-- Timestamps -->
-            <div class="flex gap-4 text-xs text-zinc-500 mb-3 flex-wrap">
-              <span class="whitespace-nowrap">Created: {{ formatTime(batch.createdAt) }}</span>
-              <span :show="batch.finishedAt" class="whitespace-nowrap">Finished: {{ formatTime(batch.finishedAt) }}</span>
-            </div>
-
-            <!-- View Details link -->
-            <div class="flex justify-end">
-              <a
-                :href="'/batches/' + batch.id"
-                class="text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline"
-              >
-                View Details &rarr;
-              </a>
+            <div class="text-center">
+              <div class="text-lg font-bold text-amber-500 tabular-nums">{{ batchPending(batch) }}</div>
+              <div class="text-[0.6875rem] text-zinc-500 uppercase tracking-wider">Pending</div>
             </div>
           </div>
-        </template>
-      </div>
+
+          <!-- Timestamps -->
+          <div class="flex gap-4 text-xs text-zinc-500 mb-3 flex-wrap">
+            <span class="whitespace-nowrap">Created: {{ formatTime(batch.createdAt) }}</span>
+            <span :show="batch.finishedAt" class="whitespace-nowrap">Finished: {{ formatTime(batch.finishedAt) }}</span>
+          </div>
+
+          <!-- View Details link -->
+          <div class="flex justify-end">
+            <a
+              :href="'/batches/' + batch.id"
+              class="text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline"
+            >
+              View Details &rarr;
+            </a>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
-@endsection
+</div>
 
-@push('scripts')
-  <script client>
-    interface Batch {
-      id: string
-      name?: string
-      status?: string
-      totalJobs?: number
-      total?: number
-      processedJobs?: number
-      processed?: number
-      failedJobs?: number
-      failed?: number
-      createdAt?: string
-      finishedAt?: string
-    }
+<script client>
+  interface Batch {
+    id: string
+    name?: string
+    status?: string
+    totalJobs?: number
+    total?: number
+    processedJobs?: number
+    processed?: number
+    failedJobs?: number
+    failed?: number
+    createdAt?: string
+    finishedAt?: string
+  }
 
-    const batches = state<Batch[]>([])
-    const loading = state<boolean>(true)
-    const errorMessage = state<string>('')
+  const batches = state<Batch[]>([])
+  const loading = state<boolean>(true)
+  const errorMessage = state<string>('')
 
-    function batchStatus(b: Batch): string {
-      return b.status || 'pending'
-    }
+  function batchStatus(b: Batch): string {
+    return b.status || 'pending'
+  }
 
-    function batchName(b: Batch): string {
-      return b.name || 'Batch ' + b.id
-    }
+  function batchName(b: Batch): string {
+    return b.name || 'Batch ' + b.id
+  }
 
-    function batchTotal(b: Batch): number {
-      return b.totalJobs || b.total || 0
-    }
+  function batchTotal(b: Batch): number {
+    return b.totalJobs || b.total || 0
+  }
 
-    function batchProcessed(b: Batch): number {
-      return b.processedJobs || b.processed || 0
-    }
+  function batchProcessed(b: Batch): number {
+    return b.processedJobs || b.processed || 0
+  }
 
-    function batchFailed(b: Batch): number {
-      return b.failedJobs || b.failed || 0
-    }
+  function batchFailed(b: Batch): number {
+    return b.failedJobs || b.failed || 0
+  }
 
-    function batchPending(b: Batch): number {
-      return Math.max(0, batchTotal(b) - batchProcessed(b) - batchFailed(b))
-    }
+  function batchPending(b: Batch): number {
+    return Math.max(0, batchTotal(b) - batchProcessed(b) - batchFailed(b))
+  }
 
-    function batchPct(b: Batch): number {
-      const total: number = batchTotal(b)
-      return total > 0 ? Math.round((batchProcessed(b) / total) * 100) : 0
-    }
+  function batchPct(b: Batch): number {
+    const total: number = batchTotal(b)
+    return total > 0 ? Math.round((batchProcessed(b) / total) * 100) : 0
+  }
 
-    function loadBatches(): void {
-      loading.set(true)
-      errorMessage.set('')
-      fetch('/api/batches')
-        .then((res: Response) => res.json())
-        .then((data: Batch[]) => { batches.set(data) })
-        .catch((err: unknown) => {
-          console.error('Failed to load batches:', err)
-          errorMessage.set('Failed to load batches. Please try again.')
-        })
-        .finally(() => { loading.set(false) })
-    }
+  function loadBatches(): void {
+    loading.set(true)
+    errorMessage.set('')
+    fetch('/api/batches')
+      .then((res: Response) => res.json())
+      .then((data: Batch[]) => { batches.set(data) })
+      .catch((err: unknown) => {
+        console.error('Failed to load batches:', err)
+        errorMessage.set('Failed to load batches. Please try again.')
+      })
+      .finally(() => { loading.set(false) })
+  }
 
-    onMount((): void => {
-      loadBatches()
-    })
-  </script>
-@endpush
+  onMount((): void => {
+    loadBatches()
+  })
+</script>

@@ -1,6 +1,6 @@
 import type { DashboardConfig } from './types'
 import path from 'node:path'
-import { defaultConfig as stxDefaultConfig, injectRouterScript, processDirectives } from '@stacksjs/stx'
+import { defaultConfig as stxDefaultConfig, generateSignalsRuntime, injectRouterScript, isSpaNavigation, processDirectives, stripDocumentWrapper } from '@stacksjs/stx'
 import { BroadcastServer } from 'ts-broadcasting'
 import { createApiRoutes, fetchBatchById, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobById, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueById, fetchQueues } from './api'
 import { resolveConfig } from './api'
@@ -9,11 +9,40 @@ export type { Batch, DashboardConfig, DashboardStats, DependencyGraph, Dependenc
 export { JobStatus } from './types'
 export { createApiRoutes, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueMetrics, fetchQueues } from './api'
 
-const PAGES_DIR = path.join(import.meta.dir, 'pages')
-const FUNCTIONS_ENTRY = path.join(import.meta.dir, 'functions', 'browser.ts')
+const SRC_DIR = import.meta.dir
+const PAGES_DIR = path.join(SRC_DIR, 'pages')
+const FUNCTIONS_ENTRY = path.join(SRC_DIR, 'functions', 'browser.ts')
+const SHELL_PATH = path.join(SRC_DIR, 'app.stx')
 
 let broadcastServer: BroadcastServer | null = null
 let bundledFunctionsJs: string | null = null
+let cachedShell: { before: string, after: string, styles: string, scripts: string } | null = null
+let cachedRouterScript: string | null = null
+
+function getRouterScriptTag(): string {
+  if (cachedRouterScript) return cachedRouterScript
+  // Extract the router script by injecting into a minimal HTML doc
+  const minimal = '<!DOCTYPE html><html><head></head><body></body></html>'
+  const injected = injectRouterScript(minimal)
+  const match = injected.match(/<script>[\s\S]*?__stxRouter[\s\S]*?<\/script>/)
+  cachedRouterScript = match ? match[0] : ''
+  return cachedRouterScript
+}
+
+const pageTitles: Record<string, string> = {
+  'index': 'bun-queue Dashboard',
+  'monitoring': 'Real-time Monitoring — bun-queue',
+  'metrics': 'Performance Metrics — bun-queue',
+  'queues': 'Queues — bun-queue',
+  'queue-details': 'Queue Details — bun-queue',
+  'jobs': 'Jobs — bun-queue',
+  'job-details': 'Job Details — bun-queue',
+  'batches': 'Batches — bun-queue',
+  'batch-details': 'Batch Details — bun-queue',
+  'groups': 'Job Groups — bun-queue',
+  'group-details': 'Group Details — bun-queue',
+  'dependencies': 'Job Dependencies — bun-queue',
+}
 
 async function buildFunctionsBundle(): Promise<string> {
   if (bundledFunctionsJs) return bundledFunctionsJs
@@ -34,25 +63,114 @@ async function buildFunctionsBundle(): Promise<string> {
   return bundledFunctionsJs
 }
 
-async function renderStxPage(templateName: string, wsUrl: string): Promise<string> {
+const stxConfig = {
+  ...stxDefaultConfig,
+  componentsDir: path.join(SRC_DIR, 'components'),
+  partialsDir: path.join(SRC_DIR, 'partials'),
+}
+
+async function getShellParts(): Promise<{ before: string, after: string, styles: string, scripts: string, signalsRuntime: string }> {
+  if (cachedShell) return cachedShell
+
+  const shellContent = await Bun.file(SHELL_PATH).text()
+
+  // Extract <template> block
+  const templateMatch = shellContent.match(/<template\b[^>]*>([\s\S]*?)<\/template>/i)
+  let shellTemplate = templateMatch ? templateMatch[1].trim() : shellContent
+
+  // Extract <style> blocks from the full file
+  const styles = (shellContent.match(/<style\b[^>]*>[\s\S]*?<\/style>/gi) || []).join('\n')
+
+  // Extract <script client> blocks, process them through stx for TypeScript transpilation
+  const clientScriptMatches = shellContent.match(/<script\b[^>]*\bclient\b[^>]*>[\s\S]*?<\/script>/gi) || []
+  let scripts = ''
+  if (clientScriptMatches.length > 0) {
+    const scriptHtml = clientScriptMatches.join('\n')
+    const scriptContext = { __filename: SHELL_PATH, __dirname: path.dirname(SHELL_PATH) }
+    // Skip runtime here too — we extract it separately
+    scripts = await processDirectives(scriptHtml, scriptContext, SHELL_PATH, { ...stxConfig, skipSignalsRuntime: true }, new Set())
+    scripts = stripDocumentWrapper(scripts)
+  }
+
+  // Remove scripts and styles from template for processing
+  shellTemplate = shellTemplate.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+  shellTemplate = shellTemplate.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+
+  // Replace <slot /> with placeholder
+  const SLOT = '<!--__STX_SLOT__-->'
+  shellTemplate = shellTemplate.replace(/<slot\s*\/>/gi, SLOT).replace(/<slot\s*>\s*<\/slot>/gi, SLOT)
+
+  // Process shell template WITHOUT signals runtime — we'll place it in <head> ourselves
+  const context = { __filename: SHELL_PATH, __dirname: path.dirname(SHELL_PATH) }
+  let processed = await processDirectives(shellTemplate, context, SHELL_PATH, { ...stxConfig, skipSignalsRuntime: true }, new Set())
+  processed = stripDocumentWrapper(processed)
+
+  // Get the signals runtime directly
+  const signalsRuntime = `<script data-stx-scoped>${generateSignalsRuntime()}</script>`
+
+  const slotIdx = processed.indexOf(SLOT)
+  if (slotIdx === -1) {
+    console.warn('[bq-devtools] Shell has no <slot /> — falling back')
+    cachedShell = { before: '', after: '', styles, scripts, signalsRuntime }
+    return cachedShell
+  }
+
+  cachedShell = {
+    before: processed.substring(0, slotIdx),
+    after: processed.substring(slotIdx + SLOT.length),
+    styles,
+    scripts,
+    signalsRuntime,
+  }
+  return cachedShell
+}
+
+async function renderStxPage(templateName: string, wsUrl: string, req: Request): Promise<Response> {
   const templatePath = path.join(PAGES_DIR, `${templateName}.stx`)
   const content = await Bun.file(templatePath).text()
 
-  const config = {
-    ...stxDefaultConfig,
-    componentsDir: path.join(import.meta.dir, 'components'),
-    layoutsDir: path.join(import.meta.dir, 'layouts'),
-    partialsDir: path.join(import.meta.dir, 'partials'),
+  const context = { __filename: templatePath, __dirname: path.dirname(templatePath) }
+  // Skip signals runtime injection for page fragments — the shell provides it
+  const pageConfig = { ...stxConfig, skipSignalsRuntime: true }
+  let pageHtml = await processDirectives(content, context, templatePath, pageConfig, new Set())
+  pageHtml = stripDocumentWrapper(pageHtml)
+
+  // SPA navigation — return fragment only
+  if (isSpaNavigation(req)) {
+    return new Response(pageHtml, {
+      headers: {
+        'Content-Type': 'text/html',
+        'Cache-Control': 'no-store',
+        'X-STX-Fragment': 'true',
+      },
+    })
   }
 
-  const context = { __filename: templatePath, __dirname: path.dirname(templatePath) }
-  let html = await processDirectives(content, context, templatePath, config, new Set())
-  html = injectRouterScript(html)
+  // Full page request — compose with shell
+  const shell = await getShellParts()
+  const title = pageTitles[templateName] || 'bun-queue'
 
-  // Inject WebSocket URL for real-time updates
-  html = html.replace('</head>', `<script>window.__BQ_WS_URL = "${wsUrl}";</script>\n</head>`)
+  let html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <script src="/bq-utils.js"><\/script>
+  <script>window.__BQ_WS_URL = "${wsUrl}";window.__stxRouterConfig={container:'[data-stx-content]'};<\/script>
+  ${shell.styles}
+  ${shell.signalsRuntime}
+</head>
+<body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen">
+${shell.before}
+<div data-stx-content>${pageHtml}</div>
+${shell.after}
+${shell.scripts}
+${getRouterScriptTag()}
+</body>
+</html>`
 
-  return html
+  return new Response(html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } })
 }
 
 function wireQueueEvents(queues: any[]): void {
@@ -109,6 +227,9 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
   const config = resolveConfig(options)
   const apiRoutes = createApiRoutes(config)
 
+  // Pre-process the app shell at startup
+  await getShellParts()
+
   // Start WebSocket broadcast server for real-time updates
   const broadcastPort = options.broadcastPort || 6001
   broadcastServer = new BroadcastServer({
@@ -138,16 +259,16 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
 
     async fetch(req: Request) {
       const url = new URL(req.url)
-      const path = url.pathname
+      const pathname = url.pathname
 
       // API routes
-      const apiHandler = apiRoutes[path as keyof typeof apiRoutes]
+      const apiHandler = apiRoutes[pathname as keyof typeof apiRoutes]
       if (apiHandler) {
         return apiHandler(req)
       }
 
       // Dynamic API routes (with path params)
-      const queueMatch = path.match(/^\/api\/queues\/([^/]+)$/)
+      const queueMatch = pathname.match(/^\/api\/queues\/([^/]+)$/)
       if (queueMatch) {
         const queue = await fetchQueueById(config, queueMatch[1])
         if (!queue)
@@ -156,14 +277,13 @@ export async function serveDashboard(options: DashboardConfig = {}): Promise<voi
       }
 
       // Job retry: POST /api/jobs/:id/retry
-      const retryMatch = path.match(/^\/api\/jobs\/([^/]+)\/retry$/)
+      const retryMatch = pathname.match(/^\/api\/jobs\/([^/]+)\/retry$/)
       if (retryMatch && req.method === 'POST') {
         const jobId = decodeURIComponent(retryMatch[1])
         const queues = config.queues || []
         const manager = config.queueManager
         let retried = false
 
-        // Try to find and retry the job across all queues
         const allQueues = queues.length ? queues : manager ? (() => {
           const qs: any[] = []
           for (const connName of manager.getConnections()) {
@@ -188,7 +308,7 @@ catch { /* try next queue */ }
       }
 
       // Job delete: DELETE /api/jobs/:id
-      const deleteMatch = path.match(/^\/api\/jobs\/([^/]+)$/)
+      const deleteMatch = pathname.match(/^\/api\/jobs\/([^/]+)$/)
       if (deleteMatch && req.method === 'DELETE') {
         const jobId = decodeURIComponent(deleteMatch[1])
         const queues = config.queues || []
@@ -219,7 +339,7 @@ catch { /* try next queue */ }
         return Response.json({ success: deleted })
       }
 
-      const jobMatch = path.match(/^\/api\/jobs\/([^/]+)$/)
+      const jobMatch = pathname.match(/^\/api\/jobs\/([^/]+)$/)
       if (jobMatch) {
         const job = await fetchJobById(config, jobMatch[1])
         if (!job)
@@ -227,7 +347,7 @@ catch { /* try next queue */ }
         return Response.json(job)
       }
 
-      const groupMatch = path.match(/^\/api\/groups\/([^/]+)$/)
+      const groupMatch = pathname.match(/^\/api\/groups\/([^/]+)$/)
       if (groupMatch) {
         const group = await fetchJobGroups(config).then(groups => groups.find(g => g.id === groupMatch[1]))
         if (!group)
@@ -235,7 +355,7 @@ catch { /* try next queue */ }
         return Response.json(group)
       }
 
-      const groupJobsMatch = path.match(/^\/api\/groups\/([^/]+)\/jobs$/)
+      const groupJobsMatch = pathname.match(/^\/api\/groups\/([^/]+)\/jobs$/)
       if (groupJobsMatch) {
         const group = await fetchJobGroups(config).then(groups => groups.find(g => g.id === groupJobsMatch[1]))
         if (!group)
@@ -246,7 +366,7 @@ catch { /* try next queue */ }
         return Response.json(groupJobs)
       }
 
-      const batchMatch = path.match(/^\/api\/batches\/([^/]+)$/)
+      const batchMatch = pathname.match(/^\/api\/batches\/([^/]+)$/)
       if (batchMatch) {
         const batch = await fetchBatchById(config, batchMatch[1])
         if (!batch)
@@ -254,7 +374,7 @@ catch { /* try next queue */ }
         return Response.json(batch)
       }
 
-      const batchJobsMatch = path.match(/^\/api\/batches\/([^/]+)\/jobs$/)
+      const batchJobsMatch = pathname.match(/^\/api\/batches\/([^/]+)\/jobs$/)
       if (batchJobsMatch) {
         const batch = await fetchBatchById(config, batchJobsMatch[1])
         if (!batch)
@@ -264,7 +384,7 @@ catch { /* try next queue */ }
       }
 
       // Shared functions bundle
-      if (path === '/bq-utils.js') {
+      if (pathname === '/bq-utils.js') {
         const js = await buildFunctionsBundle()
         return new Response(js, { headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'no-store' } })
       }
@@ -281,9 +401,8 @@ catch { /* try next queue */ }
         '/dependencies': 'dependencies',
       }
 
-      if (pageMap[path]) {
-        const html = await renderStxPage(pageMap[path], wsUrl)
-        return new Response(html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } })
+      if (pageMap[pathname]) {
+        return renderStxPage(pageMap[pathname], wsUrl, req)
       }
 
       // Dynamic page routes (detail views)
@@ -295,9 +414,8 @@ catch { /* try next queue */ }
       ]
 
       for (const { pattern, template } of dynamicPages) {
-        if (pattern.test(path)) {
-          const html = await renderStxPage(template, wsUrl)
-          return new Response(html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } })
+        if (pattern.test(pathname)) {
+          return renderStxPage(template, wsUrl, req)
         }
       }
 

@@ -1,196 +1,182 @@
-@extends('../layouts/app')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
-@section('title')
-Performance Metrics — bun-queue
-@endsection
+<style>
+  .chart-container { position: relative; height: 280px; width: 100%; }
+  .time-range-btn.active { background: #6366f1; color: white; }
+</style>
 
-@push('head')
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-@endpush
-
-@push('styles')
-  <style>
-    .chart-container { position: relative; height: 280px; width: 100%; }
-    .time-range-btn.active { background: #6366f1; color: white; }
-  </style>
-@endpush
-
-@section('content')
-  <div class="max-w-[1200px] mx-auto p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-lg font-semibold text-zinc-50">Performance Metrics</h1>
-        <p class="text-sm text-zinc-500 mt-1">Job throughput, latency, and error analysis</p>
-      </div>
-      <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1">
-        <template @for="range in timeRanges()">
-          <button
-            class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150"
-            :class="{ active: activeRange() === range }"
-            @click="selectRange(range)"
-          >{{ range }}</button>
-        </template>
-      </div>
+<div class="max-w-[1200px] mx-auto p-6">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-lg font-semibold text-zinc-50">Performance Metrics</h1>
+      <p class="text-sm text-zinc-500 mt-1">Job throughput, latency, and error analysis</p>
     </div>
-
-    <!-- Summary Stats -->
-    <div class="grid grid-cols-4 gap-4 mb-6 max-sm:grid-cols-2">
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Throughput</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statThroughput() }}</div>
-        <div class="text-xs text-zinc-500 font-normal">jobs/min</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Latency</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statLatency() }}</div>
-        <div class="text-xs text-zinc-500 font-normal">ms</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Error Rate</div>
-        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ statErrorRate() }}</div>
-        <div class="text-xs text-zinc-500 font-normal">%</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Uptime</div>
-        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ statUptime() }}</div>
-        <div class="text-xs text-zinc-500 font-normal">hours</div>
-      </div>
-    </div>
-
-    <!-- Throughput Chart -->
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-sm font-semibold text-zinc-50">Job Throughput</span>
-      </div>
-      <div class="chart-container">
-        <canvas ref="throughput-chart"></canvas>
-      </div>
-    </div>
-
-    <!-- Latency Chart -->
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-sm font-semibold text-zinc-50">Job Latency</span>
-      </div>
-      <div class="chart-container">
-        <canvas ref="latency-chart"></canvas>
-      </div>
-    </div>
-
-    <!-- Error Rate Chart -->
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-sm font-semibold text-zinc-50">Error Rate</span>
-      </div>
-      <div class="chart-container">
-        <canvas ref="error-rate-chart"></canvas>
-      </div>
+    <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1">
+      <template @for="range in timeRanges()">
+        <button
+          class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150"
+          :class="{ active: activeRange() === range }"
+          @click="selectRange(range)"
+        >{{ range }}</button>
+      </template>
     </div>
   </div>
-@endsection
 
-@push('scripts')
-  <script client>
-    interface MetricsData {
-      timestamps: string[]
-      throughput: number[]
-      latency: number[]
-      errorRate: number[]
-    }
+  <!-- Summary Stats -->
+  <div class="grid grid-cols-4 gap-4 mb-6 max-sm:grid-cols-2">
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Throughput</div>
+      <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statThroughput() }}</div>
+      <div class="text-xs text-zinc-500 font-normal">jobs/min</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Latency</div>
+      <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statLatency() }}</div>
+      <div class="text-xs text-zinc-500 font-normal">ms</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Error Rate</div>
+      <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ statErrorRate() }}</div>
+      <div class="text-xs text-zinc-500 font-normal">%</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Uptime</div>
+      <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ statUptime() }}</div>
+      <div class="text-xs text-zinc-500 font-normal">hours</div>
+    </div>
+  </div>
 
-    interface StatsData {
-      uptime: number
-    }
+  <!-- Throughput Chart -->
+  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm font-semibold text-zinc-50">Job Throughput</span>
+    </div>
+    <div class="chart-container">
+      <canvas ref="throughput-chart"></canvas>
+    </div>
+  </div>
 
-    let throughputChart: Chart | null = null
-    let latencyChart: Chart | null = null
-    let errorRateChart: Chart | null = null
+  <!-- Latency Chart -->
+  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm font-semibold text-zinc-50">Job Latency</span>
+    </div>
+    <div class="chart-container">
+      <canvas ref="latency-chart"></canvas>
+    </div>
+  </div>
 
-    const throughputRef = useRef<HTMLCanvasElement>('throughput-chart')
-    const latencyRef = useRef<HTMLCanvasElement>('latency-chart')
-    const errorRateRef = useRef<HTMLCanvasElement>('error-rate-chart')
+  <!-- Error Rate Chart -->
+  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm font-semibold text-zinc-50">Error Rate</span>
+    </div>
+    <div class="chart-container">
+      <canvas ref="error-rate-chart"></canvas>
+    </div>
+  </div>
+</div>
 
-    const timeRanges = state<string[]>(['24h', '7d', '30d'])
-    const activeRange = state<string>('24h')
-    const statThroughput = state<string>('--')
-    const statLatency = state<string>('--')
-    const statErrorRate = state<string>('--')
-    const statUptime = state<string>('--')
+<script client>
+  interface MetricsData {
+    timestamps: string[]
+    throughput: number[]
+    latency: number[]
+    errorRate: number[]
+  }
 
-    function selectRange(range: string): void {
-      activeRange.set(range)
-      loadMetrics(range)
-    }
+  interface StatsData {
+    uptime: number
+  }
 
-    function loadMetrics(timeRange: string): void {
-      Promise.all([
-        fetch('/api/metrics?timeRange=' + timeRange),
-        fetch('/api/stats'),
-      ])
-        .then((responses: Response[]) =>
-          Promise.all([responses[0].json(), responses[1].json()])
+  let throughputChart: Chart | null = null
+  let latencyChart: Chart | null = null
+  let errorRateChart: Chart | null = null
+
+  const throughputRef = useRef<HTMLCanvasElement>('throughput-chart')
+  const latencyRef = useRef<HTMLCanvasElement>('latency-chart')
+  const errorRateRef = useRef<HTMLCanvasElement>('error-rate-chart')
+
+  const timeRanges = state<string[]>(['24h', '7d', '30d'])
+  const activeRange = state<string>('24h')
+  const statThroughput = state<string>('--')
+  const statLatency = state<string>('--')
+  const statErrorRate = state<string>('--')
+  const statUptime = state<string>('--')
+
+  function selectRange(range: string): void {
+    activeRange.set(range)
+    loadMetrics(range)
+  }
+
+  function loadMetrics(timeRange: string): void {
+    Promise.all([
+      fetch('/api/metrics?timeRange=' + timeRange),
+      fetch('/api/stats'),
+    ])
+      .then((responses: Response[]) =>
+        Promise.all([responses[0].json(), responses[1].json()])
+      )
+      .then((results: [MetricsData, StatsData]) => {
+        const mData: MetricsData = results[0]
+        const sData: StatsData = results[1]
+
+        statThroughput.set(
+          mData.throughput.length > 0
+            ? String(Math.round(mData.throughput.reduce((a: number, b: number) => a + b, 0) / mData.throughput.length))
+            : '0'
         )
-        .then((results: [MetricsData, StatsData]) => {
-          const mData: MetricsData = results[0]
-          const sData: StatsData = results[1]
+        statLatency.set(
+          mData.latency.length > 0
+            ? String(Math.round(mData.latency.reduce((a: number, b: number) => a + b, 0) / mData.latency.length))
+            : '0'
+        )
+        statErrorRate.set(
+          mData.errorRate.length > 0
+            ? (mData.errorRate.reduce((a: number, b: number) => a + b, 0) / mData.errorRate.length).toFixed(2)
+            : '0.00'
+        )
+        statUptime.set(String(Math.round(sData.uptime / 3600)))
 
-          statThroughput.set(
-            mData.throughput.length > 0
-              ? String(Math.round(mData.throughput.reduce((a: number, b: number) => a + b, 0) / mData.throughput.length))
-              : '0'
-          )
-          statLatency.set(
-            mData.latency.length > 0
-              ? String(Math.round(mData.latency.reduce((a: number, b: number) => a + b, 0) / mData.latency.length))
-              : '0'
-          )
-          statErrorRate.set(
-            mData.errorRate.length > 0
-              ? (mData.errorRate.reduce((a: number, b: number) => a + b, 0) / mData.errorRate.length).toFixed(2)
-              : '0.00'
-          )
-          statUptime.set(String(Math.round(sData.uptime / 3600)))
-
-          if (throughputChart) throughputChart.destroy()
-          throughputChart = new Chart(throughputRef.current.getContext('2d'), {
-            type: 'line',
-            data: {
-              labels: mData.timestamps,
-              datasets: [createLineDataset('Throughput (jobs/min)', mData.throughput, 'rgb(99, 102, 241)')]
-            },
-            options: chartOptions()
-          })
-
-          if (latencyChart) latencyChart.destroy()
-          latencyChart = new Chart(latencyRef.current.getContext('2d'), {
-            type: 'line',
-            data: {
-              labels: mData.timestamps,
-              datasets: [createLineDataset('Latency (ms)', mData.latency, 'rgb(245, 158, 11)')]
-            },
-            options: chartOptions()
-          })
-
-          if (errorRateChart) errorRateChart.destroy()
-          errorRateChart = new Chart(errorRateRef.current.getContext('2d'), {
-            type: 'line',
-            data: {
-              labels: mData.timestamps,
-              datasets: [createLineDataset('Error Rate (%)', mData.errorRate, 'rgb(239, 68, 68)')]
-            },
-            options: chartOptions()
-          })
+        if (throughputChart) throughputChart.destroy()
+        throughputChart = new Chart(throughputRef.current.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: mData.timestamps,
+            datasets: [createLineDataset('Throughput (jobs/min)', mData.throughput, 'rgb(99, 102, 241)')]
+          },
+          options: chartOptions()
         })
-        .catch((err: unknown) => {
-          console.error('Failed to load metrics:', err)
-        })
-    }
 
-    onMount((): void => {
-      const params = useSearchParams()
-      const initRange: string = params.get('timeRange') || '24h'
-      activeRange.set(initRange)
-      loadMetrics(initRange)
-    })
-  </script>
-@endpush
+        if (latencyChart) latencyChart.destroy()
+        latencyChart = new Chart(latencyRef.current.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: mData.timestamps,
+            datasets: [createLineDataset('Latency (ms)', mData.latency, 'rgb(245, 158, 11)')]
+          },
+          options: chartOptions()
+        })
+
+        if (errorRateChart) errorRateChart.destroy()
+        errorRateChart = new Chart(errorRateRef.current.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: mData.timestamps,
+            datasets: [createLineDataset('Error Rate (%)', mData.errorRate, 'rgb(239, 68, 68)')]
+          },
+          options: chartOptions()
+        })
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load metrics:', err)
+      })
+  }
+
+  onMount((): void => {
+    const params = useSearchParams()
+    const initRange: string = params.get('timeRange') || '24h'
+    activeRange.set(initRange)
+    loadMetrics(initRange)
+  })
+</script>

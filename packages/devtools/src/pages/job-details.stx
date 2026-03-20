@@ -1,213 +1,203 @@
-@extends('../layouts/app')
+<div class="max-w-[1200px] mx-auto p-6">
+  <StxLink to="/jobs" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Jobs
+  </StxLink>
 
-@section('title')
-Job Details — bun-queue
-@endsection
-
-@section('content')
-  <div class="max-w-[1200px] mx-auto p-6">
-    <StxLink to="/jobs" class="inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Back to Jobs
-    </StxLink>
-
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
-          <span>{{ jobName() }}</span>
-          <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass()">{{ status() }}</span>
-        </h1>
-        <p class="text-[0.8125rem] text-zinc-500 mt-1">Job details and execution information</p>
-      </div>
-      <div :show="hasDuration()" class="inline-flex items-baseline gap-1 tabular-nums">
-        <span class="text-2xl font-bold text-indigo-500">{{ duration() }}</span>
-        <span class="text-sm text-zinc-500">ms</span>
-      </div>
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-xl font-semibold text-zinc-50 flex items-center gap-3">
+        <span>{{ jobName() }}</span>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass()">{{ status() }}</span>
+      </h1>
+      <p class="text-[0.8125rem] text-zinc-500 mt-1">Job details and execution information</p>
     </div>
-
-    <!-- Action buttons -->
-    <div class="flex gap-3 mb-6">
-      <button @click="retryJob()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[0.8125rem] font-medium border border-transparent cursor-pointer transition-all duration-150 bg-indigo-500 text-white hover:bg-indigo-400" title="Retry this job">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Retry
-      </button>
-      <button @click="deleteJob()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-red-500/15 border border-red-500/30 text-red-500 hover:bg-red-500/25" title="Delete this job">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-        Delete
-      </button>
-    </div>
-
-    <!-- Error panel -->
-    <div :show="showError()" class="bg-red-500/[0.08] border border-red-500/25 rounded-lg p-5 mb-6">
-      <div class="flex items-center gap-2 text-sm font-semibold text-red-500 mb-3">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-        Error
-      </div>
-      <div class="font-mono text-[0.8125rem] text-red-300 whitespace-pre-wrap break-words">{{ errorMessage() }}</div>
-    </div>
-
-    <!-- Metadata grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Job ID</div>
-        <div class="text-sm text-zinc-50 font-medium break-all font-mono text-[0.8125rem]">{{ metaId() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Queue</div>
-        <div class="text-sm text-zinc-50 font-medium break-all">{{ metaQueue() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Status</div>
-        <div class="text-sm text-zinc-50 font-medium break-all">{{ metaStatus() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Attempts</div>
-        <div class="text-sm text-zinc-50 font-medium break-all">{{ metaAttempts() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Created</div>
-        <div class="text-sm text-zinc-50 font-medium break-all">{{ metaCreated() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Processed</div>
-        <div class="text-sm text-zinc-50 font-medium break-all">{{ metaProcessed() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Completed</div>
-        <div class="text-sm text-zinc-50 font-medium break-all">{{ metaCompleted() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Failed At</div>
-        <div class="text-sm text-zinc-50 font-medium break-all">{{ metaFailed() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
-        <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Duration</div>
-        <div class="text-sm text-zinc-50 font-medium break-all">{{ metaDuration() }}</div>
-      </div>
-    </div>
-
-    <!-- Job Data -->
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-      <div class="flex items-center justify-between mb-4">
-        <span class="text-sm font-semibold text-zinc-50">Job Data</span>
-      </div>
-      <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading job data...</div>
-      <div :show="!loading() && loadError()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load job details.</div>
-      <div :show="!loading() && !loadError() && hasJobData()">
-        <pre class="bg-[#0a0a0f] border border-zinc-800 rounded-md p-4 overflow-x-auto font-mono text-[0.8125rem] leading-relaxed text-zinc-400 whitespace-pre-wrap break-words max-h-[400px] overflow-y-auto">{{ jobDataJson() }}</pre>
-      </div>
-      <div :show="!loading() && !loadError() && !hasJobData()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No job data available.</div>
+    <div :show="hasDuration()" class="inline-flex items-baseline gap-1 tabular-nums">
+      <span class="text-2xl font-bold text-indigo-500">{{ duration() }}</span>
+      <span class="text-sm text-zinc-500">ms</span>
     </div>
   </div>
-@endsection
 
-@push('scripts')
-  <script client>
-    interface JobDetail {
-      id: string
-      name?: string
-      status: string
-      duration?: number
-      error?: string | Record<string, unknown>
-      queue?: string
-      attempts?: number
-      maxAttempts?: number
-      createdAt?: string
-      processedAt?: string
-      completedAt?: string
-      failedAt?: string
-      data?: Record<string, unknown>
-    }
+  <!-- Action buttons -->
+  <div class="flex gap-3 mb-6">
+    <button @click="retryJob()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[0.8125rem] font-medium border border-transparent cursor-pointer transition-all duration-150 bg-indigo-500 text-white hover:bg-indigo-400" title="Retry this job">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Retry
+    </button>
+    <button @click="deleteJob()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-red-500/15 border border-red-500/30 text-red-500 hover:bg-red-500/25" title="Delete this job">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+      Delete
+    </button>
+  </div>
 
-    const route = useRoute()
-    const pathParts: string[] = route.path.split('/')
-    const jobId: string = decodeURIComponent(pathParts[pathParts.length - 1])
+  <!-- Error panel -->
+  <div :show="showError()" class="bg-red-500/[0.08] border border-red-500/25 rounded-lg p-5 mb-6">
+    <div class="flex items-center gap-2 text-sm font-semibold text-red-500 mb-3">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+      Error
+    </div>
+    <div class="font-mono text-[0.8125rem] text-red-300 whitespace-pre-wrap break-words">{{ errorMessage() }}</div>
+  </div>
 
-    const loading = state<boolean>(true)
-    const loadError = state<boolean>(false)
-    const jobName = state<string>('')
-    const status = state<string>('')
-    const duration = state<number | null>(null)
-    const error = state<string>('')
-    const jobData = state<Record<string, unknown> | null>(null)
+  <!-- Metadata grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Job ID</div>
+      <div class="text-sm text-zinc-50 font-medium break-all font-mono text-[0.8125rem]">{{ metaId() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Queue</div>
+      <div class="text-sm text-zinc-50 font-medium break-all">{{ metaQueue() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Status</div>
+      <div class="text-sm text-zinc-50 font-medium break-all">{{ metaStatus() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Attempts</div>
+      <div class="text-sm text-zinc-50 font-medium break-all">{{ metaAttempts() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Created</div>
+      <div class="text-sm text-zinc-50 font-medium break-all">{{ metaCreated() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Processed</div>
+      <div class="text-sm text-zinc-50 font-medium break-all">{{ metaProcessed() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Completed</div>
+      <div class="text-sm text-zinc-50 font-medium break-all">{{ metaCompleted() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Failed At</div>
+      <div class="text-sm text-zinc-50 font-medium break-all">{{ metaFailed() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4">
+      <div class="text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider mb-1.5">Duration</div>
+      <div class="text-sm text-zinc-50 font-medium break-all">{{ metaDuration() }}</div>
+    </div>
+  </div>
 
-    const metaId = state<string>('\u2014')
-    const metaQueue = state<string>('\u2014')
-    const metaStatus = state<string>('\u2014')
-    const metaAttempts = state<string>('\u2014')
-    const metaCreated = state<string>('\u2014')
-    const metaProcessed = state<string>('\u2014')
-    const metaCompleted = state<string>('\u2014')
-    const metaFailed = state<string>('\u2014')
-    const metaDuration = state<string>('\u2014')
+  <!-- Job Data -->
+  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm font-semibold text-zinc-50">Job Data</span>
+    </div>
+    <div :show="loading()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Loading job data...</div>
+    <div :show="!loading() && loadError()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">Failed to load job details.</div>
+    <div :show="!loading() && !loadError() && hasJobData()">
+      <pre class="bg-[#0a0a0f] border border-zinc-800 rounded-md p-4 overflow-x-auto font-mono text-[0.8125rem] leading-relaxed text-zinc-400 whitespace-pre-wrap break-words max-h-[400px] overflow-y-auto">{{ jobDataJson() }}</pre>
+    </div>
+    <div :show="!loading() && !loadError() && !hasJobData()" class="text-center py-8 text-zinc-500 text-[0.8125rem]">No job data available.</div>
+  </div>
+</div>
 
-    const hasDuration = derived<boolean>(() => duration() !== null)
-    const showError = derived<boolean>(() => status() === 'failed' && error() !== '')
-    const errorMessage = derived<string>(() => error())
-    const hasJobData = derived<boolean>(() => jobData() !== null && Object.keys(jobData()!).length > 0)
-    const jobDataJson = derived<string>(() => hasJobData() ? JSON.stringify(jobData(), null, 2) : '')
+<script client>
+  interface JobDetail {
+    id: string
+    name?: string
+    status: string
+    duration?: number
+    error?: string | Record<string, unknown>
+    queue?: string
+    attempts?: number
+    maxAttempts?: number
+    createdAt?: string
+    processedAt?: string
+    completedAt?: string
+    failedAt?: string
+    data?: Record<string, unknown>
+  }
 
-    const badgeClass = derived<string>(() => {
-      const s: string = status()
-      if (s === 'completed') return 'bg-emerald-500/15 text-emerald-500'
-      if (s === 'failed') return 'bg-red-500/15 text-red-500'
-      if (s === 'active') return 'bg-indigo-500/15 text-indigo-400'
-      if (s === 'waiting' || s === 'pending') return 'bg-amber-500/15 text-amber-500'
-      return 'bg-zinc-500/15 text-zinc-500'
-    })
+  const route = useRoute()
+  const pathParts: string[] = route.path.split('/')
+  const jobId: string = decodeURIComponent(pathParts[pathParts.length - 1])
 
-    function loadJob(): void {
-      loading.set(true)
-      loadError.set(false)
-      fetch('/api/jobs/' + encodeURIComponent(jobId))
-        .then((res: Response) => res.json())
-        .then((job: JobDetail) => {
-          jobName.set(job.name || 'Job ' + job.id)
-          status.set(job.status)
-          duration.set(job.duration != null ? job.duration : null)
+  const loading = state<boolean>(true)
+  const loadError = state<boolean>(false)
+  const jobName = state<string>('')
+  const status = state<string>('')
+  const duration = state<number | null>(null)
+  const error = state<string>('')
+  const jobData = state<Record<string, unknown> | null>(null)
 
-          useTitle((job.name || 'Job ' + job.id) + ' \u2014 bun-queue')
+  const metaId = state<string>('—')
+  const metaQueue = state<string>('—')
+  const metaStatus = state<string>('—')
+  const metaAttempts = state<string>('—')
+  const metaCreated = state<string>('—')
+  const metaProcessed = state<string>('—')
+  const metaCompleted = state<string>('—')
+  const metaFailed = state<string>('—')
+  const metaDuration = state<string>('—')
 
-          if (job.status === 'failed' && job.error) {
-            error.set(typeof job.error === 'string' ? job.error : JSON.stringify(job.error, null, 2))
-          } else {
-            error.set('')
-          }
+  const hasDuration = derived<boolean>(() => duration() !== null)
+  const showError = derived<boolean>(() => status() === 'failed' && error() !== '')
+  const errorMessage = derived<string>(() => error())
+  const hasJobData = derived<boolean>(() => jobData() !== null && Object.keys(jobData()!).length > 0)
+  const jobDataJson = derived<string>(() => hasJobData() ? JSON.stringify(jobData(), null, 2) : '')
 
-          metaId.set(job.id)
-          metaQueue.set(job.queue || '\u2014')
-          metaStatus.set(job.status)
-          metaAttempts.set((job.attempts || 0) + ' / ' + (job.maxAttempts || 3))
-          metaCreated.set(formatTime(job.createdAt))
-          metaProcessed.set(formatTime(job.processedAt))
-          metaCompleted.set(formatTime(job.completedAt))
-          metaFailed.set(formatTime(job.failedAt))
-          metaDuration.set(job.duration ? job.duration + 'ms' : '\u2014')
+  const badgeClass = derived<string>(() => {
+    const s: string = status()
+    if (s === 'completed') return 'bg-emerald-500/15 text-emerald-500'
+    if (s === 'failed') return 'bg-red-500/15 text-red-500'
+    if (s === 'active') return 'bg-indigo-500/15 text-indigo-400'
+    if (s === 'waiting' || s === 'pending') return 'bg-amber-500/15 text-amber-500'
+    return 'bg-zinc-500/15 text-zinc-500'
+  })
 
-          jobData.set(job.data && Object.keys(job.data).length > 0 ? job.data : null)
-        })
-        .catch((e: unknown) => {
-          console.error('Failed to load job:', e)
-          loadError.set(true)
-        })
-        .finally(() => {
-          loading.set(false)
-        })
-    }
+  function loadJob(): void {
+    loading.set(true)
+    loadError.set(false)
+    fetch('/api/jobs/' + encodeURIComponent(jobId))
+      .then((res: Response) => res.json())
+      .then((job: JobDetail) => {
+        jobName.set(job.name || 'Job ' + job.id)
+        status.set(job.status)
+        duration.set(job.duration != null ? job.duration : null)
 
-    function retryJob(): void {
-      fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
-        .then(() => { loadJob() })
-        .catch((e: unknown) => { console.error('Retry failed:', e) })
-    }
+        useTitle((job.name || 'Job ' + job.id) + ' — bun-queue')
 
-    function deleteJob(): void {
-      if (!confirm('Are you sure you want to delete this job?')) return
-      fetch('/api/jobs/' + encodeURIComponent(jobId), { method: 'DELETE' })
-        .then(() => { navigate('/jobs') })
-        .catch((e: unknown) => { console.error('Delete failed:', e) })
-    }
+        if (job.status === 'failed' && job.error) {
+          error.set(typeof job.error === 'string' ? job.error : JSON.stringify(job.error, null, 2))
+        } else {
+          error.set('')
+        }
 
-    onMount((): void => { loadJob() })
-  </script>
-@endpush
+        metaId.set(job.id)
+        metaQueue.set(job.queue || '—')
+        metaStatus.set(job.status)
+        metaAttempts.set((job.attempts || 0) + ' / ' + (job.maxAttempts || 3))
+        metaCreated.set(formatTime(job.createdAt))
+        metaProcessed.set(formatTime(job.processedAt))
+        metaCompleted.set(formatTime(job.completedAt))
+        metaFailed.set(formatTime(job.failedAt))
+        metaDuration.set(job.duration ? job.duration + 'ms' : '—')
+
+        jobData.set(job.data && Object.keys(job.data).length > 0 ? job.data : null)
+      })
+      .catch((e: unknown) => {
+        console.error('Failed to load job:', e)
+        loadError.set(true)
+      })
+      .finally(() => {
+        loading.set(false)
+      })
+  }
+
+  function retryJob(): void {
+    fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
+      .then(() => { loadJob() })
+      .catch((e: unknown) => { console.error('Retry failed:', e) })
+  }
+
+  function deleteJob(): void {
+    if (!confirm('Are you sure you want to delete this job?')) return
+    fetch('/api/jobs/' + encodeURIComponent(jobId), { method: 'DELETE' })
+      .then(() => { navigate('/jobs') })
+      .catch((e: unknown) => { console.error('Delete failed:', e) })
+  }
+
+  onMount((): void => { loadJob() })
+</script>

@@ -1,230 +1,218 @@
-@extends('../layouts/app')
+<style>
+  .search-input::placeholder { color: #71717a; }
+  .filter-btn.active { background: #6366f1; color: white; }
+</style>
 
-@section('title')
-Jobs — bun-queue
-@endsection
-
-@push('styles')
-  <style>
-    .search-input::placeholder { color: #71717a; }
-    .filter-btn.active { background: #6366f1; color: white; }
-  </style>
-@endpush
-
-@section('content')
-  <div class="max-w-[1200px] mx-auto p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-lg font-semibold text-zinc-50">Jobs</h1>
-        <p class="text-sm text-zinc-500 mt-1">Browse and filter job history</p>
-      </div>
-      <div :if="wsStatus() === 'OPEN'" class="flex items-center gap-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span class="text-xs text-zinc-500">Live</span>
-      </div>
+<div class="max-w-[1200px] mx-auto p-6">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-lg font-semibold text-zinc-50">Jobs</h1>
+      <p class="text-sm text-zinc-500 mt-1">Browse and filter job history</p>
     </div>
-
-    <!-- New items badge (scroll-to-pause) -->
-    <div :if="bufferedCount() > 0" class="mb-4">
-      <button @click="flushBuffer()" class="w-full py-2 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-sm font-medium text-indigo-400 cursor-pointer hover:bg-indigo-500/20 transition-colors duration-150">
-        {{ bufferedCount() }} new job{{ bufferedCount() > 1 ? 's' : '' }} — click to show
-      </button>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="flex items-center gap-3 mb-6 flex-wrap">
-      <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="filter-bar">
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'all' }" @click="activeFilter.set('all')" data-status="all">All</button>
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'waiting' }" @click="activeFilter.set('waiting')" data-status="waiting">Waiting</button>
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'active' }" @click="activeFilter.set('active')" data-status="active">Active</button>
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'completed' }" @click="activeFilter.set('completed')" data-status="completed">Completed</button>
-        <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'failed' }" @click="activeFilter.set('failed')" data-status="failed">Failed</button>
-      </div>
-      <div class="relative flex-1 max-w-[280px]">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" class="search-input w-full py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-sm outline-none focus:border-indigo-500 transition-colors duration-150" @model="searchQuery" placeholder="Search jobs...">
-      </div>
-    </div>
-
-    <!-- Jobs Table -->
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg overflow-hidden" ref="table-container">
-      <!-- Loading state -->
-      <div :if="loading()" class="text-center py-12 text-zinc-500 text-sm">Loading jobs...</div>
-
-      <!-- Empty state -->
-      <div :if="!loading() && filteredJobs().length === 0" class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>
-
-      <!-- Table -->
-      <table :if="!loading() && filteredJobs().length > 0" class="w-full border-collapse">
-        <thead>
-          <tr>
-            <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Name</th>
-            <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">ID</th>
-            <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Queue</th>
-            <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Status</th>
-            <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Created</th>
-            <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Updated</th>
-            <th class="px-4 py-2.5 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <template @for="job in filteredJobs()">
-            <tr class="hover:bg-[#1e1e26]">
-              <td class="px-4 py-2.5 text-sm text-zinc-50 font-medium border-b border-zinc-800">{{ job.name }}</td>
-              <td class="px-4 py-2.5 font-mono text-xs text-zinc-400 border-b border-zinc-800">{{ job.id }}</td>
-              <td class="px-4 py-2.5 text-sm text-zinc-400 border-b border-zinc-800">{{ job.queue }}</td>
-              <td class="px-4 py-2.5 border-b border-zinc-800">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass(job.status)">{{ job.status }}</span>
-              </td>
-              <td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ job.createdAt }}</td>
-              <td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ job.completedAt || job.failedAt || job.processedAt || job.createdAt }}</td>
-              <td class="px-4 py-2.5 text-right border-b border-zinc-800 whitespace-nowrap">
-                <button :if="job.status === 'failed'" @click="retryJob(job.id)" class="text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3">Retry</button>
-                <a :href="'/jobs/' + job.id" class="text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details</a>
-              </td>
-            </tr>
-          </template>
-        </tbody>
-      </table>
+    <div :if="wsStatus() === 'OPEN'" class="flex items-center gap-1.5">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span class="text-xs text-zinc-500">Live</span>
     </div>
   </div>
-@endsection
 
-@push('scripts')
-  <script client>
-    interface Job {
-      id: string
-      name: string
-      queue: string
-      status: string
-      createdAt: string
-      completedAt?: string
-      failedAt?: string
-      processedAt?: string
+  <!-- New items badge (scroll-to-pause) -->
+  <div :if="bufferedCount() > 0" class="mb-4">
+    <button @click="flushBuffer()" class="w-full py-2 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-sm font-medium text-indigo-400 cursor-pointer hover:bg-indigo-500/20 transition-colors duration-150">
+      {{ bufferedCount() }} new job{{ bufferedCount() > 1 ? 's' : '' }} — click to show
+    </button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="flex items-center gap-3 mb-6 flex-wrap">
+    <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1" ref="filter-bar">
+      <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'all' }" @click="activeFilter.set('all')" data-status="all">All</button>
+      <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'waiting' }" @click="activeFilter.set('waiting')" data-status="waiting">Waiting</button>
+      <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'active' }" @click="activeFilter.set('active')" data-status="active">Active</button>
+      <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'completed' }" @click="activeFilter.set('completed')" data-status="completed">Completed</button>
+      <button class="filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150" :class="{ active: activeFilter() === 'failed' }" @click="activeFilter.set('failed')" data-status="failed">Failed</button>
+    </div>
+    <div class="relative flex-1 max-w-[280px]">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input w-full py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-sm outline-none focus:border-indigo-500 transition-colors duration-150" @model="searchQuery" placeholder="Search jobs...">
+    </div>
+  </div>
+
+  <!-- Jobs Table -->
+  <div class="bg-[#141419] border border-zinc-800 rounded-lg overflow-hidden" ref="table-container">
+    <!-- Loading state -->
+    <div :if="loading()" class="text-center py-12 text-zinc-500 text-sm">Loading jobs...</div>
+
+    <!-- Empty state -->
+    <div :if="!loading() && filteredJobs().length === 0" class="text-center py-12 text-zinc-500 text-sm">No jobs found matching the current filters.</div>
+
+    <!-- Table -->
+    <table :if="!loading() && filteredJobs().length > 0" class="w-full border-collapse">
+      <thead>
+        <tr>
+          <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Name</th>
+          <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">ID</th>
+          <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Queue</th>
+          <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Status</th>
+          <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Created</th>
+          <th class="px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Updated</th>
+          <th class="px-4 py-2.5 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template @for="job in filteredJobs()">
+          <tr class="hover:bg-[#1e1e26]">
+            <td class="px-4 py-2.5 text-sm text-zinc-50 font-medium border-b border-zinc-800">{{ job.name }}</td>
+            <td class="px-4 py-2.5 font-mono text-xs text-zinc-400 border-b border-zinc-800">{{ job.id }}</td>
+            <td class="px-4 py-2.5 text-sm text-zinc-400 border-b border-zinc-800">{{ job.queue }}</td>
+            <td class="px-4 py-2.5 border-b border-zinc-800">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass(job.status)">{{ job.status }}</span>
+            </td>
+            <td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ job.createdAt }}</td>
+            <td class="px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800">{{ job.completedAt || job.failedAt || job.processedAt || job.createdAt }}</td>
+            <td class="px-4 py-2.5 text-right border-b border-zinc-800 whitespace-nowrap">
+              <button :if="job.status === 'failed'" @click="retryJob(job.id)" class="text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3">Retry</button>
+              <a :href="'/jobs/' + job.id" class="text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150">View Details</a>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script client>
+  interface Job {
+    id: string
+    name: string
+    queue: string
+    status: string
+    createdAt: string
+    completedAt?: string
+    failedAt?: string
+    processedAt?: string
+  }
+
+  interface JobEvent {
+    jobId: string
+    queue: string
+  }
+
+  const allJobs = state<Job[]>([])
+  const activeFilter = state<string>('all')
+  const searchQuery = state<string>('')
+  const loading = state<boolean>(true)
+
+  const isAtTop = state<boolean>(true)
+  const buffer = state<Job[]>([])
+  const bufferedCount = derived<number>(() => buffer().length)
+
+  const filteredJobs = derived<Job[]>(() => {
+    let jobs: Job[] = allJobs()
+    const filter: string = activeFilter()
+    const query: string = searchQuery().toLowerCase().trim()
+
+    if (filter !== 'all') {
+      jobs = jobs.filter((j: Job) => j.status === filter)
     }
 
-    interface JobEvent {
-      jobId: string
-      queue: string
+    if (query) {
+      jobs = jobs.filter((j: Job) =>
+        j.name.toLowerCase().includes(query) ||
+        j.id.toLowerCase().includes(query) ||
+        j.queue.toLowerCase().includes(query)
+      )
     }
 
-    const allJobs = state<Job[]>([])
-    const activeFilter = state<string>('all')
-    const searchQuery = state<string>('')
-    const loading = state<boolean>(true)
+    return jobs
+  })
 
-    const isAtTop = state<boolean>(true)
-    const buffer = state<Job[]>([])
-    const bufferedCount = derived<number>(() => buffer().length)
+  function retryJob(jobId: string): void {
+    fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
+      .then(() => loadJobs())
+      .catch((err: unknown) => { console.error('Retry failed:', err) })
+  }
 
-    const filteredJobs = derived<Job[]>(() => {
-      let jobs: Job[] = allJobs()
-      const filter: string = activeFilter()
-      const query: string = searchQuery().toLowerCase().trim()
+  function loadJobs(): Promise<void> {
+    loading.set(true)
+    return fetch('/api/jobs')
+      .then((res: Response) => res.json())
+      .then((data: Job[]) => { allJobs.set(data) })
+      .catch((err: unknown) => { console.error('Failed to load jobs:', err) })
+      .finally(() => { loading.set(false) })
+  }
 
-      if (filter !== 'all') {
-        jobs = jobs.filter((j: Job) => j.status === filter)
-      }
-
-      if (query) {
-        jobs = jobs.filter((j: Job) =>
-          j.name.toLowerCase().includes(query) ||
-          j.id.toLowerCase().includes(query) ||
-          j.queue.toLowerCase().includes(query)
-        )
-      }
-
-      return jobs
-    })
-
-    function retryJob(jobId: string): void {
-      fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
-        .then(() => loadJobs())
-        .catch((err: unknown) => { console.error('Retry failed:', err) })
+  function flushBuffer(): void {
+    const buffered: Job[] = buffer()
+    if (buffered.length) {
+      allJobs.set(buffered.concat(allJobs()))
+      buffer.set([])
     }
+  }
 
-    function loadJobs(): Promise<void> {
-      loading.set(true)
-      return fetch('/api/jobs')
-        .then((res: Response) => res.json())
-        .then((data: Job[]) => { allJobs.set(data) })
-        .catch((err: unknown) => { console.error('Failed to load jobs:', err) })
-        .finally(() => { loading.set(false) })
-    }
+  function handleJobEvent(eventData: JobEvent): void {
+    fetch('/api/jobs/' + encodeURIComponent(eventData.jobId))
+      .then((res: Response) => res.ok ? res.json() : null)
+      .then((job: Job | null) => {
+        if (!job) return
 
-    function flushBuffer(): void {
-      const buffered: Job[] = buffer()
-      if (buffered.length) {
-        allJobs.set(buffered.concat(allJobs()))
-        buffer.set([])
-      }
-    }
-
-    function handleJobEvent(eventData: JobEvent): void {
-      fetch('/api/jobs/' + encodeURIComponent(eventData.jobId))
-        .then((res: Response) => res.ok ? res.json() : null)
-        .then((job: Job | null) => {
-          if (!job) return
-
-          if (isAtTop()) {
-            const current: Job[] = allJobs()
-            const idx: number = current.findIndex((j: Job) => j.id === job.id)
-            if (idx >= 0) {
-              const updated: Job[] = current.slice()
-              updated[idx] = job
-              allJobs.set(updated)
-            } else {
-              allJobs.set([job].concat(current))
-            }
+        if (isAtTop()) {
+          const current: Job[] = allJobs()
+          const idx: number = current.findIndex((j: Job) => j.id === job.id)
+          if (idx >= 0) {
+            const updated: Job[] = current.slice()
+            updated[idx] = job
+            allJobs.set(updated)
           } else {
-            const buf: Job[] = buffer()
-            const bufIdx: number = buf.findIndex((j: Job) => j.id === job.id)
-            if (bufIdx >= 0) {
-              const updatedBuf: Job[] = buf.slice()
-              updatedBuf[bufIdx] = job
-              buffer.set(updatedBuf)
-            } else {
-              buffer.set([job].concat(buf))
-            }
+            allJobs.set([job].concat(current))
           }
-        })
-        .catch((err: unknown) => { console.error('Failed to fetch job update:', err) })
-    }
-
-    useEventListener('scroll', () => {
-      isAtTop.set(window.scrollY < 50)
-    }, { passive: true })
-
-    const wsUrl: string | undefined = window.__BQ_WS_URL
-    const wsStatus = state<string>('CLOSED')
-
-    onMount((): (() => void) | void => {
-      loadJobs()
-
-      if (!wsUrl) return
-
-      const ws = useWebSocket(wsUrl, {
-        immediate: false,
-        onOpen: () => {
-          wsStatus.set('OPEN')
-          ws.subscribe('dashboard')
-            .listen('job.added', handleJobEvent)
-            .listen('job.completed', handleJobEvent)
-            .listen('job.failed', handleJobEvent)
-            .listen('job.active', handleJobEvent)
-            .listen('job.stalled', handleJobEvent)
-            .listen('job.removed', (data: JobEvent) => {
-              const current: Job[] = allJobs()
-              allJobs.set(current.filter((j: Job) => j.id !== data.jobId))
-            })
-        },
-        onClose: () => { wsStatus.set('CLOSED') },
-        onError: () => { wsStatus.set('CLOSED') }
+        } else {
+          const buf: Job[] = buffer()
+          const bufIdx: number = buf.findIndex((j: Job) => j.id === job.id)
+          if (bufIdx >= 0) {
+            const updatedBuf: Job[] = buf.slice()
+            updatedBuf[bufIdx] = job
+            buffer.set(updatedBuf)
+          } else {
+            buffer.set([job].concat(buf))
+          }
+        }
       })
+      .catch((err: unknown) => { console.error('Failed to fetch job update:', err) })
+  }
 
-      const connectTimer = setTimeout(() => { ws.connect() }, 200)
+  useEventListener('scroll', () => {
+    isAtTop.set(window.scrollY < 50)
+  }, { passive: true })
 
-      return () => { clearTimeout(connectTimer); ws.close() }
+  const wsUrl: string | undefined = window.__BQ_WS_URL
+  const wsStatus = state<string>('CLOSED')
+
+  onMount((): (() => void) | void => {
+    loadJobs()
+
+    if (!wsUrl) return
+
+    const ws = useWebSocket(wsUrl, {
+      immediate: false,
+      onOpen: () => {
+        wsStatus.set('OPEN')
+        ws.subscribe('dashboard')
+          .listen('job.added', handleJobEvent)
+          .listen('job.completed', handleJobEvent)
+          .listen('job.failed', handleJobEvent)
+          .listen('job.active', handleJobEvent)
+          .listen('job.stalled', handleJobEvent)
+          .listen('job.removed', (data: JobEvent) => {
+            const current: Job[] = allJobs()
+            allJobs.set(current.filter((j: Job) => j.id !== data.jobId))
+          })
+      },
+      onClose: () => { wsStatus.set('CLOSED') },
+      onError: () => { wsStatus.set('CLOSED') }
     })
-  </script>
-@endpush
+
+    const connectTimer = setTimeout(() => { ws.connect() }, 200)
+
+    return () => { clearTimeout(connectTimer); ws.close() }
+  })
+</script>

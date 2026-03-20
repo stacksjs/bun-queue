@@ -1,335 +1,321 @@
-@extends('../layouts/app')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 
-@section('title')
-bun-queue Dashboard
-@endsection
+<style>
+  .chart-container { position: relative; height: 220px; width: 100%; }
+  .chart-container-sm { position: relative; height: 180px; width: 100%; }
+</style>
 
-@push('head')
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
-@endpush
-
-@push('styles')
-  <style>
-    .chart-container { position: relative; height: 220px; width: 100%; }
-    .chart-container-sm { position: relative; height: 180px; width: 100%; }
-  </style>
-@endpush
-
-@section('content')
-  <div class="max-w-[1200px] mx-auto p-6">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-lg font-semibold text-zinc-50">Dashboard Overview</h1>
-        <p class="text-sm text-zinc-500 mt-1">Real-time job queue monitoring</p>
+<div class="max-w-[1200px] mx-auto p-6">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-lg font-semibold text-zinc-50">Dashboard Overview</h1>
+      <p class="text-sm text-zinc-500 mt-1">Real-time job queue monitoring</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <div :if="wsStatus() === 'OPEN'" class="flex items-center gap-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-xs text-zinc-500">Live</span>
       </div>
-      <div class="flex items-center gap-3">
-        <div :if="wsStatus() === 'OPEN'" class="flex items-center gap-1.5">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span class="text-xs text-zinc-500">Live</span>
-        </div>
-        <button class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" @click="loadDashboard()">Refresh</button>
+      <button class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150" @click="loadDashboard()">Refresh</button>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="grid grid-cols-6 gap-4 mb-6 max-lg:grid-cols-3 max-sm:grid-cols-2">
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Active Queues</div>
+      <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ activeQueues() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Waiting Jobs</div>
+      <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums">{{ waitingJobs() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Active Jobs</div>
+      <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ activeJobs() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Completed Jobs</div>
+      <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ completedJobs() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Failed Jobs</div>
+      <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ failedJobs() }}</div>
+    </div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
+      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Processing Rate</div>
+      <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums">{{ processingRate() }}<span class="text-xs text-zinc-500 font-normal"> /min</span></div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="grid grid-cols-2 gap-6 mb-6 max-lg:grid-cols-1">
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-sm font-semibold text-zinc-50">Job Throughput</span>
+      </div>
+      <div class="chart-container">
+        <canvas ref="throughput-chart"></canvas>
       </div>
     </div>
-
-    <!-- Stat Cards -->
-    <div class="grid grid-cols-6 gap-4 mb-6 max-lg:grid-cols-3 max-sm:grid-cols-2">
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Active Queues</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ activeQueues() }}</div>
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-sm font-semibold text-zinc-50">Queue Status</span>
       </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Waiting Jobs</div>
-        <div class="text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums">{{ waitingJobs() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Active Jobs</div>
-        <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ activeJobs() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Completed Jobs</div>
-        <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ completedJobs() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Failed Jobs</div>
-        <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ failedJobs() }}</div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-        <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Processing Rate</div>
-        <div class="text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums">{{ processingRate() }}<span class="text-xs text-zinc-500 font-normal"> /min</span></div>
-      </div>
-    </div>
-
-    <!-- Charts Row -->
-    <div class="grid grid-cols-2 gap-6 mb-6 max-lg:grid-cols-1">
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-sm font-semibold text-zinc-50">Job Throughput</span>
-        </div>
-        <div class="chart-container">
-          <canvas ref="throughput-chart"></canvas>
-        </div>
-      </div>
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-sm font-semibold text-zinc-50">Queue Status</span>
-        </div>
-        <div class="chart-container">
-          <canvas ref="queue-status-chart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Jobs + Queue List -->
-    <div class="grid grid-cols-2 gap-6 mb-6 max-lg:grid-cols-1">
-      <!-- Recent Jobs -->
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-sm font-semibold text-zinc-50">Recent Jobs</span>
-          <StxLink to="/jobs" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</StxLink>
-        </div>
-
-        <!-- Loading state -->
-        <div :show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading recent jobs...</div>
-
-        <!-- Empty state -->
-        <div :show="!loading() && recentJobs().length === 0" class="text-center py-8 text-zinc-500 text-sm">No recent jobs to display.</div>
-
-        <!-- Jobs table -->
-        <table :show="!loading() && recentJobs().length > 0" class="w-full border-collapse">
-          <thead>
-            <tr>
-              <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Name</th>
-              <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Queue</th>
-              <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Status</th>
-              <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Duration</th>
-            </tr>
-          </thead>
-          <tbody>
-            <template @for="job in recentJobs()">
-              <tr class="hover:bg-[#1e1e26]">
-                <td class="px-3 py-2.5 text-sm text-zinc-50 font-medium border-b border-zinc-800 last:border-b-0">{{ job.name }}</td>
-                <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">{{ job.queue }}</td>
-                <td class="px-3 py-2.5 border-b border-zinc-800 last:border-b-0">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass(job.status)">{{ job.status }}</span>
-                </td>
-                <td class="px-3 py-2.5 text-right font-mono tabular-nums text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">{{ formatDuration(job.duration) }}</td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Queue List -->
-      <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
-        <div class="flex items-center justify-between mb-4">
-          <span class="text-sm font-semibold text-zinc-50">Queue List</span>
-          <StxLink to="/queues" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</StxLink>
-        </div>
-
-        <!-- Loading state -->
-        <div :show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading queues...</div>
-
-        <!-- Empty state -->
-        <div :show="!loading() && queues().length === 0" class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>
-
-        <!-- Queue cards -->
-        <div :show="!loading() && queues().length > 0" class="flex flex-col gap-3">
-          <template @for="q in queues()">
-            <div class="bg-[#1e1e26] rounded-md px-4 py-3 flex items-center justify-between hover:bg-indigo-500/[0.08] transition-colors duration-150">
-              <div>
-                <div class="text-sm font-medium text-zinc-50">{{ q.name }}</div>
-              </div>
-              <div class="flex gap-4 text-xs text-zinc-500 tabular-nums">
-                <span>Active <strong class="text-zinc-400">{{ q.activeJobs }}</strong></span>
-                <span>Pending <strong class="text-zinc-400">{{ q.pendingJobs }}</strong></span>
-                <span>Failed <strong class="text-zinc-400">{{ q.failedJobs }}</strong></span>
-              </div>
-            </div>
-          </template>
-        </div>
+      <div class="chart-container">
+        <canvas ref="queue-status-chart"></canvas>
       </div>
     </div>
   </div>
-@endsection
 
-@push('scripts')
-  <script client>
-    interface DashboardStats {
-      totalQueues: number
-      totalJobs: number
-      activeJobs: number
-      completedJobs: number
-      failedJobs: number
-      throughputPerMinute: number
-    }
+  <!-- Recent Jobs + Queue List -->
+  <div class="grid grid-cols-2 gap-6 mb-6 max-lg:grid-cols-1">
+    <!-- Recent Jobs -->
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-sm font-semibold text-zinc-50">Recent Jobs</span>
+        <StxLink to="/jobs" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</StxLink>
+      </div>
 
-    interface DashboardJob {
-      name: string
-      queue: string
-      status: string
-      duration?: number
-    }
+      <!-- Loading state -->
+      <div :show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading recent jobs...</div>
 
-    interface DashboardQueue {
-      name: string
-      activeJobs: number
-      pendingJobs: number
-      failedJobs: number
-    }
+      <!-- Empty state -->
+      <div :show="!loading() && recentJobs().length === 0" class="text-center py-8 text-zinc-500 text-sm">No recent jobs to display.</div>
 
-    interface MetricsData {
-      timestamps: string[]
-      throughput: number[]
-    }
+      <!-- Jobs table -->
+      <table :show="!loading() && recentJobs().length > 0" class="w-full border-collapse">
+        <thead>
+          <tr>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Name</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Queue</th>
+            <th class="px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Status</th>
+            <th class="px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800">Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template @for="job in recentJobs()">
+            <tr class="hover:bg-[#1e1e26]">
+              <td class="px-3 py-2.5 text-sm text-zinc-50 font-medium border-b border-zinc-800 last:border-b-0">{{ job.name }}</td>
+              <td class="px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">{{ job.queue }}</td>
+              <td class="px-3 py-2.5 border-b border-zinc-800 last:border-b-0">
+                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium" :class="badgeClass(job.status)">{{ job.status }}</span>
+              </td>
+              <td class="px-3 py-2.5 text-right font-mono tabular-nums text-xs text-zinc-400 border-b border-zinc-800 last:border-b-0">{{ formatDuration(job.duration) }}</td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
 
-    const loading = state<boolean>(true)
-    const activeQueues = state<string | number>('--')
-    const waitingJobs = state<string | number>('--')
-    const activeJobs = state<string | number>('--')
-    const completedJobs = state<string | number>('--')
-    const failedJobs = state<string | number>('--')
-    const processingRate = state<string | number>('--')
-    const recentJobs = state<DashboardJob[]>([])
-    const queues = state<DashboardQueue[]>([])
+    <!-- Queue List -->
+    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <span class="text-sm font-semibold text-zinc-50">Queue List</span>
+        <StxLink to="/queues" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium border border-zinc-800 bg-[#1e1e26] text-zinc-400 no-underline cursor-pointer hover:border-indigo-500 hover:text-zinc-50 transition-all duration-150">View All</StxLink>
+      </div>
 
-    let throughputChart: Chart | null = null
-    let queueStatusChart: Chart | null = null
+      <!-- Loading state -->
+      <div :show="loading()" class="text-center py-8 text-zinc-500 text-sm">Loading queues...</div>
 
-    const throughputCanvas = useRef<HTMLCanvasElement>('throughput-chart')
-    const queueStatusCanvas = useRef<HTMLCanvasElement>('queue-status-chart')
+      <!-- Empty state -->
+      <div :show="!loading() && queues().length === 0" class="text-center py-8 text-zinc-500 text-sm">No queues found.</div>
 
-    function loadDashboard(): void {
-      loading.set(true)
-      fetch('/api/stats')
-        .then((statsRes: Response) => statsRes.json())
-        .then((stats: DashboardStats) => {
-          activeQueues.set(stats.totalQueues)
-          waitingJobs.set(stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs)
-          activeJobs.set(stats.activeJobs)
-          completedJobs.set(stats.completedJobs)
-          failedJobs.set(stats.failedJobs)
-          processingRate.set(stats.throughputPerMinute)
+      <!-- Queue cards -->
+      <div :show="!loading() && queues().length > 0" class="flex flex-col gap-3">
+        <template @for="q in queues()">
+          <div class="bg-[#1e1e26] rounded-md px-4 py-3 flex items-center justify-between hover:bg-indigo-500/[0.08] transition-colors duration-150">
+            <div>
+              <div class="text-sm font-medium text-zinc-50">{{ q.name }}</div>
+            </div>
+            <div class="flex gap-4 text-xs text-zinc-500 tabular-nums">
+              <span>Active <strong class="text-zinc-400">{{ q.activeJobs }}</strong></span>
+              <span>Pending <strong class="text-zinc-400">{{ q.pendingJobs }}</strong></span>
+              <span>Failed <strong class="text-zinc-400">{{ q.failedJobs }}</strong></span>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+</div>
 
-          return fetch('/api/metrics?timeRange=24h')
-        })
-        .then((metricsRes: Response) => metricsRes.json())
-        .then((metrics: MetricsData) => {
-          if (throughputChart) throughputChart.destroy()
-          const ctx1 = throughputCanvas.current.getContext('2d')
-          throughputChart = new Chart(ctx1, {
-            type: 'line',
-            data: {
-              labels: metrics.timestamps,
-              datasets: [{
-                label: 'Jobs/min',
-                data: metrics.throughput,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 0,
-                pointHitRadius: 10,
-                borderWidth: 2,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { display: false } },
-              scales: {
-                x: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 } },
-                y: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 } }, beginAtZero: true }
-              }
-            }
-          })
+<script client>
+  interface DashboardStats {
+    totalQueues: number
+    totalJobs: number
+    activeJobs: number
+    completedJobs: number
+    failedJobs: number
+    throughputPerMinute: number
+  }
 
-          return fetch('/api/stats')
-        })
-        .then((statsRes2: Response) => statsRes2.json())
-        .then((stats: DashboardStats) => {
-          if (queueStatusChart) queueStatusChart.destroy()
-          const ctx2 = queueStatusCanvas.current.getContext('2d')
-          queueStatusChart = new Chart(ctx2, {
-            type: 'doughnut',
-            data: {
-              labels: ['Completed', 'Active', 'Waiting', 'Failed'],
-              datasets: [{
-                data: [stats.completedJobs, stats.activeJobs, stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs, stats.failedJobs],
-                backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
-                borderColor: '#141419',
-                borderWidth: 2,
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: {
-                  position: 'bottom',
-                  labels: { color: '#a1a1aa', font: { size: 11 }, padding: 16, usePointStyle: true, pointStyleWidth: 8 }
-                }
-              },
-              cutout: '65%',
-            }
-          })
+  interface DashboardJob {
+    name: string
+    queue: string
+    status: string
+    duration?: number
+  }
 
-          return fetch('/api/jobs')
-        })
-        .then((jobsRes: Response) => jobsRes.json())
-        .then((jobs: DashboardJob[]) => {
-          recentJobs.set(jobs.slice(0, 5))
-          return fetch('/api/queues')
-        })
-        .then((queuesRes: Response) => queuesRes.json())
-        .then((queueData: DashboardQueue[]) => {
-          queues.set(queueData)
-        })
-        .catch((err: unknown) => {
-          console.error('Failed to load dashboard:', err)
-        })
-        .finally(() => {
-          loading.set(false)
-        })
-    }
+  interface DashboardQueue {
+    name: string
+    activeJobs: number
+    pendingJobs: number
+    failedJobs: number
+  }
 
-    const wsUrl: string | undefined = window.__BQ_WS_URL
-    const wsStatus = state<string>('CLOSED')
+  interface MetricsData {
+    timestamps: string[]
+    throughput: number[]
+  }
 
-    let reloadTimer: ReturnType<typeof setTimeout> | null = null
-    function scheduleReload(): void {
-      if (reloadTimer) return
-      reloadTimer = setTimeout(() => {
-        reloadTimer = null
-        loadDashboard()
-      }, 2000)
-    }
+  const loading = state<boolean>(true)
+  const activeQueues = state<string | number>('--')
+  const waitingJobs = state<string | number>('--')
+  const activeJobs = state<string | number>('--')
+  const completedJobs = state<string | number>('--')
+  const failedJobs = state<string | number>('--')
+  const processingRate = state<string | number>('--')
+  const recentJobs = state<DashboardJob[]>([])
+  const queues = state<DashboardQueue[]>([])
 
-    onMount((): (() => void) | void => {
-      loadDashboard()
+  let throughputChart: Chart | null = null
+  let queueStatusChart: Chart | null = null
 
-      if (!wsUrl) return
+  const throughputCanvas = useRef<HTMLCanvasElement>('throughput-chart')
+  const queueStatusCanvas = useRef<HTMLCanvasElement>('queue-status-chart')
 
-      const ws = useWebSocket(wsUrl, {
-        immediate: false,
-        onOpen: () => {
-          wsStatus.set('OPEN')
-          ws.subscribe('dashboard')
-            .listen('job.added', scheduleReload)
-            .listen('job.completed', scheduleReload)
-            .listen('job.failed', scheduleReload)
-            .listen('job.active', scheduleReload)
-        },
-        onClose: () => { wsStatus.set('CLOSED') },
-        onError: () => { wsStatus.set('CLOSED') }
+  function loadDashboard(): void {
+    loading.set(true)
+    fetch('/api/stats')
+      .then((statsRes: Response) => statsRes.json())
+      .then((stats: DashboardStats) => {
+        activeQueues.set(stats.totalQueues)
+        waitingJobs.set(stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs)
+        activeJobs.set(stats.activeJobs)
+        completedJobs.set(stats.completedJobs)
+        failedJobs.set(stats.failedJobs)
+        processingRate.set(stats.throughputPerMinute)
+
+        return fetch('/api/metrics?timeRange=24h')
       })
+      .then((metricsRes: Response) => metricsRes.json())
+      .then((metrics: MetricsData) => {
+        if (throughputChart) throughputChart.destroy()
+        const ctx1 = throughputCanvas.current.getContext('2d')
+        throughputChart = new Chart(ctx1, {
+          type: 'line',
+          data: {
+            labels: metrics.timestamps,
+            datasets: [{
+              label: 'Jobs/min',
+              data: metrics.throughput,
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 0,
+              pointHitRadius: 10,
+              borderWidth: 2,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 8 } },
+              y: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 } }, beginAtZero: true }
+            }
+          }
+        })
 
-      const connectTimer = setTimeout(() => { ws.connect() }, 200)
+        return fetch('/api/stats')
+      })
+      .then((statsRes2: Response) => statsRes2.json())
+      .then((stats: DashboardStats) => {
+        if (queueStatusChart) queueStatusChart.destroy()
+        const ctx2 = queueStatusCanvas.current.getContext('2d')
+        queueStatusChart = new Chart(ctx2, {
+          type: 'doughnut',
+          data: {
+            labels: ['Completed', 'Active', 'Waiting', 'Failed'],
+            datasets: [{
+              data: [stats.completedJobs, stats.activeJobs, stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs, stats.failedJobs],
+              backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
+              borderColor: '#141419',
+              borderWidth: 2,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'bottom',
+                labels: { color: '#a1a1aa', font: { size: 11 }, padding: 16, usePointStyle: true, pointStyleWidth: 8 }
+              }
+            },
+            cutout: '65%',
+          }
+        })
 
-      return () => {
-        clearTimeout(connectTimer)
-        if (reloadTimer) clearTimeout(reloadTimer)
-        ws.close()
-      }
+        return fetch('/api/jobs')
+      })
+      .then((jobsRes: Response) => jobsRes.json())
+      .then((jobs: DashboardJob[]) => {
+        recentJobs.set(jobs.slice(0, 5))
+        return fetch('/api/queues')
+      })
+      .then((queuesRes: Response) => queuesRes.json())
+      .then((queueData: DashboardQueue[]) => {
+        queues.set(queueData)
+      })
+      .catch((err: unknown) => {
+        console.error('Failed to load dashboard:', err)
+      })
+      .finally(() => {
+        loading.set(false)
+      })
+  }
+
+  const wsUrl: string | undefined = window.__BQ_WS_URL
+  const wsStatus = state<string>('CLOSED')
+
+  let reloadTimer: ReturnType<typeof setTimeout> | null = null
+  function scheduleReload(): void {
+    if (reloadTimer) return
+    reloadTimer = setTimeout(() => {
+      reloadTimer = null
+      loadDashboard()
+    }, 2000)
+  }
+
+  onMount((): (() => void) | void => {
+    loadDashboard()
+
+    if (!wsUrl) return
+
+    const ws = useWebSocket(wsUrl, {
+      immediate: false,
+      onOpen: () => {
+        wsStatus.set('OPEN')
+        ws.subscribe('dashboard')
+          .listen('job.added', scheduleReload)
+          .listen('job.completed', scheduleReload)
+          .listen('job.failed', scheduleReload)
+          .listen('job.active', scheduleReload)
+      },
+      onClose: () => { wsStatus.set('CLOSED') },
+      onError: () => { wsStatus.set('CLOSED') }
     })
-  </script>
-@endpush
+
+    const connectTimer = setTimeout(() => { ws.connect() }, 200)
+
+    return () => {
+      clearTimeout(connectTimer)
+      if (reloadTimer) clearTimeout(reloadTimer)
+      ws.close()
+    }
+  })
+</script>

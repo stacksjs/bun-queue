@@ -1,33 +1,15 @@
-@extends('../layouts/app')
+<script src="https://d3js.org/d3.v7.min.js"></script>
 
-@section('title')
-Job Dependencies — bun-queue
-@endsection
+<style>
+  .graph-container svg { width: 100%; height: 100%; }
+  .link { stroke: #27272a; stroke-width: 1.5; fill: none; }
+  .link-arrow { fill: #27272a; }
+  .node-circle { stroke: rgba(255,255,255,0.15); stroke-width: 2; cursor: grab; }
+  .node-circle:active { cursor: grabbing; }
+  .node-label { font-size: 10px; fill: #a1a1aa; text-anchor: middle; pointer-events: none; user-select: none; }
+</style>
 
-@section('body-class')
-overflow-hidden
-@endsection
-
-@section('main-class')
-h-screen flex flex-col
-@endsection
-
-@push('head')
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-@endpush
-
-@push('styles')
-  <style>
-    .graph-container svg { width: 100%; height: 100%; }
-    .link { stroke: #27272a; stroke-width: 1.5; fill: none; }
-    .link-arrow { fill: #27272a; }
-    .node-circle { stroke: rgba(255,255,255,0.15); stroke-width: 2; cursor: grab; }
-    .node-circle:active { cursor: grabbing; }
-    .node-label { font-size: 10px; fill: #a1a1aa; text-anchor: middle; pointer-events: none; user-select: none; }
-  </style>
-@endpush
-
-@section('content')
+<div class="overflow-hidden h-screen flex flex-col">
   <!-- Top bar -->
   <div class="flex items-center justify-between px-6 py-3 bg-[#141419] border-b border-zinc-800 shrink-0">
     <div class="flex items-center gap-4">
@@ -64,191 +46,189 @@ h-screen flex flex-col
     <div class="font-mono text-zinc-500 text-[0.6875rem]" ref="tooltip-id"></div>
     <div class="mt-1" ref="tooltip-status"></div>
   </div>
-@endsection
+</div>
 
-@push('scripts')
-  <script client>
-    interface GraphNode {
-      id: string
-      name?: string
-      label?: string
-      status: string
-      x?: number
-      y?: number
-      fx?: number | null
-      fy?: number | null
-    }
+<script client>
+  interface GraphNode {
+    id: string
+    name?: string
+    label?: string
+    status: string
+    x?: number
+    y?: number
+    fx?: number | null
+    fy?: number | null
+  }
 
-    interface GraphLink {
-      source: string | GraphNode
-      target: string | GraphNode
-    }
+  interface GraphLink {
+    source: string | GraphNode
+    target: string | GraphNode
+  }
 
-    interface GraphData {
-      nodes: GraphNode[]
-      links?: GraphLink[]
-      edges?: GraphLink[]
-    }
+  interface GraphData {
+    nodes: GraphNode[]
+    links?: GraphLink[]
+    edges?: GraphLink[]
+  }
 
-    const statusMessage = state<string>('Loading dependency graph...')
+  const statusMessage = state<string>('Loading dependency graph...')
 
-    const graphContainer = useRef<HTMLDivElement>('graph-container')
-    const tooltipRef = useRef<HTMLDivElement>('tooltip')
-    const tooltipNameRef = useRef<HTMLDivElement>('tooltip-name')
-    const tooltipIdRef = useRef<HTMLDivElement>('tooltip-id')
-    const tooltipStatusRef = useRef<HTMLDivElement>('tooltip-status')
+  const graphContainer = useRef<HTMLDivElement>('graph-container')
+  const tooltipRef = useRef<HTMLDivElement>('tooltip')
+  const tooltipNameRef = useRef<HTMLDivElement>('tooltip-name')
+  const tooltipIdRef = useRef<HTMLDivElement>('tooltip-id')
+  const tooltipStatusRef = useRef<HTMLDivElement>('tooltip-status')
 
-    function getStatusColor(status: string): string {
-      return STATUS_COLORS[status] || DEFAULT_STATUS_COLOR
-    }
+  function getStatusColor(status: string): string {
+    return STATUS_COLORS[status] || DEFAULT_STATUS_COLOR
+  }
 
-    let simulation: d3.Simulation<GraphNode, GraphLink> | null = null
+  let simulation: d3.Simulation<GraphNode, GraphLink> | null = null
 
-    function loadDependencies(): void {
-      fetch('/api/dependencies')
-        .then((res: Response) => res.json())
-        .then((data: GraphData) => {
-          if (!data || !data.nodes || data.nodes.length === 0) {
-            statusMessage.set('No job dependencies found.')
-            return
-          }
+  function loadDependencies(): void {
+    fetch('/api/dependencies')
+      .then((res: Response) => res.json())
+      .then((data: GraphData) => {
+        if (!data || !data.nodes || data.nodes.length === 0) {
+          statusMessage.set('No job dependencies found.')
+          return
+        }
 
-          statusMessage.set('')
-          buildGraph(data)
-        })
-        .catch((e: unknown) => {
-          console.error('Failed to load dependencies:', e)
-          statusMessage.set('Failed to load dependency graph.')
-        })
-    }
-
-    function buildGraph(data: GraphData): void {
-      const container: HTMLDivElement = graphContainer.current
-      const tooltipEl: HTMLDivElement = tooltipRef.current
-      const width: number = container.clientWidth
-      const height: number = container.clientHeight
-
-      const svg = d3.select(container)
-        .append('svg')
-        .attr('width', width)
-        .attr('height', height)
-
-      svg.append('defs').append('marker')
-        .attr('id', 'arrowhead')
-        .attr('viewBox', '0 -5 10 10')
-        .attr('refX', 20)
-        .attr('refY', 0)
-        .attr('markerWidth', 6)
-        .attr('markerHeight', 6)
-        .attr('orient', 'auto')
-        .append('path')
-        .attr('d', 'M0,-5L10,0L0,5')
-        .attr('class', 'link-arrow')
-
-      const g = svg.append('g')
-
-      const zoom = d3.zoom()
-        .scaleExtent([0.1, 4])
-        .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
-          g.attr('transform', event.transform.toString())
-        })
-
-      svg.call(zoom as any)
-      svg.call(zoom.transform as any, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2))
-
-      const nodes: GraphNode[] = data.nodes.map((d: GraphNode) => Object.assign({}, d))
-      const links: GraphLink[] = (data.links || data.edges || []).map((d: GraphLink) => Object.assign({}, d))
-
-      simulation = d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id((d: any) => d.id).distance(120))
-        .force('charge', d3.forceManyBody().strength(-300))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(30))
-
-      const link = g.append('g')
-        .selectAll('line')
-        .data(links)
-        .join('line')
-        .attr('class', 'link')
-        .attr('marker-end', 'url(#arrowhead)')
-
-      const node = g.append('g')
-        .selectAll('g')
-        .data(nodes)
-        .join('g')
-
-      node.append('circle')
-        .attr('class', 'node-circle')
-        .attr('r', 12)
-        .attr('fill', (d: GraphNode) => getStatusColor(d.status))
-        .on('mouseover', function(event: MouseEvent, d: GraphNode) {
-          d3.select(this).attr('r', 16).attr('stroke-width', 3)
-
-          const nameEl: HTMLDivElement = tooltipNameRef.current
-          const idEl: HTMLDivElement = tooltipIdRef.current
-          const statusEl: HTMLDivElement = tooltipStatusRef.current
-
-          nameEl.textContent = d.name || d.label || 'Job'
-          idEl.textContent = 'ID: ' + d.id
-
-          const badgeStatus: string = d.status || 'waiting'
-          const badgeColors: Record<string, string> = {
-            completed: 'background: rgba(16, 185, 129, 0.2); color: #10b981;',
-            active: 'background: rgba(99, 102, 241, 0.2); color: #6366f1;',
-            waiting: 'background: rgba(245, 158, 11, 0.2); color: #f59e0b;',
-            failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
-          }
-          statusEl.innerHTML =
-            '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>'
-
-          tooltipEl.style.left = (event.pageX + 12) + 'px'
-          tooltipEl.style.top = (event.pageY - 10) + 'px'
-          tooltipEl.style.opacity = '1'
-        })
-        .on('mousemove', function(event: MouseEvent) {
-          tooltipEl.style.left = (event.pageX + 12) + 'px'
-          tooltipEl.style.top = (event.pageY - 10) + 'px'
-        })
-        .on('mouseout', function() {
-          d3.select(this).attr('r', 12).attr('stroke-width', 2)
-          tooltipEl.style.opacity = '0'
-        })
-        .call(d3.drag<SVGCircleElement, GraphNode>()
-          .on('start', (event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>, d: GraphNode) => {
-            if (!event.active) simulation!.alphaTarget(0.3).restart()
-            d.fx = d.x
-            d.fy = d.y
-          })
-          .on('drag', (event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>, d: GraphNode) => {
-            d.fx = event.x
-            d.fy = event.y
-          })
-          .on('end', (event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>, d: GraphNode) => {
-            if (!event.active) simulation!.alphaTarget(0)
-            d.fx = null
-            d.fy = null
-          })
-        )
-
-      node.append('text')
-        .attr('class', 'node-label')
-        .attr('dy', 28)
-        .text((d: GraphNode) => {
-          const name: string = d.name || d.label || d.id || ''
-          return name.length > 16 ? name.slice(0, 14) + '...' : name
-        })
-
-      simulation.on('tick', () => {
-        link
-          .attr('x1', (d: any) => d.source.x)
-          .attr('y1', (d: any) => d.source.y)
-          .attr('x2', (d: any) => d.target.x)
-          .attr('y2', (d: any) => d.target.y)
-
-        node.attr('transform', (d: any) => 'translate(' + d.x + ',' + d.y + ')')
+        statusMessage.set('')
+        buildGraph(data)
       })
-    }
+      .catch((e: unknown) => {
+        console.error('Failed to load dependencies:', e)
+        statusMessage.set('Failed to load dependency graph.')
+      })
+  }
 
-    onMount((): void => { loadDependencies() })
-  </script>
-@endpush
+  function buildGraph(data: GraphData): void {
+    const container: HTMLDivElement = graphContainer.current
+    const tooltipEl: HTMLDivElement = tooltipRef.current
+    const width: number = container.clientWidth
+    const height: number = container.clientHeight
+
+    const svg = d3.select(container)
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+
+    svg.append('defs').append('marker')
+      .attr('id', 'arrowhead')
+      .attr('viewBox', '0 -5 10 10')
+      .attr('refX', 20)
+      .attr('refY', 0)
+      .attr('markerWidth', 6)
+      .attr('markerHeight', 6)
+      .attr('orient', 'auto')
+      .append('path')
+      .attr('d', 'M0,-5L10,0L0,5')
+      .attr('class', 'link-arrow')
+
+    const g = svg.append('g')
+
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 4])
+      .on('zoom', (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
+        g.attr('transform', event.transform.toString())
+      })
+
+    svg.call(zoom as any)
+    svg.call(zoom.transform as any, d3.zoomIdentity.translate(width / 2, height / 2).scale(0.8).translate(-width / 2, -height / 2))
+
+    const nodes: GraphNode[] = data.nodes.map((d: GraphNode) => Object.assign({}, d))
+    const links: GraphLink[] = (data.links || data.edges || []).map((d: GraphLink) => Object.assign({}, d))
+
+    simulation = d3.forceSimulation(nodes)
+      .force('link', d3.forceLink(links).id((d: any) => d.id).distance(120))
+      .force('charge', d3.forceManyBody().strength(-300))
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collision', d3.forceCollide().radius(30))
+
+    const link = g.append('g')
+      .selectAll('line')
+      .data(links)
+      .join('line')
+      .attr('class', 'link')
+      .attr('marker-end', 'url(#arrowhead)')
+
+    const node = g.append('g')
+      .selectAll('g')
+      .data(nodes)
+      .join('g')
+
+    node.append('circle')
+      .attr('class', 'node-circle')
+      .attr('r', 12)
+      .attr('fill', (d: GraphNode) => getStatusColor(d.status))
+      .on('mouseover', function(event: MouseEvent, d: GraphNode) {
+        d3.select(this).attr('r', 16).attr('stroke-width', 3)
+
+        const nameEl: HTMLDivElement = tooltipNameRef.current
+        const idEl: HTMLDivElement = tooltipIdRef.current
+        const statusEl: HTMLDivElement = tooltipStatusRef.current
+
+        nameEl.textContent = d.name || d.label || 'Job'
+        idEl.textContent = 'ID: ' + d.id
+
+        const badgeStatus: string = d.status || 'waiting'
+        const badgeColors: Record<string, string> = {
+          completed: 'background: rgba(16, 185, 129, 0.2); color: #10b981;',
+          active: 'background: rgba(99, 102, 241, 0.2); color: #6366f1;',
+          waiting: 'background: rgba(245, 158, 11, 0.2); color: #f59e0b;',
+          failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
+        }
+        statusEl.innerHTML =
+          '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>'
+
+        tooltipEl.style.left = (event.pageX + 12) + 'px'
+        tooltipEl.style.top = (event.pageY - 10) + 'px'
+        tooltipEl.style.opacity = '1'
+      })
+      .on('mousemove', function(event: MouseEvent) {
+        tooltipEl.style.left = (event.pageX + 12) + 'px'
+        tooltipEl.style.top = (event.pageY - 10) + 'px'
+      })
+      .on('mouseout', function() {
+        d3.select(this).attr('r', 12).attr('stroke-width', 2)
+        tooltipEl.style.opacity = '0'
+      })
+      .call(d3.drag<SVGCircleElement, GraphNode>()
+        .on('start', (event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>, d: GraphNode) => {
+          if (!event.active) simulation!.alphaTarget(0.3).restart()
+          d.fx = d.x
+          d.fy = d.y
+        })
+        .on('drag', (event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>, d: GraphNode) => {
+          d.fx = event.x
+          d.fy = event.y
+        })
+        .on('end', (event: d3.D3DragEvent<SVGCircleElement, GraphNode, GraphNode>, d: GraphNode) => {
+          if (!event.active) simulation!.alphaTarget(0)
+          d.fx = null
+          d.fy = null
+        })
+      )
+
+    node.append('text')
+      .attr('class', 'node-label')
+      .attr('dy', 28)
+      .text((d: GraphNode) => {
+        const name: string = d.name || d.label || d.id || ''
+        return name.length > 16 ? name.slice(0, 14) + '...' : name
+      })
+
+    simulation.on('tick', () => {
+      link
+        .attr('x1', (d: any) => d.source.x)
+        .attr('y1', (d: any) => d.source.y)
+        .attr('x2', (d: any) => d.target.x)
+        .attr('y2', (d: any) => d.target.y)
+
+      node.attr('transform', (d: any) => 'translate(' + d.x + ',' + d.y + ')')
+    })
+  }
+
+  onMount((): void => { loadDependencies() })
+</script>
