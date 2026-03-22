@@ -130,10 +130,15 @@ async function renderStxPage(templateName: string, wsUrl: string, req: Request):
   const content = await Bun.file(templatePath).text()
 
   const context = { __filename: templatePath, __dirname: path.dirname(templatePath) }
-  // Skip signals runtime injection for page fragments — the shell provides it
-  const pageConfig = { ...stxConfig, skipSignalsRuntime: true }
-  let pageHtml = await processDirectives(content, context, templatePath, pageConfig, new Set())
+  let pageHtml = await processDirectives(content, context, templatePath, stxConfig, new Set())
   pageHtml = stripDocumentWrapper(pageHtml)
+
+  // Strip the signals runtime from page fragment — the shell already provides it in <head>
+  pageHtml = pageHtml.replace(/<script data-stx-scoped>\(function\(\)\{'use strict';var cloakStyle[\s\S]*?<\/script>/, '')
+
+  // Extract the SFC setup function name so we can bind it to the content wrapper
+  const setupMatch = pageHtml.match(/function (__stx_setup_\w+)/)
+  const pageSetupName = setupMatch ? setupMatch[1] : null
 
   // SPA navigation — return fragment only
   if (isSpaNavigation(req)) {
@@ -163,7 +168,7 @@ async function renderStxPage(templateName: string, wsUrl: string, req: Request):
 </head>
 <body class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen">
 ${shell.before}
-<div data-stx-content>${pageHtml}</div>
+<div data-stx-content${pageSetupName ? ` data-stx="${pageSetupName}"` : ''}>${pageHtml}</div>
 ${shell.after}
 ${shell.scripts}
 ${getRouterScriptTag()}
