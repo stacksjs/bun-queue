@@ -1,6 +1,79 @@
+@extends('../layouts/app')
+
+@section('title')Batches — bun-queue@endsection
+
+@push('styles')
 <style>
   .progress-bar-fill { transition: width 0.5s ease; }
 </style>
+@endpush
+
+@section('content')
+<script client>
+  interface Batch {
+    id: string
+    name?: string
+    status?: string
+    totalJobs?: number
+    total?: number
+    processedJobs?: number
+    processed?: number
+    failedJobs?: number
+    failed?: number
+    createdAt?: string
+    finishedAt?: string
+  }
+
+  const batches = state<Batch[]>([])
+  const loading = state<boolean>(true)
+  const errorMessage = state<string>('')
+
+  function batchStatus(b: Batch): string {
+    return b.status || 'pending'
+  }
+
+  function batchName(b: Batch): string {
+    return b.name || 'Batch ' + b.id
+  }
+
+  function batchTotal(b: Batch): number {
+    return b.totalJobs || b.total || 0
+  }
+
+  function batchProcessed(b: Batch): number {
+    return b.processedJobs || b.processed || 0
+  }
+
+  function batchFailed(b: Batch): number {
+    return b.failedJobs || b.failed || 0
+  }
+
+  function batchPending(b: Batch): number {
+    return Math.max(0, batchTotal(b) - batchProcessed(b) - batchFailed(b))
+  }
+
+  function batchPct(b: Batch): number {
+    const total: number = batchTotal(b)
+    return total > 0 ? Math.round((batchProcessed(b) / total) * 100) : 0
+  }
+
+  function loadBatches(): void {
+    loading.set(true)
+    errorMessage.set('')
+    fetch('/api/batches')
+      .then((res: Response) => res.json())
+      .then((data: Batch[]) => { batches.set(data) })
+      .catch((err: unknown) => {
+        console.error('Failed to load batches:', err)
+        errorMessage.set('Failed to load batches. Please try again.')
+      })
+      .finally(() => { loading.set(false) })
+  }
+
+  onMount((): void => {
+    loadBatches()
+  })
+</script>
 
 <div class='max-w-[1200px] mx-auto p-6'>
   <div class='flex items-center justify-between mb-6 flex-wrap gap-4'>
@@ -98,69 +171,4 @@
     </div>
   </div>
 </div>
-
-<script client>
-  interface Batch {
-    id: string
-    name?: string
-    status?: string
-    totalJobs?: number
-    total?: number
-    processedJobs?: number
-    processed?: number
-    failedJobs?: number
-    failed?: number
-    createdAt?: string
-    finishedAt?: string
-  }
-
-  const batches = state<Batch[]>([])
-  const loading = state<boolean>(true)
-  const errorMessage = state<string>('')
-
-  function batchStatus(b: Batch): string {
-    return b.status || 'pending'
-  }
-
-  function batchName(b: Batch): string {
-    return b.name || 'Batch ' + b.id
-  }
-
-  function batchTotal(b: Batch): number {
-    return b.totalJobs || b.total || 0
-  }
-
-  function batchProcessed(b: Batch): number {
-    return b.processedJobs || b.processed || 0
-  }
-
-  function batchFailed(b: Batch): number {
-    return b.failedJobs || b.failed || 0
-  }
-
-  function batchPending(b: Batch): number {
-    return Math.max(0, batchTotal(b) - batchProcessed(b) - batchFailed(b))
-  }
-
-  function batchPct(b: Batch): number {
-    const total: number = batchTotal(b)
-    return total > 0 ? Math.round((batchProcessed(b) / total) * 100) : 0
-  }
-
-  function loadBatches(): void {
-    loading.set(true)
-    errorMessage.set('')
-    fetch('/api/batches')
-      .then((res: Response) => res.json())
-      .then((data: Batch[]) => { batches.set(data) })
-      .catch((err: unknown) => {
-        console.error('Failed to load batches:', err)
-        errorMessage.set('Failed to load batches. Please try again.')
-      })
-      .finally(() => { loading.set(false) })
-  }
-
-  onMount((): void => {
-    loadBatches()
-  })
-</script>
+@endsection

@@ -1,6 +1,53 @@
+@extends('../layouts/app')
+
+@section('title')Queues — bun-queue@endsection
+
+@push('styles')
 <style>
   .search-input::placeholder { color: #71717a; }
 </style>
+@endpush
+
+@section('content')
+<script client>
+  interface QueueItem {
+    id: string
+    name: string
+    status: string
+    jobCount: number
+    pendingJobs: number
+    activeJobs: number
+    completedJobs: number
+  }
+
+  const allQueues = state<QueueItem[]>([])
+  const searchQuery = state<string>('')
+  const loading = state<boolean>(true)
+  const errorMessage = state<string>('')
+
+  const filteredQueues = derived<QueueItem[]>(() => {
+    const query: string = searchQuery().toLowerCase().trim()
+    if (!query) return allQueues()
+    return allQueues().filter((q: QueueItem) =>
+      q.name.toLowerCase().includes(query) || q.id.toLowerCase().includes(query)
+    )
+  })
+
+  function loadQueues(): void {
+    loading.set(true)
+    errorMessage.set('')
+    fetch('/api/queues')
+      .then((res: Response) => res.json())
+      .then((queues: QueueItem[]) => { allQueues.set(queues) })
+      .catch((err: unknown) => {
+        console.error('Failed to load queues:', err)
+        errorMessage.set('Failed to load queues. Please try again.')
+      })
+      .finally(() => { loading.set(false) })
+  }
+
+  onMount((): void => { loadQueues() })
+</script>
 
 <div class='max-w-[1200px] mx-auto p-6'>
   <div class='flex items-center justify-between mb-6'>
@@ -86,43 +133,4 @@
     </div>
   </div>
 </div>
-
-<script client>
-  interface QueueItem {
-    id: string
-    name: string
-    status: string
-    jobCount: number
-    pendingJobs: number
-    activeJobs: number
-    completedJobs: number
-  }
-
-  const allQueues = state<QueueItem[]>([])
-  const searchQuery = state<string>('')
-  const loading = state<boolean>(true)
-  const errorMessage = state<string>('')
-
-  const filteredQueues = derived<QueueItem[]>(() => {
-    const query: string = searchQuery().toLowerCase().trim()
-    if (!query) return allQueues()
-    return allQueues().filter((q: QueueItem) =>
-      q.name.toLowerCase().includes(query) || q.id.toLowerCase().includes(query)
-    )
-  })
-
-  function loadQueues(): void {
-    loading.set(true)
-    errorMessage.set('')
-    fetch('/api/queues')
-      .then((res: Response) => res.json())
-      .then((queues: QueueItem[]) => { allQueues.set(queues) })
-      .catch((err: unknown) => {
-        console.error('Failed to load queues:', err)
-        errorMessage.set('Failed to load queues. Please try again.')
-      })
-      .finally(() => { loading.set(false) })
-  }
-
-  onMount((): void => { loadQueues() })
-</script>
+@endsection

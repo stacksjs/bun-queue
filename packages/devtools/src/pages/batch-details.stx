@@ -1,8 +1,107 @@
+@extends('../layouts/app')
+
+@section('title')Batch Details — bun-queue@endsection
+
+@push('styles')
 <style>
   .progress-ring-container svg { transform: rotate(-90deg); }
   .progress-ring-bg { fill: none; stroke: #1e1e26; stroke-width: 10; }
   .progress-ring-fill { fill: none; stroke: #10b981; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
 </style>
+@endpush
+
+@section('content')
+<script client>
+  interface BatchData {
+    id: string
+    name?: string
+    status?: string
+    totalJobs?: number
+    total?: number
+    processedJobs?: number
+    processed?: number
+    failedJobs?: number
+    failed?: number
+    createdAt?: string
+    startedAt?: string
+    finishedAt?: string
+  }
+
+  interface BatchJob {
+    id: string
+    name?: string
+    status: string
+    attempts?: number
+    maxAttempts?: number
+    createdAt: string
+    duration?: number
+  }
+
+  const route = useRoute()
+  const pathParts: string[] = route.path.split('/')
+  const batchId: string = decodeURIComponent(pathParts[pathParts.length - 1])
+
+  const batchName = state<string>('Batch')
+  const batchStatus = state<string>('pending')
+  const totalJobs = state<number>(0)
+  const processedJobs = state<number>(0)
+  const failedJobs = state<number>(0)
+  const createdAt = state<string>('—')
+  const startedAt = state<string>('—')
+  const finishedAt = state<string>('—')
+  const jobs = state<BatchJob[]>([])
+  const loading = state<boolean>(true)
+
+  const pendingJobs = derived<number>(() =>
+    Math.max(0, totalJobs() - processedJobs() - failedJobs())
+  )
+
+  const progressPct = derived<number>(() => {
+    const total: number = totalJobs()
+    const processed: number = processedJobs()
+    return total > 0 ? Math.round((processed / total) * 100) : 0
+  })
+
+  const ringOffset = derived<number>(() => {
+    const circumference: number = 2 * Math.PI * 65
+    return circumference - (progressPct() / 100) * circumference
+  })
+
+  function loadBatch(): Promise<void> {
+    return fetch('/api/batches/' + encodeURIComponent(batchId))
+      .then((res: Response) => res.json())
+      .then((batch: BatchData) => {
+        batchName.set(batch.name || 'Batch ' + batch.id)
+        batchStatus.set(batch.status || 'pending')
+
+        useTitle((batch.name || 'Batch ' + batch.id) + ' — bun-queue')
+
+        totalJobs.set(batch.totalJobs || batch.total || 0)
+        processedJobs.set(batch.processedJobs || batch.processed || 0)
+        failedJobs.set(batch.failedJobs || batch.failed || 0)
+
+        createdAt.set(formatTime(batch.createdAt))
+        startedAt.set(formatTime(batch.startedAt))
+        finishedAt.set(formatTime(batch.finishedAt))
+      })
+      .catch((e: unknown) => { console.error('Failed to load batch:', e) })
+  }
+
+  function loadJobs(): Promise<void> {
+    loading.set(true)
+    return fetch('/api/batches/' + encodeURIComponent(batchId) + '/jobs')
+      .then((res: Response) => res.json())
+      .then((data: BatchJob[]) => { jobs.set(data) })
+      .catch((e: unknown) => { console.error('Failed to load batch jobs:', e) })
+      .finally(() => { loading.set(false) })
+  }
+
+  onMount((): void => {
+    loadBatch()
+    loadJobs()
+    useInterval(() => { loadBatch(); loadJobs() }, 10000)
+  })
+</script>
 
 <div class='max-w-[1200px] mx-auto p-6'>
   <StxLink to='/batches' class='inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500'>
@@ -122,95 +221,4 @@
     </table>
   </div>
 </div>
-
-<script client>
-  interface BatchData {
-    id: string
-    name?: string
-    status?: string
-    totalJobs?: number
-    total?: number
-    processedJobs?: number
-    processed?: number
-    failedJobs?: number
-    failed?: number
-    createdAt?: string
-    startedAt?: string
-    finishedAt?: string
-  }
-
-  interface BatchJob {
-    id: string
-    name?: string
-    status: string
-    attempts?: number
-    maxAttempts?: number
-    createdAt: string
-    duration?: number
-  }
-
-  const route = useRoute()
-  const pathParts: string[] = route.path.split('/')
-  const batchId: string = decodeURIComponent(pathParts[pathParts.length - 1])
-
-  const batchName = state<string>('Batch')
-  const batchStatus = state<string>('pending')
-  const totalJobs = state<number>(0)
-  const processedJobs = state<number>(0)
-  const failedJobs = state<number>(0)
-  const createdAt = state<string>('—')
-  const startedAt = state<string>('—')
-  const finishedAt = state<string>('—')
-  const jobs = state<BatchJob[]>([])
-  const loading = state<boolean>(true)
-
-  const pendingJobs = derived<number>(() =>
-    Math.max(0, totalJobs() - processedJobs() - failedJobs())
-  )
-
-  const progressPct = derived<number>(() => {
-    const total: number = totalJobs()
-    const processed: number = processedJobs()
-    return total > 0 ? Math.round((processed / total) * 100) : 0
-  })
-
-  const ringOffset = derived<number>(() => {
-    const circumference: number = 2 * Math.PI * 65
-    return circumference - (progressPct() / 100) * circumference
-  })
-
-  function loadBatch(): Promise<void> {
-    return fetch('/api/batches/' + encodeURIComponent(batchId))
-      .then((res: Response) => res.json())
-      .then((batch: BatchData) => {
-        batchName.set(batch.name || 'Batch ' + batch.id)
-        batchStatus.set(batch.status || 'pending')
-
-        useTitle((batch.name || 'Batch ' + batch.id) + ' — bun-queue')
-
-        totalJobs.set(batch.totalJobs || batch.total || 0)
-        processedJobs.set(batch.processedJobs || batch.processed || 0)
-        failedJobs.set(batch.failedJobs || batch.failed || 0)
-
-        createdAt.set(formatTime(batch.createdAt))
-        startedAt.set(formatTime(batch.startedAt))
-        finishedAt.set(formatTime(batch.finishedAt))
-      })
-      .catch((e: unknown) => { console.error('Failed to load batch:', e) })
-  }
-
-  function loadJobs(): Promise<void> {
-    loading.set(true)
-    return fetch('/api/batches/' + encodeURIComponent(batchId) + '/jobs')
-      .then((res: Response) => res.json())
-      .then((data: BatchJob[]) => { jobs.set(data) })
-      .catch((e: unknown) => { console.error('Failed to load batch jobs:', e) })
-      .finally(() => { loading.set(false) })
-  }
-
-  onMount((): void => {
-    loadBatch()
-    loadJobs()
-    useInterval(() => { loadBatch(); loadJobs() }, 10000)
-  })
-</script>
+@endsection
