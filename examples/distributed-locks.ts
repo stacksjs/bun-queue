@@ -20,6 +20,7 @@ const sharedCounter = {
 }
 
 async function main() {
+  // eslint-disable-next-line no-console
   console.log('🔒 Distributed Locks Example')
 
   // Create a task queue with distributed lock support enabled
@@ -34,10 +35,12 @@ async function main() {
   const lock = taskQueue.getLock()
 
   if (!lock) {
+    // eslint-disable-next-line no-console
     console.error('Distributed lock not available!')
     return
   }
 
+  // eslint-disable-next-line no-console
   console.log('✅ Queue created with distributed lock support')
 
   // Add some tasks, some requiring exclusive access
@@ -49,25 +52,31 @@ async function main() {
     { id: 'task5', duration: 100, requiresExclusiveAccess: true },
   ]
 
+  // eslint-disable-next-line no-console
   console.log('📝 Adding tasks...')
 
   // Add all tasks to the queue
   for (const task of tasks) {
     await taskQueue.add(task, { jobId: task.id })
+    // eslint-disable-next-line no-console
     console.log(`  - Added "${task.id}" (requires lock: ${task.requiresExclusiveAccess})`)
   }
 
+  // eslint-disable-next-line no-console
   console.log('\n📊 Current job counts:')
   const counts = await taskQueue.getJobCounts()
+  // eslint-disable-next-line no-console
   console.log(counts)
 
   // Process tasks with multiple concurrent workers
+  // eslint-disable-next-line no-console
   console.log('\n🔄 Processing tasks with distributed locks:')
 
   // Start multiple workers to simulate a distributed system
   taskQueue.process(3, async (job) => {
     const { id, duration, requiresExclusiveAccess } = job.data
 
+    // eslint-disable-next-line no-console
     console.log(`⏳ Worker starting "${id}" (requires lock: ${requiresExclusiveAccess})`)
 
     let result
@@ -75,6 +84,7 @@ async function main() {
     if (requiresExclusiveAccess) {
       // For tasks requiring exclusive access, we manually acquire a lock on a shared resource
       const resourceName = 'shared-resource'
+      // eslint-disable-next-line no-console
       console.log(`🔒 Acquiring lock for "${resourceName}" for task "${id}"`)
 
       // Try to acquire the lock
@@ -85,11 +95,13 @@ async function main() {
       })
 
       if (!token) {
+        // eslint-disable-next-line no-console
         console.error(`❌ Failed to acquire lock for "${id}"`)
         throw new Error('Failed to acquire lock')
       }
 
       try {
+        // eslint-disable-next-line no-console
         console.log(`🔓 Lock acquired for "${id}" - processing with exclusive access`)
 
         // Simulate processing with exclusive access to shared resource
@@ -104,11 +116,13 @@ async function main() {
           counterAfter: afterValue
         }
 
+        // eslint-disable-next-line no-console
         console.log(`✅ Task "${id}" completed with exclusive access, counter: ${afterValue}`)
       }
 finally {
         // Always release the lock when done
         await lock.release(resourceName, token)
+        // eslint-disable-next-line no-console
         console.log(`🔓 Lock released for "${id}"`)
       }
     }
@@ -116,6 +130,7 @@ else {
       // Non-exclusive tasks can run without manual locking
       // They're still protected from concurrent processing of the same job
       // by the built-in distributed job lock
+      // eslint-disable-next-line no-console
       console.log(`⚙️ Processing "${id}" without exclusive resource access`)
 
       // Simulate processing
@@ -127,6 +142,7 @@ else {
         noLockRequired: true
       }
 
+      // eslint-disable-next-line no-console
       console.log(`✅ Task "${id}" completed (no exclusive access needed)`)
     }
 
@@ -137,11 +153,14 @@ else {
   await new Promise(resolve => setTimeout(resolve, 5000))
 
   // Check final counter value
+  // eslint-disable-next-line no-console
   console.log(`\n📊 Final shared counter value: ${sharedCounter.value}`)
 
   // Close the queue
   await taskQueue.close()
+  // eslint-disable-next-line no-console
   console.log('\n👋 All tasks completed, queue closed')
 }
 
+// eslint-disable-next-line no-console
 main().catch(console.error)

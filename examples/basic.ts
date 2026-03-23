@@ -22,6 +22,7 @@ async function main() {
       attempts: 3,
     })
 
+    // eslint-disable-next-line no-console
     console.log(`Added job ${job.id} to the queue`)
   }
 
@@ -29,16 +30,19 @@ async function main() {
   emailQueue.process(2, async (job) => {
     const { to, subject: _subject, body: _body } = job.data
 
+    // eslint-disable-next-line no-console
     console.log(`Processing email to ${to}`)
 
     // Update progress
     await job.updateProgress(25)
+    // eslint-disable-next-line no-console
     console.log(`[${job.id}] Started processing...`)
 
     // Simulate work
     await new Promise(resolve => setTimeout(resolve, 2000))
 
     await job.updateProgress(50)
+    // eslint-disable-next-line no-console
     console.log(`[${job.id}] Sending email...`)
 
     // Simulate more work
@@ -50,6 +54,7 @@ async function main() {
     }
 
     await job.updateProgress(100)
+    // eslint-disable-next-line no-console
     console.log(`[${job.id}] Email sent successfully to ${to}`)
 
     return { sent: true, timestamp: Date.now() }
@@ -58,15 +63,18 @@ async function main() {
   // Display job counts every second
   const interval = setInterval(async () => {
     const counts = await emailQueue.getJobCounts()
+    // eslint-disable-next-line no-console
     console.log(counts)
 
     // Stop after 30 seconds
     if (counts.completed + counts.failed === 5) {
       clearInterval(interval)
       await emailQueue.close()
+      // eslint-disable-next-line no-console
       console.log('All jobs processed, exiting...')
     }
   }, 1000)
 }
 
+// eslint-disable-next-line no-console
 main().catch(console.error)

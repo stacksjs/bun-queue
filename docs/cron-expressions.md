@@ -6,7 +6,7 @@
 
 A cron expression consists of five fields that specify when a job should run:
 
-```
+```ts
 ┌───────────── minute (0 - 59)
 │ ┌───────────── hour (0 - 23)
 │ │ ┌───────────── day of month (1 - 31)
@@ -76,7 +76,7 @@ await queue.scheduleCron({
 
 To schedule a job to run on the first Monday of each month:
 
-```
+```ts
 0 12 1-7 * 1
 ```
 

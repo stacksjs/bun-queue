@@ -1,10 +1,10 @@
 <template>
-<div class="bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen">
-  <script src="/bq-utils.js"></script>
+<div class='bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen'>
+  <script src='/bq-utils.js'></script>
 
   @include('sidebar')
 
-  <div class="main-wrapper transition-all duration-200 ease-in-out min-h-screen" ref="main-wrapper" style="margin-left: 240px;">
+  <div class='main-wrapper transition-all duration-200 ease-in-out min-h-screen' ref='main-wrapper' style='margin-left: 240px;'>
     <slot />
   </div>
 </div>
@@ -30,7 +30,7 @@
   .sidebar.collapsed .nav-item-text { display: none; }
   .sidebar.collapsed ~ .main-wrapper { margin-left: 56px !important; }
 
-  /* Active state — managed by StxLink + router via data-stx-active-class="active" */
+  /* Active state — managed by StxLink + router via data-stx-active-class='active' */
   #sidebar .nav-item.active { background: #6366f1 !important; color: white !important; }
   #sidebar .nav-item.active svg { opacity: 1; }
 </style>

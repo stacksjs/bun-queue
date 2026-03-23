@@ -53,14 +53,14 @@ await queue.add(
 
 Cron expressions have 5 fields:
 
-```
-*    *    *    *    *
-|    |    |    |    |
-|    |    |    |    +--- Day of week (0-6, Sunday=0)
-|    |    |    +-------- Month (1-12)
-|    |    +------------- Day of month (1-31)
-|    +------------------ Hour (0-23)
-+----------------------- Minute (0-59)
+```text
+┌─── Minute (0-59)
+│ ┌─── Hour (0-23)
+│ │ ┌─── Day of month (1-31)
+│ │ │ ┌─── Month (1-12)
+│ │ │ │ ┌─── Day of week (0-6, Sunday=0)
+│ │ │ │ │
+x x x x x
 ```
 
 ### Common Patterns

@@ -1,6 +1,5 @@
 # CLAUDE.md — bun-queue
 
-
 ---
 
 ## ABSOLUTE RULES — READ BEFORE WRITING ANY CODE
@@ -9,11 +8,12 @@
 
 This is non-negotiable. Every conversation forgets this. **READ THIS EVERY TIME.**
 
-If you are about to write `document.`, `window.`, `localStorage.`, or an IIFE — **STOP**. There is a stx composable for it. If there isn't, **add one to stx upstream**. No exceptions. No "just this once." No "it's simpler."
+If you are about to write `document.`, `window.`, `localStorage.`, or an IIFE — **STOP**. There is a stx composable for it. If there isn't,**add one to stx upstream**. No exceptions. No "just this once." No "it's simpler."
 
 ### RULE 2: NO POLLING — USE REACTIVE PATTERNS
 
 Never write `setInterval` + fetch loops, `setTimeout` retry loops, or any polling pattern. Use:
+
 - `useFetch()` with reactive dependencies for data that changes
 - `useEventListener('stx:navigate', fn)` for navigation-triggered refreshes
 - Server-sent events or WebSocket composables for real-time data (add to stx if missing)
@@ -41,6 +41,7 @@ Search for `window.stx = {` in `signals.ts` to see every function exposed to the
 ### RULE 5: FIX STX UPSTREAM — NEVER WORK AROUND IT
 
 If stx is missing a composable, directive, or has a bug:
+
 1. Fix it in `/Users/glennmichaeltorregosa/Documents/Projects/stx/packages/stx/src/`
 2. Take inspiration from Vue 3 Composition API, Svelte 5 runes, React hooks
 3. Rebuild: `cd /Users/glennmichaeltorregosa/Documents/Projects/stx/packages/stx && bun --bun build.ts`
@@ -121,39 +122,49 @@ Even with exceptions, **never** use `getElementById` or `querySelector` — alwa
 ## COMMON GOTCHAS — MISTAKES WE KEEP MAKING
 
 ### 1. Writing IIFEs for "simple" sidebar/nav logic
+
 **Wrong:** "It's just a toggle, I'll use a quick IIFE with getElementById"
 **Right:** `stx.mountEl()` + `useLocalStorage()` + `@click` — same amount of code, reactive, persistent, cross-tab synced
 
 ### 2. Writing a custom SPA router
+
 **Wrong:** Copy-pasting a fetch + DOMParser + innerHTML router into the layout
 **Right:** Call `injectRouterScript(html)` in `index.ts` — the canonical router in `stx/packages/router/src/client.ts` handles link interception, view transitions, script re-execution, cleanup, prefetch, caching, active links, and external script loading
 
 ### 3. Forgetting that `@for` clones need x-cloak removed
+
 **Fixed upstream:** `bindFor` and `bindIf` in `signals.ts` now strip `x-cloak` from clones. If `{{ }}` shows raw in `@for` output, the stx build is stale — rebuild.
 
 ### 4. Polling with setInterval + fetch for "live" data
+
 **Wrong:** `setInterval(function() { fetch('/api/jobs').then(...) }, 5000)`
 **Right:** `useFetch('/api/jobs')` or reactive pattern. For truly real-time: add SSE/WS composable to stx.
 
 ### 5. Using `document.currentScript` hacks for mount targeting
+
 **Wrong:** Placing `<script>` tags next to elements to use `document.currentScript.nextElementSibling`
 **Right:** `stx.mountEl('#sidebar', fn)` — mounts to any element by selector, no script placement dependency
 
 ### 6. Inline style/class manipulation in JS
+
 **Wrong:** `effect(function() { el.classList.add('collapsed') })`
 **Right:** `:class="{ collapsed: isCollapsed() }"` on the element — stx handles the DOM updates
 
 ### 7. Not cleaning up Chart.js/D3 on SPA navigation
+
 **Wrong:** `new Chart(canvas, config)` in a bare `<script>` — leaks on every navigation
-**Right:** Initialize in `onMount()`, return destroy function. The router calls `stx._cleanupContainer()` which triggers `onDestroy` hooks.
+**Right:** Initialize in `onMount()`, return destroy function. The router calls `stx.*cleanupContainer()` which triggers `onDestroy` hooks.
 
 ### 8. External scripts not loading on SPA navigation
+
 **Fixed upstream:** The router's `swap()` now detects new `<head>` scripts, loads them, waits for them, then runs inline scripts. If Chart.js/D3 pages break on SPA nav, the router build is stale.
 
 ### 9. Forgetting `data-stx-link` on nav items
+
 The canonical router manages active classes on elements with `data-stx-link`. Without it, nav items won't highlight on SPA navigation. Add `data-stx-active-class="active"` for custom class names.
 
 ### 10. Guessing what stx provides instead of reading the source
+
 **Wrong:** Assuming stx doesn't have X, writing vanilla JS
 **Right:** `grep -n 'function useWhatever' signals.ts` or read `window.stx = {` block. The runtime has 30+ composables. Check before coding.
 
@@ -162,6 +173,7 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 ## STX CLIENT-SIDE DIRECTIVE REFERENCE
 
 ### Reactive Bindings (applied to HTML attributes in rendered output)
+
 | Directive | Purpose | Example |
 |-----------|---------|---------|
 | `{{ expr }}` | Text interpolation | `<span>{{ job.name }}</span>` |
@@ -181,6 +193,7 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 | `x-cloak` | Hide until processed | Auto-added by stx, auto-removed after mount |
 
 ### Event Modifiers
+
 | Modifier | Effect |
 |----------|--------|
 | `.prevent` | `e.preventDefault()` |
@@ -191,6 +204,7 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 | `.enter` / `.escape` / `.space` | Key-specific |
 
 ### Server-Side Directives (process.ts — Blade-like, processed before sending to browser)
+
 | Directive | Purpose |
 |-----------|---------|
 | `@extends('layout')` | Extend a layout |
@@ -216,6 +230,7 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 ## STX RUNTIME API REFERENCE (browser — signals.ts)
 
 ### Reactivity
+
 | Function | Description |
 |----------|-------------|
 | `state(initial)` | Reactive signal. Read: `s()`. Write: `s.set(val)` |
@@ -227,12 +242,14 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 | `isSignal(val)` | Check if value is a signal |
 
 ### Lifecycle
+
 | Function | Description |
 |----------|-------------|
 | `onMount(fn)` | Runs after DOM ready. Return cleanup fn for auto-destroy |
 | `onDestroy(fn)` | Runs on teardown (SPA navigation, cleanup) |
 
 ### Composables
+
 | Function | Description |
 |----------|-------------|
 | `useRef(name)` | DOM ref by `ref="name"`. Returns `{ current: HTMLElement }` |
@@ -253,6 +270,7 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 | `useDark(opts?)` | Dark mode toggle |
 
 ### Navigation
+
 | Function | Description |
 |----------|-------------|
 | `navigate(url)` | SPA navigation via canonical router |
@@ -262,12 +280,14 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 | `useSearchParams()` | URL search parameters |
 
 ### Mount System
+
 | Function | Description |
 |----------|-------------|
 | `stx.mount(setupFn)` | Mount to nearest element (uses `document.currentScript`) |
 | `stx.mountEl(selector, setupFn)` | Mount to specific element by CSS selector |
 
 ### Vue-compat Aliases
+
 `ref` = `state`, `reactive` = `state`, `computed` = `derived`, `watch` = `$watch`, `watchEffect` = `effect`
 
 ---
@@ -276,9 +296,9 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 
 The canonical router lives in `stx/packages/router/src/client.ts` and is injected via `injectRouterScript()`. **Do NOT write custom routers.**
 
-It handles: link interception, history pushState, View Transitions API with CSS fallback, `<head>` style swapping, external `<head>` script loading (Chart.js/D3), smart script filtering, prefetch on hover, response caching (5min TTL), active link management (`data-stx-link`), cleanup via `stx._cleanupContainer()`.
+It handles: link interception, history pushState, View Transitions API with CSS fallback, `<head>` style swapping, external `<head>` script loading (Chart.js/D3), smart script filtering, prefetch on hover, response caching (5min TTL), active link management (`data-stx-link`), cleanup via `stx.*cleanupContainer()`.
 
-Configure: `window.STX_ROUTER_OPTIONS = { container: '#main-wrapper' }`
+Configure: `window.STX*ROUTER*OPTIONS = { container: '#main-wrapper' }`
 
 ---
 
@@ -310,6 +330,7 @@ server.ts               # Dev entry → devtools/src/index.ts
 ## CORRECT PATTERNS
 
 ### Sidebar toggle
+
 ```html
 <script data-stx-scoped>
   stx.mountEl('#sidebar', function() {
@@ -323,6 +344,7 @@ server.ts               # Dev entry → devtools/src/index.ts
 Button: `<button @click="toggle()">` — never `id="sidebar-toggle"` with addEventListener.
 
 ### Page with data fetching
+
 ```html
 <script data-stx-scoped>
   stx.mount(function() {
@@ -335,6 +357,7 @@ Button: `<button @click="toggle()">` — never `id="sidebar-toggle"` with addEve
 ```
 
 ### Chart.js (exception pattern)
+
 ```html
 <canvas ref="my-chart"></canvas>
 <script data-stx-scoped>
@@ -350,6 +373,7 @@ Button: `<button @click="toggle()">` — never `id="sidebar-toggle"` with addEve
 ```
 
 ### Router injection (server-side, index.ts)
+
 ```typescript
 import { injectRouterScript, processDirectives } from '@stacksjs/stx'
 let html = await processDirectives(content, context, templatePath, config, new Set())

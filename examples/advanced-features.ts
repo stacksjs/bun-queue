@@ -1,6 +1,7 @@
 import { BatchProcessor, Queue, QueueGroup, QueueObservable } from '../packages/bun-queue/src'
 
 async function main() {
+  // eslint-disable-next-line no-console
   console.log('🚀 Advanced Features Example - Groups, Observables, and Batches')
 
   // Create a few queues
@@ -19,11 +20,13 @@ async function main() {
     redis: { url: 'redis://localhost:6379' },
   })
 
+  // eslint-disable-next-line no-console
   console.log('✅ Queues created')
 
   // ========================
   // Example 1: Batch Processing
   // ========================
+  // eslint-disable-next-line no-console
   console.log('\n📦 Example 1: Batch Processing')
 
   // Create a batch processor for the email queue
@@ -44,10 +47,12 @@ async function main() {
     },
   })
 
+  // eslint-disable-next-line no-console
   console.log(`📨 Created batch ${batch.id} with ${batch.jobs.length} email jobs`)
 
   // Process the batch
   await batchProcessor.processBatch(batch.id, async (jobs) => {
+    // eslint-disable-next-line no-console
     console.log(`🔄 Processing batch of ${jobs.length} emails together`)
 
     // Update progress
@@ -55,16 +60,19 @@ async function main() {
 
     // Simulate batch processing (in a real scenario, you might use a bulk email API)
     return jobs.map((job) => {
+      // eslint-disable-next-line no-console
       console.log(`📧 Would send email to ${job.data.to} with subject "${job.data.subject}"`)
       return { sent: true, to: job.data.to }
     })
   })
 
+  // eslint-disable-next-line no-console
   console.log('✅ Batch processing complete')
 
   // ========================
   // Example 2: Queue Groups
   // ========================
+  // eslint-disable-next-line no-console
   console.log('\n👥 Example 2: Queue Groups')
 
   // Create a queue group
@@ -81,15 +89,18 @@ async function main() {
     body: 'Our system will be down for maintenance tonight.',
   } as any)
 
+  // eslint-disable-next-line no-console
   console.log(`📝 Added job to all queues in the 'notifications' group, created ${groupJobs.length} jobs`)
 
   // Process jobs in the group (using imported Job type from src)
   await queueGroup.processGroup<any>('notifications', async (job) => {
     if (job.name === 'email') {
+      // eslint-disable-next-line no-console
       console.log(`📧 Processing email job: ${job.data.subject} to ${job.data.to}`)
       return { sent: true }
     }
     else if (job.name === 'notification') {
+      // eslint-disable-next-line no-console
       console.log(`🔔 Processing notification job: ${job.data.message} to ${job.data.userId}`)
       return { delivered: true }
     }
@@ -99,6 +110,7 @@ async function main() {
   // ========================
   // Example 3: Observables
   // ========================
+  // eslint-disable-next-line no-console
   console.log('\n👁️ Example 3: Observables')
 
   // Create an observable for all queues
@@ -110,6 +122,7 @@ async function main() {
     { interval: 2000, autoStart: true },
   )
 
+  // eslint-disable-next-line no-console
   console.log(`👀 Created observable ${queueObservable.id} monitoring ${queueObservable.queues.length} queues`)
 
   // Wait a moment for the first stats to be collected
@@ -117,13 +130,16 @@ async function main() {
 
   // Get stats
   const stats = await observable.getObservableStats(queueObservable.id)
+  // eslint-disable-next-line no-console
   console.log('📊 Queue stats:', stats)
 
   // Stop the observable
   await observable.stopObservable(queueObservable.id)
+  // eslint-disable-next-line no-console
   console.log(`⏹️ Stopped observable ${queueObservable.id}`)
 
   // Close everything
+  // eslint-disable-next-line no-console
   console.log('\n🧹 Cleaning up...')
   await emailQueue.close()
   await notificationQueue.close()
@@ -131,7 +147,9 @@ async function main() {
   await queueGroup.closeAll()
   await observable.closeAll()
 
+  // eslint-disable-next-line no-console
   console.log('✅ Done!')
 }
 
+// eslint-disable-next-line no-console
 main().catch(console.error)

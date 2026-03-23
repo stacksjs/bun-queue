@@ -23,7 +23,9 @@ class SendEmailJob extends JobBase {
   }
 
   async handle(): Promise<{ sent: boolean; messageId: string }> {
+    // eslint-disable-next-line no-console
     console.log(`[SendEmailJob] Sending email to ${this.to}`)
+    // eslint-disable-next-line no-console
     console.log(`[SendEmailJob] Subject: ${this.subject}`)
 
     // Simulate email sending
@@ -34,6 +36,7 @@ class SendEmailJob extends JobBase {
       throw new Error('SMTP server timeout')
     }
 
+    // eslint-disable-next-line no-console
     console.log(`[SendEmailJob] Email sent successfully to ${this.to}`)
     return {
       sent: true,
@@ -61,15 +64,19 @@ class ProcessImageJob extends JobBase {
   }
 
   async handle(): Promise<{ processed: boolean; url: string }> {
+    // eslint-disable-next-line no-console
     console.log(`[ProcessImageJob] Processing image ${this.imageId}`)
+    // eslint-disable-next-line no-console
     console.log(`[ProcessImageJob] Operations: ${this.operations.join(', ')}`)
 
     // Simulate image processing
     for (const operation of this.operations) {
+      // eslint-disable-next-line no-console
       console.log(`[ProcessImageJob] Applying ${operation}...`)
       await new Promise(resolve => setTimeout(resolve, 500))
     }
 
+    // eslint-disable-next-line no-console
     console.log(`[ProcessImageJob] Image ${this.imageId} processed successfully`)
     return {
       processed: true,
@@ -99,6 +106,7 @@ class GenerateReportJob extends JobBase {
   }
 
   async handle(): Promise<{ generated: boolean; downloadUrl: string }> {
+    // eslint-disable-next-line no-console
     console.log(`[GenerateReportJob] Generating ${this.reportType} report for user ${this.userId}`)
 
     // Simulate report generation
@@ -109,6 +117,7 @@ class GenerateReportJob extends JobBase {
       throw new Error('Database connection timeout during report generation')
     }
 
+    // eslint-disable-next-line no-console
     console.log(`[GenerateReportJob] Report generated successfully`)
     return {
       generated: true,
@@ -133,6 +142,7 @@ class SendNotificationJob extends JobBase {
     this.middleware = [
       middleware.skipIf(async () => {
         // Skip if user has disabled notifications
+        // eslint-disable-next-line no-console
         console.log(`[SendNotificationJob] Checking if user ${this.userId} allows notifications...`)
         return Math.random() < 0.1 // 10% chance to skip
       }),
@@ -140,13 +150,17 @@ class SendNotificationJob extends JobBase {
   }
 
   async handle(): Promise<{ sent: boolean; channels: string[] }> {
+    // eslint-disable-next-line no-console
     console.log(`[SendNotificationJob] Sending notification to user ${this.userId}`)
+    // eslint-disable-next-line no-console
     console.log(`[SendNotificationJob] Message: ${this.message}`)
+    // eslint-disable-next-line no-console
     console.log(`[SendNotificationJob] Channels: ${this.channels.join(', ')}`)
 
     // Simulate sending notifications
     await new Promise(resolve => setTimeout(resolve, 800))
 
+    // eslint-disable-next-line no-console
     console.log(`[SendNotificationJob] Notification sent successfully`)
     return {
       sent: true,
@@ -156,6 +170,7 @@ class SendNotificationJob extends JobBase {
 }
 
 async function main() {
+  // eslint-disable-next-line no-console
   console.log('=== Laravel-like bun-queue API Demo ===\n')
 
   // Initialize queue manager (uses bunfig configuration)
@@ -195,9 +210,11 @@ async function main() {
     return jobInstance.handle()
   })
 
+  // eslint-disable-next-line no-console
   console.log('Workers started, dispatching jobs...\n')
 
   // 1. Basic job dispatching
+  // eslint-disable-next-line no-console
   console.log('1. Basic job dispatching:')
   const emailJob = new SendEmailJob(
     'user@example.com',
@@ -206,9 +223,11 @@ async function main() {
   )
 
   await dispatch(emailJob)
+  // eslint-disable-next-line no-console
   console.log('✓ Email job dispatched\n')
 
   // 2. Chained job dispatching with fluent API
+  // eslint-disable-next-line no-console
   console.log('2. Chained job dispatching:')
   await chain(
     new SendEmailJob('admin@example.com', 'System Alert', 'High CPU usage detected')
@@ -218,9 +237,11 @@ async function main() {
     .withTimeout(60000)
     .dispatch()
 
+  // eslint-disable-next-line no-console
   console.log('✓ Priority email job dispatched with custom options\n')
 
   // 3. Delayed job dispatching
+  // eslint-disable-next-line no-console
   console.log('3. Delayed job dispatching:')
   const delayedEmailJob = new SendEmailJob(
     'user@example.com',
@@ -229,9 +250,11 @@ async function main() {
   )
 
   await dispatchAfter(5000, delayedEmailJob) // Dispatch after 5 seconds
+  // eslint-disable-next-line no-console
   console.log('✓ Delayed email job dispatched (5 second delay)\n')
 
   // 4. Job batching
+  // eslint-disable-next-line no-console
   console.log('4. Job batching:')
   const emailBatch = batch('weekly-emails')
     .add(new SendEmailJob('user1@example.com', 'Newsletter', 'Weekly newsletter content'))
@@ -242,15 +265,19 @@ async function main() {
     .onQueue('bulk-emails')
 
   const batchResult = await emailBatch.dispatch()
+  // eslint-disable-next-line no-console
   console.log(`✓ Email batch dispatched: ${batchResult.total} jobs\n`)
 
   // 5. Complex job with middleware
+  // eslint-disable-next-line no-console
   console.log('5. Complex job with middleware:')
   const imageJob = new ProcessImageJob('img_12345', ['resize', 'watermark', 'optimize'])
   await dispatch(imageJob)
+  // eslint-disable-next-line no-console
   console.log('✓ Image processing job dispatched with middleware\n')
 
   // 6. Report generation with dependencies
+  // eslint-disable-next-line no-console
   console.log('6. Report generation:')
   const reportJob = new GenerateReportJob('sales', 'user_789', { period: 'monthly', year: 2024 })
   const _reportJobResult = await dispatch(reportJob)
@@ -266,9 +293,11 @@ async function main() {
     .delay(1000) // Small delay to ensure report job starts
     .dispatch()
 
+  // eslint-disable-next-line no-console
   console.log('✓ Report and notification jobs dispatched\n')
 
   // 7. Multiple jobs with different configurations
+  // eslint-disable-next-line no-console
   console.log('7. Multiple image processing jobs:')
   for (let i = 1; i <= 5; i++) {
     const job = new ProcessImageJob(`batch_img_${i}`, ['resize', 'compress'])
@@ -277,6 +306,7 @@ async function main() {
       .withTags('batch-processing', `batch-${Math.ceil(i / 2)}`)
       .dispatch()
   }
+  // eslint-disable-next-line no-console
   console.log('✓ Batch image processing jobs dispatched\n')
 
   // Monitor job progress
@@ -300,24 +330,33 @@ async function main() {
       totalJobs = total.waiting + total.active + total.completed + total.failed
     }
 
+    // eslint-disable-next-line no-console
     console.log('\n📊 Queue Status:')
+    // eslint-disable-next-line no-console
     console.log(`   Waiting: ${total.waiting}`)
+    // eslint-disable-next-line no-console
     console.log(`   Active: ${total.active}`)
+    // eslint-disable-next-line no-console
     console.log(`   Completed: ${total.completed}`)
+    // eslint-disable-next-line no-console
     console.log(`   Failed: ${total.failed}`)
 
     if (total.waiting === 0 && total.active === 0 && totalJobs > 0) {
+      // eslint-disable-next-line no-console
       console.log('\n🎉 All jobs processed!')
+      // eslint-disable-next-line no-console
       console.log(`   Success rate: ${((total.completed / totalJobs) * 100).toFixed(1)}%`)
 
       clearInterval(monitorInterval)
       await queueManager.closeAll()
+      // eslint-disable-next-line no-console
       console.log('\n✅ Queue manager closed, demo complete.')
     }
   }, 2000)
 
   // Graceful shutdown
   process.on('SIGINT', async () => {
+    // eslint-disable-next-line no-console
     console.log('\n🛑 Shutting down gracefully...')
     clearInterval(monitorInterval)
     await queueManager.closeAll()
@@ -326,6 +365,7 @@ async function main() {
 }
 
 main().catch((error) => {
+  // eslint-disable-next-line no-console
   console.error('Demo failed:', error)
   process.exit(1)
 })

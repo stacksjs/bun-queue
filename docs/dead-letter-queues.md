@@ -56,7 +56,7 @@ await queue.add(data, {
 4. After all retries are exhausted, job moves to the dead letter queue
 5. Jobs in DLQ can be inspected, reprocessed, or removed
 
-```
+```ts
 Main Queue → Processing → Failed (retry) → ... → Dead Letter Queue
                 ↓                                        ↓
             Success                              Inspect/Reprocess

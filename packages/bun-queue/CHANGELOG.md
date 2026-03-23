@@ -1,6 +1,6 @@
 # Changelog
 
-### 🧹 Chores
+## 🧹 Chores
 
 - wip ([12d8d97](https://github.com/stacksjs/bun-queue/commit/12d8d97)) _(by glennmichael123 <gtorregosa@gmail.com>)_
 - wip ([631b555](https://github.com/stacksjs/bun-queue/commit/631b555)) _(by glennmichael123 <gtorregosa@gmail.com>)_

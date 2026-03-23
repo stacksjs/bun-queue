@@ -126,6 +126,6 @@ ___
 
 ___
 
-##### Thanks to Vue.js for the inspiration of this sponsorship page
+#### Thanks to Vue.js for the inspiration of this sponsorship page
 
-*You can find their sponsorship page [here](https://vuejs.org/sponsor/).*
+You can find their [sponsorship page on vuejs.org](https://vuejs.org/sponsor/).

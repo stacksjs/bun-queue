@@ -64,7 +64,7 @@ await queue.add(
 
 ## Cron Expression Format
 
-```
+```ts
  ┌───────────── minute (0 - 59)
  │ ┌───────────── hour (0 - 23)
  │ │ ┌───────────── day of month (1 - 31)

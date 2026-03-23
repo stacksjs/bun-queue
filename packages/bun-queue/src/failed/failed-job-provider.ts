@@ -38,6 +38,7 @@ export class RedisFailedJobProvider implements FailedJobProvider {
     }
 
     // In a real implementation, store in Redis
+    // eslint-disable-next-line no-console
     console.log(`[FailedJobProvider] Logged failed job ${id} from queue ${_queue}`)
 
     return id
@@ -45,18 +46,21 @@ export class RedisFailedJobProvider implements FailedJobProvider {
 
   async all(): Promise<FailedJob[]> {
     // In a real implementation, fetch from Redis
+    // eslint-disable-next-line no-console
     console.log(`[FailedJobProvider] Fetching all failed jobs`)
     return []
   }
 
   async find(id: string): Promise<FailedJob | null> {
     // In a real implementation, fetch specific job from Redis
+    // eslint-disable-next-line no-console
     console.log(`[FailedJobProvider] Finding failed job ${id}`)
     return null
   }
 
   async forget(id: string): Promise<boolean> {
     // In a real implementation, remove from Redis
+    // eslint-disable-next-line no-console
     console.log(`[FailedJobProvider] Forgetting failed job ${id}`)
     return true
   }
@@ -64,11 +68,13 @@ export class RedisFailedJobProvider implements FailedJobProvider {
   async flush(hours?: number): Promise<void> {
     // In a real implementation, remove all or old failed jobs from Redis
     const timeframe = hours ? `older than ${hours} hours` : 'all'
+    // eslint-disable-next-line no-console
     console.log(`[FailedJobProvider] Flushing ${timeframe} failed jobs`)
   }
 
   async prune(hours: number): Promise<number> {
     // In a real implementation, remove failed jobs older than X hours
+    // eslint-disable-next-line no-console
     console.log(`[FailedJobProvider] Pruning failed jobs older than ${hours} hours`)
     return 0
   }
@@ -85,6 +91,7 @@ export class DatabaseFailedJobProvider implements FailedJobProvider {
     const id = `failed_${Date.now()}_${Math.random().toString(36).substring(2)}`
 
     // In a real implementation, insert into database
+    // eslint-disable-next-line no-console
     console.log(`[DatabaseFailedJobProvider] Logged failed job ${id} to ${this.table} table`)
 
     return id
@@ -92,18 +99,21 @@ export class DatabaseFailedJobProvider implements FailedJobProvider {
 
   async all(): Promise<FailedJob[]> {
     // In a real implementation, SELECT from database
+    // eslint-disable-next-line no-console
     console.log(`[DatabaseFailedJobProvider] Fetching all failed jobs from ${this.table}`)
     return []
   }
 
   async find(id: string): Promise<FailedJob | null> {
     // In a real implementation, SELECT WHERE id = ?
+    // eslint-disable-next-line no-console
     console.log(`[DatabaseFailedJobProvider] Finding failed job ${id} in ${this.table}`)
     return null
   }
 
   async forget(id: string): Promise<boolean> {
     // In a real implementation, DELETE WHERE id = ?
+    // eslint-disable-next-line no-console
     console.log(`[DatabaseFailedJobProvider] Deleting failed job ${id} from ${this.table}`)
     return true
   }
@@ -111,11 +121,13 @@ export class DatabaseFailedJobProvider implements FailedJobProvider {
   async flush(hours?: number): Promise<void> {
     // In a real implementation, DELETE with optional WHERE condition
     const condition = hours ? `WHERE failed_at < NOW() - INTERVAL ${hours} HOUR` : ''
+    // eslint-disable-next-line no-console
     console.log(`[DatabaseFailedJobProvider] DELETE FROM ${this.table} ${condition}`)
   }
 
   async prune(hours: number): Promise<number> {
     // In a real implementation, DELETE and return affected rows
+    // eslint-disable-next-line no-console
     console.log(`[DatabaseFailedJobProvider] Pruning failed jobs older than ${hours} hours from ${this.table}`)
     return 0
   }

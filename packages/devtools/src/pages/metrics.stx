@@ -1,78 +1,78 @@
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js'></script>
 
 <style>
   .chart-container { position: relative; height: 280px; width: 100%; }
   .time-range-btn.active { background: #6366f1; color: white; }
 </style>
 
-<div class="max-w-[1200px] mx-auto p-6">
-  <div class="flex items-center justify-between mb-6">
+<div class='max-w-[1200px] mx-auto p-6'>
+  <div class='flex items-center justify-between mb-6'>
     <div>
-      <h1 class="text-lg font-semibold text-zinc-50">Performance Metrics</h1>
-      <p class="text-sm text-zinc-500 mt-1">Job throughput, latency, and error analysis</p>
+      <h1 class='text-lg font-semibold text-zinc-50'>Performance Metrics</h1>
+      <p class='text-sm text-zinc-500 mt-1'>Job throughput, latency, and error analysis</p>
     </div>
-    <div class="flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1">
-      <template @for="range in timeRanges()">
+    <div class='flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1'>
+      <template @for='range in timeRanges()'>
         <button
-          class="time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150"
-          :class="{ active: activeRange() === range }"
-          @click="selectRange(range)"
+          class='time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150'
+          :class='{ active: activeRange() === range }'
+          @click='selectRange(range)'
         >{{ range }}</button>
       </template>
     </div>
   </div>
 
   <!-- Summary Stats -->
-  <div class="grid grid-cols-4 gap-4 mb-6 max-sm:grid-cols-2">
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Throughput</div>
-      <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statThroughput() }}</div>
-      <div class="text-xs text-zinc-500 font-normal">jobs/min</div>
+  <div class='grid grid-cols-4 gap-4 mb-6 max-sm:grid-cols-2'>
+    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150'>
+      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Avg Throughput</div>
+      <div class='text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums'>{{ statThroughput() }}</div>
+      <div class='text-xs text-zinc-500 font-normal'>jobs/min</div>
     </div>
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Latency</div>
-      <div class="text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums">{{ statLatency() }}</div>
-      <div class="text-xs text-zinc-500 font-normal">ms</div>
+    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150'>
+      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Avg Latency</div>
+      <div class='text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums'>{{ statLatency() }}</div>
+      <div class='text-xs text-zinc-500 font-normal'>ms</div>
     </div>
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Avg Error Rate</div>
-      <div class="text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums">{{ statErrorRate() }}</div>
-      <div class="text-xs text-zinc-500 font-normal">%</div>
+    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150'>
+      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Avg Error Rate</div>
+      <div class='text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums'>{{ statErrorRate() }}</div>
+      <div class='text-xs text-zinc-500 font-normal'>%</div>
     </div>
-    <div class="bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150">
-      <div class="text-xs font-medium text-zinc-500 uppercase tracking-wide">Uptime</div>
-      <div class="text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums">{{ statUptime() }}</div>
-      <div class="text-xs text-zinc-500 font-normal">hours</div>
+    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150'>
+      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Uptime</div>
+      <div class='text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums'>{{ statUptime() }}</div>
+      <div class='text-xs text-zinc-500 font-normal'>hours</div>
     </div>
   </div>
 
   <!-- Throughput Chart -->
-  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <span class="text-sm font-semibold text-zinc-50">Job Throughput</span>
+  <div class='bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6'>
+    <div class='flex items-center justify-between mb-4'>
+      <span class='text-sm font-semibold text-zinc-50'>Job Throughput</span>
     </div>
-    <div class="chart-container">
-      <canvas ref="throughput-chart"></canvas>
+    <div class='chart-container'>
+      <canvas ref='throughput-chart'></canvas>
     </div>
   </div>
 
   <!-- Latency Chart -->
-  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <span class="text-sm font-semibold text-zinc-50">Job Latency</span>
+  <div class='bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6'>
+    <div class='flex items-center justify-between mb-4'>
+      <span class='text-sm font-semibold text-zinc-50'>Job Latency</span>
     </div>
-    <div class="chart-container">
-      <canvas ref="latency-chart"></canvas>
+    <div class='chart-container'>
+      <canvas ref='latency-chart'></canvas>
     </div>
   </div>
 
   <!-- Error Rate Chart -->
-  <div class="bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <span class="text-sm font-semibold text-zinc-50">Error Rate</span>
+  <div class='bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6'>
+    <div class='flex items-center justify-between mb-4'>
+      <span class='text-sm font-semibold text-zinc-50'>Error Rate</span>
     </div>
-    <div class="chart-container">
-      <canvas ref="error-rate-chart"></canvas>
+    <div class='chart-container'>
+      <canvas ref='error-rate-chart'></canvas>
     </div>
   </div>
 </div>

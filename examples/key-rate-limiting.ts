@@ -8,6 +8,7 @@ interface EmailData {
 }
 
 async function main() {
+  // eslint-disable-next-line no-console
   console.log('🔒 Key-based Rate Limiting Example')
 
   // Create an email queue with key-based rate limiting
@@ -33,12 +34,14 @@ async function main() {
     const userId = users[i % users.length]
 
     // Send email
+    // eslint-disable-next-line no-console
     console.log(`📧 Attempting to send email #${i+1} for user ${userId}`)
 
     // Check if rate limited first
     const rateLimitCheck = await emailQueue.isRateLimited(undefined, { userId, to: '', subject: '', content: '' })
 
     if (rateLimitCheck.limited) {
+      // eslint-disable-next-line no-console
       console.log(`⛔ Rate limit reached for user ${userId}. Try again in ${rateLimitCheck.resetIn}ms`)
       continue
     }
@@ -51,6 +54,7 @@ async function main() {
       content: `This is test email #${i+1} for ${userId}`
     })
 
+    // eslint-disable-next-line no-console
     console.log(`✅ Email #${i+1} queued for ${userId} with job ID: ${job.id}`)
 
     // Wait a bit between requests to see the rate limiting in action
@@ -60,6 +64,7 @@ async function main() {
   // Process queue with a handler that logs emails
   emailQueue.process(1, async (job) => {
     const { userId, to, subject } = job.data
+    // eslint-disable-next-line no-console
     console.log(`🚀 Processing email for ${userId} to ${to}: "${subject}"`)
 
     // Simulate sending email
@@ -73,10 +78,12 @@ async function main() {
 
   // Close the queue
   await emailQueue.close()
+  // eslint-disable-next-line no-console
   console.log('👋 Queue closed')
 }
 
 main().catch(error => {
+  // eslint-disable-next-line no-console
   console.error('Error in example:', error)
   process.exit(1)
 })

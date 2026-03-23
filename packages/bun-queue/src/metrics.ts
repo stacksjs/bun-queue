@@ -84,6 +84,7 @@ export class Metrics {
       this.metrics.processedRate = totalProcessed / elapsedMinutes
     }
     catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Error collecting metrics:', err)
     }
   }

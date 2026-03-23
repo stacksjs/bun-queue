@@ -120,6 +120,7 @@ await queue.add(data, {
 ```
 
 Retry behavior:
+
 - **Fixed**: Always waits the same delay between retries
 - **Exponential**: Delay doubles with each retry (1s, 2s, 4s, 8s, ...)
 

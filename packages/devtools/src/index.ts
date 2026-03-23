@@ -55,6 +55,7 @@ async function buildFunctionsBundle(): Promise<string> {
   })
 
   if (!result.success) {
+    // eslint-disable-next-line no-console
     console.error('Failed to build functions bundle:', result.logs)
     return ''
   }
@@ -110,6 +111,7 @@ async function getShellParts(): Promise<{ before: string, after: string, styles:
 
   const slotIdx = processed.indexOf(SLOT)
   if (slotIdx === -1) {
+    // eslint-disable-next-line no-console
     console.warn('[bq-devtools] Shell has no <slot /> — falling back')
     cachedShell = { before: '', after: '', styles, scripts, signalsRuntime }
     return cachedShell
@@ -155,7 +157,7 @@ async function renderStxPage(templateName: string, wsUrl: string, req: Request):
   const shell = await getShellParts()
   const title = pageTitles[templateName] || 'bun-queue'
 
-  let html = `<!DOCTYPE html>
+  const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -428,6 +430,8 @@ catch { /* try next queue */ }
     },
   })
 
+  // eslint-disable-next-line no-console
   console.log(`bun-queue dashboard running at http://${server.hostname}:${server.port}`)
+  // eslint-disable-next-line no-console
   console.log(`WebSocket broadcast server running at ws://localhost:${broadcastPort}/app`)
 }

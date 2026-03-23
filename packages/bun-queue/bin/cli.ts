@@ -5,6 +5,7 @@ import { version } from '../package.json'
 const cli = new CLI('queue')
 
 cli.command('version', 'Show the version of the CLI').action(() => {
+  // eslint-disable-next-line no-console
   console.log(version)
 })
 

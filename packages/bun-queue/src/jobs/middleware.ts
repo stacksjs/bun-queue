@@ -11,6 +11,7 @@ export class RateLimited implements JobMiddleware {
   async handle(job: Job, next: () => Promise<void>): Promise<void> {
     // In a real implementation, this would check Redis for rate limiting
     // For now, we'll just pass through
+    // eslint-disable-next-line no-console
     console.log(`[RateLimited] Checking rate limit for ${this.key}`)
     await next()
   }
@@ -29,6 +30,7 @@ export class WithoutOverlapping implements JobMiddleware {
 
   async handle(job: Job, next: () => Promise<void>): Promise<void> {
     const lockKey = this.key || job.uniqueId?.() || (job as any).constructor.name
+    // eslint-disable-next-line no-console
     console.log(`[WithoutOverlapping] Acquiring lock for ${lockKey}`)
 
     // In a real implementation, this would use distributed locks
@@ -56,6 +58,7 @@ export class SkipIfBatchCancelled implements JobMiddleware {
     // Check if the batch is cancelled
     if ('batchId' in job && job.batchId) {
       // In a real implementation, check batch status from storage
+      // eslint-disable-next-line no-console
       console.log(`[SkipIfBatchCancelled] Checking batch ${job.batchId} status`)
     }
 
@@ -77,6 +80,7 @@ export class ThrottlesExceptions implements JobMiddleware {
       await next()
     }
     catch (error) {
+      // eslint-disable-next-line no-console
       console.log(`[ThrottlesExceptions] Exception throttled for ${key}`)
       // In a real implementation, track exceptions in Redis
       throw error

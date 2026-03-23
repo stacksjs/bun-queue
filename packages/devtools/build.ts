@@ -14,6 +14,7 @@ await Bun.build({
   plugins: [dtsx()],
 })
 
+// eslint-disable-next-line no-console
 console.log('JS build complete!')
 
 // 2. Build stx pages → dist/pages/ (HTML via bun-plugin-stx)
@@ -33,5 +34,7 @@ const stxResult = await Bun.build({
   })],
 })
 
+// eslint-disable-next-line no-console
 console.log(`STX build complete! (${stxResult.outputs.length} pages)`)
+// eslint-disable-next-line no-console
 console.log('Build complete!')

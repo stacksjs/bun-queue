@@ -152,10 +152,10 @@ Represents a single job in the queue.
 | `attemptsMade` | `number` | Number of attempts |
 | `stacktrace` | `string[]` | Error stacktraces |
 | `returnvalue` | `any` | Return value after completion |
-| `finishedOn` | `number \| undefined` | Completion timestamp |
-| `processedOn` | `number \| undefined` | Processing start timestamp |
-| `failedReason` | `string \| undefined` | Failure reason |
-| `dependencies` | `string[] \| undefined` | Dependency job IDs |
+| `finishedOn` | `number &#124; undefined` | Completion timestamp |
+| `processedOn` | `number &#124; undefined` | Processing start timestamp |
+| `failedReason` | `string &#124; undefined` | Failure reason |
+| `dependencies` | `string[] &#124; undefined` | Dependency job IDs |
 
 ### Methods
 

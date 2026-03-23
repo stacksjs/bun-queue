@@ -106,16 +106,16 @@ const queue = new Queue('tasks', {
 | `delay` | `number` | `0` | Delay before processing (ms) |
 | `attempts` | `number` | `1` | Max retry attempts |
 | `backoff` | `{ type, delay }` | — | Retry backoff strategy |
-| `backoff.type` | `'fixed' \| 'exponential'` | — | Backoff type |
+| `backoff.type` | `'fixed' &#124; 'exponential'` | — | Backoff type |
 | `backoff.delay` | `number` | — | Base delay (ms) |
-| `removeOnComplete` | `boolean \| number` | `false` | Remove on complete, or keep N |
-| `removeOnFail` | `boolean \| number` | `false` | Remove on fail, or keep N |
+| `removeOnComplete` | `boolean &#124; number` | `false` | Remove on complete, or keep N |
+| `removeOnFail` | `boolean &#124; number` | `false` | Remove on fail, or keep N |
 | `priority` | `number` | `0` | Higher = processed first |
 | `lifo` | `boolean` | `false` | Last-in-first-out order |
 | `timeout` | `number` | — | Job timeout (ms) |
 | `jobId` | `string` | auto | Custom job ID |
-| `dependsOn` | `string \| string[]` | — | Job dependency IDs |
-| `deadLetter` | `boolean \| DeadLetterQueueOptions` | — | Per-job DLQ config |
+| `dependsOn` | `string &#124; string[]` | — | Job dependency IDs |
+| `deadLetter` | `boolean &#124; DeadLetterQueueOptions` | — | Per-job DLQ config |
 | `repeat.cron` | `string` | — | Cron expression |
 | `repeat.every` | `number` | — | Repeat interval (ms) |
 | `repeat.limit` | `number` | — | Max repetitions |

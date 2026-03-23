@@ -49,6 +49,7 @@ export class FailedJobManager {
       return true
     }
     catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`[FailedJobManager] Failed to retry job ${id}:`, error)
       return false
     }

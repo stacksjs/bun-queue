@@ -31,24 +31,28 @@ class Logger {
 
   debug(message: string, ...args: any[]): void {
     if (LOG_LEVELS[this.level] <= LOG_LEVELS.debug) {
+      // eslint-disable-next-line no-console
       console.debug(this.formatMessage(message), ...args)
     }
   }
 
   info(message: string, ...args: any[]): void {
     if (LOG_LEVELS[this.level] <= LOG_LEVELS.info) {
+      // eslint-disable-next-line no-console
       console.info(this.formatMessage(message), ...args)
     }
   }
 
   warn(message: string, ...args: any[]): void {
     if (LOG_LEVELS[this.level] <= LOG_LEVELS.warn) {
+      // eslint-disable-next-line no-console
       console.warn(this.formatMessage(message), ...args)
     }
   }
 
   error(message: string, ...args: any[]): void {
     if (LOG_LEVELS[this.level] <= LOG_LEVELS.error) {
+      // eslint-disable-next-line no-console
       console.error(this.formatMessage(message), ...args)
     }
   }

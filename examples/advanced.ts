@@ -42,10 +42,12 @@ async function main() {
 
   // Set up event listeners for the email queue
   emailQueue.events.on('jobCompleted', (jobId, result) => {
+    // eslint-disable-next-line no-console
     console.log(`Email job ${jobId} completed with result:`, result)
   })
 
   emailQueue.events.on('jobFailed', (jobId, error) => {
+    // eslint-disable-next-line no-console
     console.log(`Email job ${jobId} failed with error:`, error.message)
   })
 
@@ -66,6 +68,7 @@ async function main() {
     jobId: 'report-job-123',
   })
 
+  // eslint-disable-next-line no-console
   console.log(`Added report job ${reportJob.id}`)
 
   // Then, add an email job that depends on the report job
@@ -78,6 +81,7 @@ async function main() {
     jobId: 'email-job-123',
   })
 
+  // eslint-disable-next-line no-console
   console.log(`Added email job ${emailJobWithDep.id} depending on report job ${reportJob.id}`)
 
   // Add some image processing jobs
@@ -92,6 +96,7 @@ async function main() {
       priority: i, // Higher number = higher priority
     })
 
+    // eslint-disable-next-line no-console
     console.log(`Added image job ${imageJob.id} with priority ${i}`)
   }
 
@@ -107,9 +112,11 @@ async function main() {
         body: `This is test email #${i}`,
       })
 
+      // eslint-disable-next-line no-console
       console.log(`Added rate-limited email job ${job.id}. Remaining: ${remaining}`)
     }
     else {
+      // eslint-disable-next-line no-console
       console.log(`Rate limit reached. Try again in ${resetIn}ms. Skipping email ${i}.`)
       // In a real app, you might wait and retry, or queue locally
       await new Promise(resolve => setTimeout(resolve, 500))
@@ -119,6 +126,7 @@ async function main() {
 
   // Process report jobs
   reportQueue.process(2, async (job) => {
+    // eslint-disable-next-line no-console
     console.log(`Processing report job ${job.id} for report ${job.data.reportId}`)
 
     // Update progress
@@ -133,6 +141,7 @@ async function main() {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     await job.updateProgress(100)
+    // eslint-disable-next-line no-console
     console.log(`Report ${job.data.reportId} generated successfully`)
 
     return { reportUrl: `https://example.com/reports/${job.data.reportId}.${job.data.format}` }
@@ -140,6 +149,7 @@ async function main() {
 
   // Process email jobs
   emailQueue.process(5, async (job) => {
+    // eslint-disable-next-line no-console
     console.log(`Processing email job ${job.id} to ${job.data.to}`)
 
     // Update progress
@@ -154,6 +164,7 @@ async function main() {
     }
 
     await job.updateProgress(100)
+    // eslint-disable-next-line no-console
     console.log(`Email sent successfully to ${job.data.to}`)
 
     return {
@@ -165,6 +176,7 @@ async function main() {
 
   // Process image jobs
   imageQueue.process(3, async (job) => {
+    // eslint-disable-next-line no-console
     console.log(`Processing image job ${job.id} for image ${job.data.imageId}`)
 
     // Update progress
@@ -172,6 +184,7 @@ async function main() {
 
     // For each operation
     for (const [index, operation] of job.data.operations.entries()) {
+      // eslint-disable-next-line no-console
       console.log(`Applying ${operation.type} to image ${job.data.imageId}`)
 
       // Simulate image processing work
@@ -182,6 +195,7 @@ async function main() {
     }
 
     await job.updateProgress(100)
+    // eslint-disable-next-line no-console
     console.log(`Image ${job.data.imageId} processed successfully`)
 
     return {
@@ -199,18 +213,27 @@ async function main() {
       imageQueue.getJobCounts(),
     ])
 
+    // eslint-disable-next-line no-console
     console.log('\nJob Counts:')
+    // eslint-disable-next-line no-console
     console.log('Email Queue:', emailCounts)
+    // eslint-disable-next-line no-console
     console.log('Report Queue:', reportCounts)
+    // eslint-disable-next-line no-console
     console.log('Image Queue:', imageCounts)
 
     // Get metrics
     const metrics = await emailQueue.getMetrics()
     if (metrics) {
+      // eslint-disable-next-line no-console
       console.log('\nEmail Queue Metrics:')
+      // eslint-disable-next-line no-console
       console.log(`Processed per minute: ${metrics.jobsProcessedPerMinute}`)
+      // eslint-disable-next-line no-console
       console.log(`Added per minute: ${metrics.jobsAddedPerMinute}`)
+      // eslint-disable-next-line no-console
       console.log(`Error rate: ${(metrics.errorRate * 100).toFixed(1)}%`)
+      // eslint-disable-next-line no-console
       console.log(`Avg processing time: ${metrics.processingTime.avg.toFixed(0)}ms`)
     }
 
@@ -220,12 +243,15 @@ async function main() {
     const totalDelayed = emailCounts.delayed + reportCounts.delayed + imageCounts.delayed
 
     if (totalActive === 0 && totalWaiting === 0 && totalDelayed === 0) {
+      // eslint-disable-next-line no-console
       console.log('\nAll jobs processed!')
 
       // Display final results
       const completed = emailCounts.completed + reportCounts.completed + imageCounts.completed
       const failed = emailCounts.failed + reportCounts.failed + imageCounts.failed
+      // eslint-disable-next-line no-console
       console.log(`Total completed: ${completed}`)
+      // eslint-disable-next-line no-console
       console.log(`Total failed: ${failed}`)
 
       // Clean up
@@ -238,9 +264,11 @@ async function main() {
         imageQueue.close(),
       ])
 
+      // eslint-disable-next-line no-console
       console.log('All queues closed, exiting...')
     }
   }, 2000)
 }
 
+// eslint-disable-next-line no-console
 main().catch(console.error)

@@ -2,7 +2,7 @@
 
 bun-queue is a fast, reliable, and type-safe Redis-backed job queue built specifically for Bun. It's inspired by Laravel's Queue system and BullMQ, bringing the best of both worlds to the TypeScript ecosystem.
 
-## Why bun-queue?
+## Why bun-queue
 
 - **Built for Bun**: Optimized specifically for Bun's runtime
 - **Redis-backed**: Reliable job persistence with Redis for distributed processing
@@ -13,21 +13,26 @@ bun-queue is a fast, reliable, and type-safe Redis-backed job queue built specif
 ## Core Features
 
 ### Job Queue Basics
+
 - Add jobs with customizable options (delays, retries, priority)
 - Process jobs with configurable concurrency
 - Track job progress during execution
 - Automatic retry with exponential backoff
 
 ### Priority Queues
+
 Process jobs based on importance with multiple priority levels, ensuring critical tasks are handled first.
 
 ### Cron Jobs
+
 Schedule recurring jobs using standard cron expressions with timezone support and execution limits.
 
 ### Dead Letter Queues
+
 Automatically capture permanently failed jobs for inspection and reprocessing.
 
 ### Horizontal Scaling
+
 Scale across multiple instances with built-in leader election and work coordination.
 
 ## Quick Example
@@ -54,7 +59,7 @@ emailQueue.process(5, async (job) => {
 
 ## Architecture Overview
 
-```
+```ts
 ┌─────────────────────────────────────────────────────────┐
 │                      Producer                            │
 │    (Your application adding jobs to the queue)          │

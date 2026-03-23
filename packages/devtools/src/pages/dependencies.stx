@@ -1,4 +1,4 @@
-<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src='https://d3js.org/d3.v7.min.js'></script>
 
 <style>
   .graph-container svg { width: 100%; height: 100%; }
@@ -9,42 +9,42 @@
   .node-label { font-size: 10px; fill: #a1a1aa; text-anchor: middle; pointer-events: none; user-select: none; }
 </style>
 
-<div class="overflow-hidden h-screen flex flex-col">
+<div class='overflow-hidden h-screen flex flex-col'>
   <!-- Top bar -->
-  <div class="flex items-center justify-between px-6 py-3 bg-[#141419] border-b border-zinc-800 shrink-0">
-    <div class="flex items-center gap-4">
-      <h1 class="text-base font-semibold text-zinc-50">Job Dependencies</h1>
+  <div class='flex items-center justify-between px-6 py-3 bg-[#141419] border-b border-zinc-800 shrink-0'>
+    <div class='flex items-center gap-4'>
+      <h1 class='text-base font-semibold text-zinc-50'>Job Dependencies</h1>
     </div>
-    <div class="flex gap-5 items-center">
-      <div class="flex items-center gap-1.5 text-xs text-zinc-400">
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></span>
+    <div class='flex gap-5 items-center'>
+      <div class='flex items-center gap-1.5 text-xs text-zinc-400'>
+        <span class='w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0'></span>
         Completed
       </div>
-      <div class="flex items-center gap-1.5 text-xs text-zinc-400">
-        <span class="w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0"></span>
+      <div class='flex items-center gap-1.5 text-xs text-zinc-400'>
+        <span class='w-2.5 h-2.5 rounded-full bg-indigo-500 shrink-0'></span>
         Active
       </div>
-      <div class="flex items-center gap-1.5 text-xs text-zinc-400">
-        <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+      <div class='flex items-center gap-1.5 text-xs text-zinc-400'>
+        <span class='w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0'></span>
         Waiting
       </div>
-      <div class="flex items-center gap-1.5 text-xs text-zinc-400">
-        <span class="w-2.5 h-2.5 rounded-full bg-red-500 shrink-0"></span>
+      <div class='flex items-center gap-1.5 text-xs text-zinc-400'>
+        <span class='w-2.5 h-2.5 rounded-full bg-red-500 shrink-0'></span>
         Failed
       </div>
     </div>
   </div>
 
   <!-- Graph -->
-  <div class="graph-container flex-1 relative overflow-hidden" ref="graph-container">
-    <div @show="statusMessage()" class="flex items-center justify-center h-full text-zinc-500 text-sm">{{ statusMessage() }}</div>
+  <div class='graph-container flex-1 relative overflow-hidden' ref='graph-container'>
+    <div @show='statusMessage()' class='flex items-center justify-center h-full text-zinc-500 text-sm'>{{ statusMessage() }}</div>
   </div>
 
   <!-- Tooltip -->
-  <div class="absolute pointer-events-none bg-[#141419] border border-zinc-800 rounded-md px-3.5 py-2.5 text-xs text-zinc-50 shadow-lg z-[200] opacity-0 transition-opacity duration-150" ref="tooltip">
-    <div class="font-semibold mb-1" ref="tooltip-name"></div>
-    <div class="font-mono text-zinc-500 text-[0.6875rem]" ref="tooltip-id"></div>
-    <div class="mt-1" ref="tooltip-status"></div>
+  <div class='absolute pointer-events-none bg-[#141419] border border-zinc-800 rounded-md px-3.5 py-2.5 text-xs text-zinc-50 shadow-lg z-[200] opacity-0 transition-opacity duration-150' ref='tooltip'>
+    <div class='font-semibold mb-1' ref='tooltip-name'></div>
+    <div class='font-mono text-zinc-500 text-[0.6875rem]' ref='tooltip-id'></div>
+    <div class='mt-1' ref='tooltip-status'></div>
   </div>
 </div>
 
@@ -180,7 +180,7 @@
           failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
         }
         statusEl.innerHTML =
-          '<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ' + (badgeColors[badgeStatus] || badgeColors.waiting) + '">' + (d.status || 'unknown') + '</span>'
+          '<span style='display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; \' + (badgeColors[badgeStatus] || badgeColors.waiting) + \''>' + (d.status || 'unknown') + '</span>'
 
         tooltipEl.style.left = (event.pageX + 12) + 'px'
         tooltipEl.style.top = (event.pageY - 10) + 'px'

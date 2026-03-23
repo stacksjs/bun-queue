@@ -47,6 +47,7 @@ export class Worker<T = any> {
     if (this.processing.size > 0) {
       const timeoutPromise = new Promise<void>((resolve) => {
         setTimeout(() => {
+          // eslint-disable-next-line no-console
           console.warn(`Worker shutdown timed out with ${this.processing.size} jobs still processing`)
           resolve()
         }, timeout)
@@ -115,6 +116,7 @@ export class Worker<T = any> {
       }
     }
     catch (err) {
+      // eslint-disable-next-line no-console
       console.error('Error processing jobs', err)
     }
   }
@@ -168,6 +170,7 @@ export class Worker<T = any> {
       }
       catch (err) {
         // Log the error
+        // eslint-disable-next-line no-console
         console.error(`Error processing job ${jobId}:`, err)
 
         // Get the job again to ensure we have latest data

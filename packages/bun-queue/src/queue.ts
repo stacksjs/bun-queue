@@ -175,7 +175,7 @@ export class Queue<T = any> {
    */
   private async init(): Promise<void> {
     try {
-      const commandsDir = import.meta.dir + '/commands'
+      const commandsDir = `${import.meta.dir}/commands`
       await scriptLoader.load(this.redisClient, commandsDir)
       this.events.emitReady()
       this.logger.info(`Queue ${this.name} initialized successfully`)

@@ -20,6 +20,7 @@ function parseArgs(): { port: number, broadcastPort: number, redisHost: string, 
     const next = args[i + 1]
 
     if (arg === '--help' || arg === '-h') {
+      // eslint-disable-next-line no-console
       console.log(`
 bun-queue dashboard
 
@@ -95,7 +96,9 @@ async function discoverQueues(host: string, port: number, password: string | und
 async function main(): Promise<void> {
   const opts = parseArgs()
 
+  // eslint-disable-next-line no-console
   console.log('bun-queue dashboard')
+  // eslint-disable-next-line no-console
   console.log(`Connecting to Redis at ${opts.redisHost}:${opts.redisPort}...`)
 
   let queueNames = opts.queues
@@ -105,14 +108,18 @@ async function main(): Promise<void> {
     try {
       queueNames = await discoverQueues(opts.redisHost, opts.redisPort, opts.redisPassword, opts.redisDb, opts.prefix)
       if (queueNames.length === 0) {
+        // eslint-disable-next-line no-console
         console.log('No queues found in Redis. Starting with empty dashboard.')
       }
       else {
+        // eslint-disable-next-line no-console
         console.log(`Discovered ${queueNames.length} queue(s): ${queueNames.join(', ')}`)
       }
     }
     catch (err) {
+      // eslint-disable-next-line no-console
       console.error(`Failed to discover queues: ${err instanceof Error ? err.message : err}`)
+      // eslint-disable-next-line no-console
       console.log('Starting with empty dashboard. Add queues with --queues flag.')
     }
   }
@@ -135,6 +142,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
+  // eslint-disable-next-line no-console
   console.error('Fatal:', err)
   process.exit(1)
 })

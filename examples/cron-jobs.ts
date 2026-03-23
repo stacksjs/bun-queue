@@ -8,6 +8,7 @@ interface NotificationData {
 }
 
 async function main() {
+  // eslint-disable-next-line no-console
   console.log('🕒 Cron Jobs Example')
 
   // Create a queue for notifications
@@ -17,11 +18,13 @@ async function main() {
     logLevel: 'info',
   })
 
+  // eslint-disable-next-line no-console
   console.log('✅ Queue created')
 
   // Process notifications
   notificationQueue.process(5, async (job) => {
     const { title, message, recipients, type } = job.data
+    // eslint-disable-next-line no-console
     console.log(`📨 Processing ${type} notification "${title}" to ${recipients.length} recipients`)
 
     // Simulate notification sending
@@ -30,6 +33,7 @@ async function main() {
     return { success: true, sentAt: new Date(), recipientCount: recipients.length }
   })
 
+  // eslint-disable-next-line no-console
   console.log('\n📅 Scheduling cron jobs with different expressions:')
 
   // Example 1: Run every minute - useful for testing
@@ -45,6 +49,7 @@ async function main() {
     // Will stop after 5 executions
     limit: 5
   })
+  // eslint-disable-next-line no-console
   console.log(`  - Every minute status check scheduled (ID: ${everyMinuteId})`)
 
   // Example 2: Hourly job with timezone
@@ -59,6 +64,7 @@ async function main() {
     },
     jobId: 'hourly-update'
   })
+  // eslint-disable-next-line no-console
   console.log(`  - Hourly update scheduled in Eastern Time (ID: ${hourlyJobId})`)
 
   // Example 3: Daily job at specific time
@@ -73,6 +79,7 @@ async function main() {
     },
     jobId: 'daily-report'
   })
+  // eslint-disable-next-line no-console
   console.log(`  - Daily report scheduled for 9:30am London time (ID: ${dailyJobId})`)
 
   // Example 4: Weekday job (Monday through Friday)
@@ -86,6 +93,7 @@ async function main() {
     },
     jobId: 'weekday-briefing'
   })
+  // eslint-disable-next-line no-console
   console.log(`  - Weekday briefing scheduled for 8:00am Mon-Fri (ID: ${weekdayJobId})`)
 
   // Example 5: Complex schedule (first Monday of the month)
@@ -99,28 +107,40 @@ async function main() {
     },
     jobId: 'monthly-review'
   })
+  // eslint-disable-next-line no-console
   console.log(`  - Monthly review scheduled for first Monday of each month (ID: ${monthlyJobId})`)
 
   // Show when the next few minutes of jobs will run
+  // eslint-disable-next-line no-console
   console.log('\n⏰ Demonstrating minute-by-minute execution for a short period:')
+  // eslint-disable-next-line no-console
   console.log('   (The every-minute job will run several times)')
 
   // Wait for several minutes to see some executions
   await new Promise(resolve => setTimeout(resolve, 180000)) // 3 minutes
 
   // Unschedule one of the jobs to demonstrate cancellation
+  // eslint-disable-next-line no-console
   console.log('\n❌ Unscheduling the every-minute job')
   const unscheduled = await notificationQueue.unscheduleCron(everyMinuteId)
+  // eslint-disable-next-line no-console
   console.log(`   Job ${everyMinuteId} ${unscheduled ? 'successfully unscheduled' : 'failed to unschedule'}`)
 
   // Show the remaining scheduled jobs
+  // eslint-disable-next-line no-console
   console.log('\n📝 The following jobs remain scheduled:')
+  // eslint-disable-next-line no-console
   console.log(`  - Hourly update (ID: ${hourlyJobId})`)
+  // eslint-disable-next-line no-console
   console.log(`  - Daily report (ID: ${dailyJobId})`)
+  // eslint-disable-next-line no-console
   console.log(`  - Weekday briefing (ID: ${weekdayJobId})`)
+  // eslint-disable-next-line no-console
   console.log(`  - Monthly review (ID: ${monthlyJobId})`)
 
+  // eslint-disable-next-line no-console
   console.log('\n👋 Example completed. In a real application, these would continue running.')
+  // eslint-disable-next-line no-console
   console.log('   Closing the queue for the example.')
 
   // In a real application, you might keep the queue running forever
@@ -128,6 +148,7 @@ async function main() {
 }
 
 main().catch(error => {
+  // eslint-disable-next-line no-console
   console.error('Error in example:', error)
   process.exit(1)
 })
