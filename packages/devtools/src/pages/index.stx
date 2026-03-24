@@ -1,19 +1,10 @@
-@extends('../layouts/app')
-
-@section('title')bun-queue Dashboard@endsection
-
-@push('head')
 <script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js'></script>
-@endpush
 
-@push('styles')
 <style>
   .chart-container { position: relative; height: 220px; width: 100%; }
   .chart-container-sm { position: relative; height: 180px; width: 100%; }
 </style>
-@endpush
 
-@section('content')
 <script client>
   interface DashboardStats {
     totalQueues: number
@@ -330,4 +321,3 @@
     </div>
   </div>
 </div>
-@endsection

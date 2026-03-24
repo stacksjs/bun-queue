@@ -1,8 +1,3 @@
-@extends('../layouts/app')
-
-@section('title')Job Details — bun-queue@endsection
-
-@section('content')
 <script client>
   interface JobDetail {
     id: string
@@ -206,4 +201,3 @@
     <div @show='!loading() && !loadError() && !hasJobData()' class='text-center py-8 text-zinc-500 text-[0.8125rem]'>No job data available.</div>
   </div>
 </div>
-@endsection

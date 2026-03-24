@@ -1,8 +1,3 @@
-@extends('../layouts/app')
-
-@section('title')Group Details — bun-queue@endsection
-
-@section('content')
 <script client>
   interface GroupData {
     name?: string
@@ -167,4 +162,3 @@
     </table>
   </div>
 </div>
-@endsection

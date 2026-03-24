@@ -1,16 +1,9 @@
-@extends('../layouts/app')
-
-@section('title')Batch Details — bun-queue@endsection
-
-@push('styles')
 <style>
   .progress-ring-container svg { transform: rotate(-90deg); }
   .progress-ring-bg { fill: none; stroke: #1e1e26; stroke-width: 10; }
   .progress-ring-fill { fill: none; stroke: #10b981; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
 </style>
-@endpush
 
-@section('content')
 <script client>
   interface BatchData {
     id: string
@@ -221,4 +214,3 @@
     </table>
   </div>
 </div>
-@endsection

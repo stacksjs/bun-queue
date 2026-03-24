@@ -1,14 +1,7 @@
-@extends('../layouts/app')
-
-@section('title')Batches — bun-queue@endsection
-
-@push('styles')
 <style>
   .progress-bar-fill { transition: width 0.5s ease; }
 </style>
-@endpush
 
-@section('content')
 <script client>
   interface Batch {
     id: string
@@ -171,4 +164,3 @@
     </div>
   </div>
 </div>
-@endsection

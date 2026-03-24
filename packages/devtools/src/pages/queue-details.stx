@@ -1,18 +1,9 @@
-@extends('../layouts/app')
-
-@section('title')Queue Details — bun-queue@endsection
-
-@push('head')
 <script src='https://cdn.jsdelivr.net/npm/chart.js@4'></script>
-@endpush
 
-@push('styles')
 <style>
   .progress-bar-fill { transition: width 0.5s ease; }
 </style>
-@endpush
 
-@section('content')
 <script client>
   interface QueueData {
     id: string
@@ -282,4 +273,3 @@
     </table>
   </div>
 </div>
-@endsection

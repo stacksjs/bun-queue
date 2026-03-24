@@ -1,12 +1,5 @@
-@extends('../layouts/app')
-
-@section('title')Job Dependencies — bun-queue@endsection
-
-@push('head')
 <script src='https://d3js.org/d3.v7.min.js'></script>
-@endpush
 
-@push('styles')
 <style>
   .graph-container svg { width: 100%; height: 100%; }
   .link { stroke: #27272a; stroke-width: 1.5; fill: none; }
@@ -15,9 +8,7 @@
   .node-circle:active { cursor: grabbing; }
   .node-label { font-size: 10px; fill: #a1a1aa; text-anchor: middle; pointer-events: none; user-select: none; }
 </style>
-@endpush
 
-@section('content')
 <script client>
   interface GraphNode {
     id: string
@@ -241,4 +232,3 @@
     <div class='mt-1' ref='tooltip-status'></div>
   </div>
 </div>
-@endsection

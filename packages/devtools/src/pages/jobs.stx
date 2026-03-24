@@ -1,15 +1,8 @@
-@extends('../layouts/app')
-
-@section('title')Jobs — bun-queue@endsection
-
-@push('styles')
 <style>
   .search-input::placeholder { color: #71717a; }
   .filter-btn.active { background: #6366f1; color: white; }
 </style>
-@endpush
 
-@section('content')
 <script client>
   interface Job {
     id: string
@@ -223,4 +216,3 @@
     </table>
   </div>
 </div>
-@endsection

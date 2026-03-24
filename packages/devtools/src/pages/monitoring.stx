@@ -1,8 +1,3 @@
-@extends('../layouts/app')
-
-@section('title')Real-time Monitoring — bun-queue@endsection
-
-@push('styles')
 <style>
   @keyframes pulse-dot {
     0%, 100% { opacity: 1; transform: scale(1); }
@@ -37,9 +32,7 @@
   .event-log-scroll::-webkit-scrollbar-track { background: transparent; }
   .event-log-scroll::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
 </style>
-@endpush
 
-@section('content')
 <script client>
   interface MonitoringStats {
     throughputPerMinute: number
@@ -268,4 +261,3 @@
     </div>
   </div>
 </div>
-@endsection
