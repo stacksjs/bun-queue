@@ -54,7 +54,7 @@
     "@cwcss/crosswind": "^0.1.6",
     "@stacksjs/bun-queue": "workspace:*",
     "@stacksjs/stx": "^0.2.10",
-    "ts-broadcasting": "^0.0.1"
+    "ts-broadcasting": "^0.0.3"
   },
   "devDependencies": {
     "bun-plugin-stx": "^0.2.10"

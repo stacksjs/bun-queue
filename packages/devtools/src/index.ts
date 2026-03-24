@@ -2,7 +2,7 @@ import type { DashboardConfig } from './types'
 import path from 'node:path'
 import { defaultConfig as stxDefaultConfig, isSpaNavigation, processDirectives, stripDocumentWrapper } from '@stacksjs/stx'
 import { BroadcastServer } from 'ts-broadcasting'
-import { createApiRoutes, fetchBatchById, fetchBatches, fetchDashboardStats, fetchDependencyGraph, fetchJobById, fetchJobGroups, fetchJobs, fetchMetrics, fetchQueueById, fetchQueues } from './api'
+import { createApiRoutes, fetchBatchById, fetchJobById, fetchJobGroups, fetchJobs, fetchQueueById } from './api'
 import { resolveConfig } from './api'
 
 export type { Batch, DashboardConfig, DashboardStats, DependencyGraph, DependencyNode, JobData, JobGroup, MetricsData, Queue, QueueMetrics } from './types'
@@ -25,281 +25,132 @@ const stxConfig = {
 
 async function buildFunctionsBundle(): Promise<string> {
   if (bundledFunctionsJs) return bundledFunctionsJs
-
-  const result = await Bun.build({
-    entrypoints: [FUNCTIONS_ENTRY],
-    target: 'browser',
-    minify: false,
-    format: 'iife',
-  })
-
-  if (!result.success) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to build functions bundle:', result.logs)
-    return ''
-  }
-
+  const result = await Bun.build({ entrypoints: [FUNCTIONS_ENTRY], target: 'browser', minify: false, format: 'iife' })
+  if (!result.success) { console.error('Failed to build functions bundle:', result.logs); return '' } // eslint-disable-line no-console
   bundledFunctionsJs = await result.outputs[0].text()
   return bundledFunctionsJs
 }
 
-async function renderStxPage(templateName: string, wsUrl: string, req: Request): Promise<Response> {
+async function renderPage(templateName: string, wsUrl: string, req: Request): Promise<Response> {
   const templatePath = path.join(PAGES_DIR, `${templateName}.stx`)
   const content = await Bun.file(templatePath).text()
-
   const context: Record<string, any> = { __filename: templatePath, __dirname: path.dirname(templatePath) }
-  let html = await processDirectives(content, context, templatePath, stxConfig, new Set())
 
-  // Inject WebSocket URL for real-time updates
-  html = html.replace('</head>', `<script>window.__BQ_WS_URL = "${wsUrl}";</script>\n</head>`)
-
-  // SPA navigation — extract <main> content as fragment
+  // SPA navigation — process page as fragment (strip layout directives)
   if (isSpaNavigation(req)) {
-    let fragment = ''
+    const pageContent = content
+      .replace(/@extends\s*\(\s*['"][^'"]+['"]\s*\)/g, '')
+      .replace(/@section\s*\(\s*'title'\s*\)[^@]*@endsection/g, '')
+      .replace(/@section\s*\(\s*'content'\s*\)/g, '')
+      .replace(/@endsection\s*$/gm, '')
+      .replace(/@push\s*\(\s*['"][^'"]+['"]\s*\)/g, '')
+      .replace(/@endpush/g, '')
 
-    // Extract <head> styles (page-specific styles from @push('styles'))
-    const headMatch = html.match(/<head\b[^>]*>([\s\S]*?)<\/head>/i)
-    if (headMatch) {
-      const headContent = headMatch[1]
-      const styleRegex = /<style\b[^>]*>[\s\S]*?<\/style>/gi
-      let m: RegExpExecArray | null
-      while ((m = styleRegex.exec(headContent)) !== null) {
-        fragment += m[0] + '\n'
-      }
-    }
-
-    // Extract <main> inner content
-    const mainOpenMatch = html.match(/<main\b[^>]*>/i)
-    const mainCloseIdx = html.lastIndexOf('</main>')
-    if (mainOpenMatch && mainCloseIdx !== -1) {
-      const mainStart = mainOpenMatch.index! + mainOpenMatch[0].length
-      fragment += html.slice(mainStart, mainCloseIdx)
-    }
-
-    // Strip the signals runtime IIFE (shell already has it)
-    fragment = fragment.replace(
-      /<script data-stx-scoped>\s*;?\(function\(\)\s*\{[\s\S]*?<\/script>/g,
-      '',
-    )
+    let fragment = await processDirectives(pageContent, context, templatePath, stxConfig, new Set())
+    fragment = stripDocumentWrapper(fragment)
+    // Strip signals runtime — shell already has it
+    fragment = fragment.replace(/<script data-stx-scoped>\(function\(\)\{[^]*?<\/script>/, '')
 
     return new Response(fragment, {
-      headers: {
-        'Content-Type': 'text/html',
-        'Cache-Control': 'no-store',
-        'X-STX-Fragment': 'true',
-      },
+      headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store', 'X-STX-Fragment': 'true' },
     })
   }
 
+  // Full page — processDirectives handles @extends, layout, signals runtime, everything
+  let html = await processDirectives(content, context, templatePath, stxConfig, new Set())
+  html = html.replace('</head>', `<script>window.__BQ_WS_URL = "${wsUrl}";</script>\n</head>`)
   return new Response(html, { headers: { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' } })
 }
 
 function wireQueueEvents(queues: any[]): void {
   if (!broadcastServer) return
-
   for (const queue of queues) {
     const queueName = queue.name
-
-    queue.events.on('jobAdded', (jobId: string) => {
-      broadcastServer!.broadcast(`queue.${queueName}`, 'job.added', { jobId, queue: queueName, timestamp: Date.now() })
-      broadcastServer!.broadcast('dashboard', 'job.added', { jobId, queue: queueName, timestamp: Date.now() })
-    })
-
-    queue.events.on('jobCompleted', (jobId: string, result: any) => {
-      broadcastServer!.broadcast(`queue.${queueName}`, 'job.completed', { jobId, queue: queueName, result, timestamp: Date.now() })
-      broadcastServer!.broadcast('dashboard', 'job.completed', { jobId, queue: queueName, timestamp: Date.now() })
-    })
-
-    queue.events.on('jobFailed', (jobId: string, error: Error) => {
-      broadcastServer!.broadcast(`queue.${queueName}`, 'job.failed', { jobId, queue: queueName, error: error.message, timestamp: Date.now() })
-      broadcastServer!.broadcast('dashboard', 'job.failed', { jobId, queue: queueName, error: error.message, timestamp: Date.now() })
-    })
-
-    queue.events.on('jobActive', (jobId: string) => {
-      broadcastServer!.broadcast(`queue.${queueName}`, 'job.active', { jobId, queue: queueName, timestamp: Date.now() })
-      broadcastServer!.broadcast('dashboard', 'job.active', { jobId, queue: queueName, timestamp: Date.now() })
-    })
-
-    queue.events.on('jobProgress', (jobId: string, progress: number) => {
-      broadcastServer!.broadcast(`queue.${queueName}`, 'job.progress', { jobId, queue: queueName, progress, timestamp: Date.now() })
-    })
-
-    queue.events.on('jobStalled', (jobId: string) => {
-      broadcastServer!.broadcast(`queue.${queueName}`, 'job.stalled', { jobId, queue: queueName, timestamp: Date.now() })
-      broadcastServer!.broadcast('dashboard', 'job.stalled', { jobId, queue: queueName, timestamp: Date.now() })
-    })
-
-    queue.events.on('jobRemoved', (jobId: string) => {
-      broadcastServer!.broadcast(`queue.${queueName}`, 'job.removed', { jobId, queue: queueName, timestamp: Date.now() })
-      broadcastServer!.broadcast('dashboard', 'job.removed', { jobId, queue: queueName, timestamp: Date.now() })
-    })
-
-    queue.events.on('batchAdded', (batchId: string, jobIds: string[]) => {
-      broadcastServer!.broadcast('dashboard', 'batch.added', { batchId, jobCount: jobIds.length, queue: queueName, timestamp: Date.now() })
-    })
-
-    queue.events.on('batchCompleted', (batchId: string) => {
-      broadcastServer!.broadcast('dashboard', 'batch.completed', { batchId, queue: queueName, timestamp: Date.now() })
-    })
+    queue.events.on('jobAdded', (jobId: string) => { broadcastServer!.broadcast(`queue.${queueName}`, 'job.added', { jobId, queue: queueName, timestamp: Date.now() }); broadcastServer!.broadcast('dashboard', 'job.added', { jobId, queue: queueName, timestamp: Date.now() }) })
+    queue.events.on('jobCompleted', (jobId: string, result: any) => { broadcastServer!.broadcast(`queue.${queueName}`, 'job.completed', { jobId, queue: queueName, result, timestamp: Date.now() }); broadcastServer!.broadcast('dashboard', 'job.completed', { jobId, queue: queueName, timestamp: Date.now() }) })
+    queue.events.on('jobFailed', (jobId: string, error: Error) => { broadcastServer!.broadcast(`queue.${queueName}`, 'job.failed', { jobId, queue: queueName, error: error.message, timestamp: Date.now() }); broadcastServer!.broadcast('dashboard', 'job.failed', { jobId, queue: queueName, error: error.message, timestamp: Date.now() }) })
+    queue.events.on('jobActive', (jobId: string) => { broadcastServer!.broadcast(`queue.${queueName}`, 'job.active', { jobId, queue: queueName, timestamp: Date.now() }); broadcastServer!.broadcast('dashboard', 'job.active', { jobId, queue: queueName, timestamp: Date.now() }) })
+    queue.events.on('jobProgress', (jobId: string, progress: number) => { broadcastServer!.broadcast(`queue.${queueName}`, 'job.progress', { jobId, queue: queueName, progress, timestamp: Date.now() }) })
+    queue.events.on('jobStalled', (jobId: string) => { broadcastServer!.broadcast(`queue.${queueName}`, 'job.stalled', { jobId, queue: queueName, timestamp: Date.now() }); broadcastServer!.broadcast('dashboard', 'job.stalled', { jobId, queue: queueName, timestamp: Date.now() }) })
+    queue.events.on('jobRemoved', (jobId: string) => { broadcastServer!.broadcast(`queue.${queueName}`, 'job.removed', { jobId, queue: queueName, timestamp: Date.now() }); broadcastServer!.broadcast('dashboard', 'job.removed', { jobId, queue: queueName, timestamp: Date.now() }) })
+    queue.events.on('batchAdded', (batchId: string, jobIds: string[]) => { broadcastServer!.broadcast('dashboard', 'batch.added', { batchId, jobCount: jobIds.length, queue: queueName, timestamp: Date.now() }) })
+    queue.events.on('batchCompleted', (batchId: string) => { broadcastServer!.broadcast('dashboard', 'batch.completed', { batchId, queue: queueName, timestamp: Date.now() }) })
   }
+}
+
+function handleDynamicApiRoute(pathname: string, req: Request, config: DashboardConfig): Promise<Response> | null {
+  const queueMatch = pathname.match(/^\/api\/queues\/([^/]+)$/)
+  if (queueMatch) return fetchQueueById(config, queueMatch[1]).then(q => q ? Response.json(q) : Response.json({ error: 'Queue not found' }, { status: 404 }))
+
+  const retryMatch = pathname.match(/^\/api\/jobs\/([^/]+)\/retry$/)
+  if (retryMatch && req.method === 'POST') {
+    const jobId = decodeURIComponent(retryMatch[1])
+    const qs = config.queues?.length ? config.queues : config.queueManager ? (() => { const arr: any[] = []; for (const c of config.queueManager!.getConnections()) { try { const conn = config.queueManager!.connection(c); for (const q of conn.queues.values()) arr.push(q) } catch {} } return arr })() : []
+    return (async () => { for (const q of qs) { try { const r = await q.retryJob(jobId); if (r) return Response.json({ success: true }) } catch {} } return Response.json({ success: false }) })()
+  }
+
+  const deleteMatch = pathname.match(/^\/api\/jobs\/([^/]+)$/)
+  if (deleteMatch && req.method === 'DELETE') {
+    const jobId = decodeURIComponent(deleteMatch[1])
+    const qs = config.queues?.length ? config.queues : config.queueManager ? (() => { const arr: any[] = []; for (const c of config.queueManager!.getConnections()) { try { const conn = config.queueManager!.connection(c); for (const q of conn.queues.values()) arr.push(q) } catch {} } return arr })() : []
+    return (async () => { for (const q of qs) { try { await q.removeJob(jobId); return Response.json({ success: true }) } catch {} } return Response.json({ success: false }) })()
+  }
+
+  const jobMatch = pathname.match(/^\/api\/jobs\/([^/]+)$/)
+  if (jobMatch && req.method === 'GET') return fetchJobById(config, jobMatch[1]).then(j => j ? Response.json(j) : Response.json({ error: 'Job not found' }, { status: 404 }))
+
+  const groupMatch = pathname.match(/^\/api\/groups\/([^/]+)$/)
+  if (groupMatch) return fetchJobGroups(config).then(groups => { const g = groups.find(x => x.id === groupMatch[1]); return g ? Response.json(g) : Response.json({ error: 'Group not found' }, { status: 404 }) })
+
+  const groupJobsMatch = pathname.match(/^\/api\/groups\/([^/]+)\/jobs$/)
+  if (groupJobsMatch) return fetchJobGroups(config).then(async (groups) => { const g = groups.find(x => x.id === groupJobsMatch[1]); if (!g) return Response.json({ error: 'Group not found' }, { status: 404 }); const allJobs = await fetchJobs(config); return Response.json(allJobs.filter(j => j.name.toLowerCase().includes(g.name.toLowerCase().split(' ')[0]))) })
+
+  const batchMatch = pathname.match(/^\/api\/batches\/([^/]+)$/)
+  if (batchMatch) return fetchBatchById(config, batchMatch[1]).then(b => b ? Response.json(b) : Response.json({ error: 'Batch not found' }, { status: 404 }))
+
+  const batchJobsMatch = pathname.match(/^\/api\/batches\/([^/]+)\/jobs$/)
+  if (batchJobsMatch) return fetchBatchById(config, batchJobsMatch[1]).then(async (b) => { if (!b) return Response.json({ error: 'Batch not found' }, { status: 404 }); const allJobs = await fetchJobs(config); return Response.json(allJobs.slice(0, b.totalJobs > 10 ? 10 : b.totalJobs)) })
+
+  return null
 }
 
 export async function serveDashboard(options: DashboardConfig = {}): Promise<void> {
   const config = resolveConfig(options)
   const apiRoutes = createApiRoutes(config)
 
-  // Start WebSocket broadcast server for real-time updates
   const broadcastPort = options.broadcastPort || 6001
-  broadcastServer = new BroadcastServer({
-    connections: {
-      default: {
-        driver: 'bun',
-        host: '0.0.0.0',
-        port: broadcastPort,
-      },
-    },
-    default: 'default',
-    debug: false,
-  })
+  broadcastServer = new BroadcastServer({ connections: { default: { driver: 'bun', host: '0.0.0.0', port: broadcastPort } }, default: 'default', debug: false })
   await broadcastServer.start()
 
-  // Wire queue events to broadcast channels
   const allQueues = config.queues || []
-  if (allQueues.length) {
-    wireQueueEvents(allQueues)
-  }
+  if (allQueues.length) wireQueueEvents(allQueues)
 
   const wsUrl = `ws://localhost:${broadcastPort}/app`
 
-  const server = Bun.serve({
+  const pageMap: Record<string, string> = {
+    '/': 'index', '/monitoring': 'monitoring', '/metrics': 'metrics', '/queues': 'queues',
+    '/jobs': 'jobs', '/batches': 'batches', '/groups': 'groups', '/dependencies': 'dependencies',
+  }
+  const dynamicPages = [
+    { pattern: /^\/queues\/[^/]+$/, template: 'queue-details' },
+    { pattern: /^\/jobs\/[^/]+$/, template: 'job-details' },
+    { pattern: /^\/batches\/[^/]+$/, template: 'batch-details' },
+    { pattern: /^\/groups\/[^/]+$/, template: 'group-details' },
+  ]
+
+  Bun.serve({
     port: config.port,
     hostname: config.host,
-
     async fetch(req: Request) {
-      const url = new URL(req.url)
-      const pathname = url.pathname
+      const pathname = new URL(req.url).pathname
 
-      // API routes
+      // Static API routes
       const apiHandler = apiRoutes[pathname as keyof typeof apiRoutes]
-      if (apiHandler) {
-        return apiHandler(req)
-      }
+      if (apiHandler) return apiHandler(req)
 
-      // Dynamic API routes (with path params)
-      const queueMatch = pathname.match(/^\/api\/queues\/([^/]+)$/)
-      if (queueMatch) {
-        const queue = await fetchQueueById(config, queueMatch[1])
-        if (!queue)
-          return Response.json({ error: 'Queue not found' }, { status: 404 })
-        return Response.json(queue)
-      }
-
-      // Job retry: POST /api/jobs/:id/retry
-      const retryMatch = pathname.match(/^\/api\/jobs\/([^/]+)\/retry$/)
-      if (retryMatch && req.method === 'POST') {
-        const jobId = decodeURIComponent(retryMatch[1])
-        const queues = config.queues || []
-        const manager = config.queueManager
-        let retried = false
-
-        const allQueues = queues.length ? queues : manager ? (() => {
-          const qs: any[] = []
-          for (const connName of manager.getConnections()) {
-            try {
-              const conn = manager.connection(connName)
-              for (const q of conn.queues.values()) qs.push(q)
-            }
-catch {}
-          }
-          return qs
-        })() : []
-
-        for (const q of allQueues) {
-          try {
-            const result = await q.retryJob(jobId)
-            if (result) { retried = true; break }
-          }
-catch { /* try next queue */ }
-        }
-
-        return Response.json({ success: retried })
-      }
-
-      // Job delete: DELETE /api/jobs/:id
-      const deleteMatch = pathname.match(/^\/api\/jobs\/([^/]+)$/)
-      if (deleteMatch && req.method === 'DELETE') {
-        const jobId = decodeURIComponent(deleteMatch[1])
-        const queues = config.queues || []
-        const manager = config.queueManager
-        let deleted = false
-
-        const allQueues = queues.length ? queues : manager ? (() => {
-          const qs: any[] = []
-          for (const connName of manager.getConnections()) {
-            try {
-              const conn = manager.connection(connName)
-              for (const q of conn.queues.values()) qs.push(q)
-            }
-catch {}
-          }
-          return qs
-        })() : []
-
-        for (const q of allQueues) {
-          try {
-            await q.removeJob(jobId)
-            deleted = true
-            break
-          }
-catch { /* try next queue */ }
-        }
-
-        return Response.json({ success: deleted })
-      }
-
-      const jobMatch = pathname.match(/^\/api\/jobs\/([^/]+)$/)
-      if (jobMatch) {
-        const job = await fetchJobById(config, jobMatch[1])
-        if (!job)
-          return Response.json({ error: 'Job not found' }, { status: 404 })
-        return Response.json(job)
-      }
-
-      const groupMatch = pathname.match(/^\/api\/groups\/([^/]+)$/)
-      if (groupMatch) {
-        const group = await fetchJobGroups(config).then(groups => groups.find(g => g.id === groupMatch[1]))
-        if (!group)
-          return Response.json({ error: 'Group not found' }, { status: 404 })
-        return Response.json(group)
-      }
-
-      const groupJobsMatch = pathname.match(/^\/api\/groups\/([^/]+)\/jobs$/)
-      if (groupJobsMatch) {
-        const group = await fetchJobGroups(config).then(groups => groups.find(g => g.id === groupJobsMatch[1]))
-        if (!group)
-          return Response.json({ error: 'Group not found' }, { status: 404 })
-        const allJobs = await fetchJobs(config)
-        const groupName = group.name.toLowerCase()
-        const groupJobs = allJobs.filter(j => j.name.toLowerCase().includes(groupName.split(' ')[0]))
-        return Response.json(groupJobs)
-      }
-
-      const batchMatch = pathname.match(/^\/api\/batches\/([^/]+)$/)
-      if (batchMatch) {
-        const batch = await fetchBatchById(config, batchMatch[1])
-        if (!batch)
-          return Response.json({ error: 'Batch not found' }, { status: 404 })
-        return Response.json(batch)
-      }
-
-      const batchJobsMatch = pathname.match(/^\/api\/batches\/([^/]+)\/jobs$/)
-      if (batchJobsMatch) {
-        const batch = await fetchBatchById(config, batchJobsMatch[1])
-        if (!batch)
-          return Response.json({ error: 'Batch not found' }, { status: 404 })
-        const allJobs = await fetchJobs(config)
-        return Response.json(allJobs.slice(0, batch.totalJobs > 10 ? 10 : batch.totalJobs))
-      }
+      // Dynamic API routes
+      const dynamicApi = handleDynamicApiRoute(pathname, req, config)
+      if (dynamicApi) return dynamicApi
 
       // Shared functions bundle
       if (pathname === '/bq-utils.js') {
@@ -307,42 +158,16 @@ catch { /* try next queue */ }
         return new Response(js, { headers: { 'Content-Type': 'application/javascript', 'Cache-Control': 'no-store' } })
       }
 
-      // Static page routes
-      const pageMap: Record<string, string> = {
-        '/': 'index',
-        '/monitoring': 'monitoring',
-        '/metrics': 'metrics',
-        '/queues': 'queues',
-        '/jobs': 'jobs',
-        '/batches': 'batches',
-        '/groups': 'groups',
-        '/dependencies': 'dependencies',
-      }
-
-      if (pageMap[pathname]) {
-        return renderStxPage(pageMap[pathname], wsUrl, req)
-      }
-
-      // Dynamic page routes (detail views)
-      const dynamicPages: Array<{ pattern: RegExp, template: string }> = [
-        { pattern: /^\/queues\/[^/]+$/, template: 'queue-details' },
-        { pattern: /^\/jobs\/[^/]+$/, template: 'job-details' },
-        { pattern: /^\/batches\/[^/]+$/, template: 'batch-details' },
-        { pattern: /^\/groups\/[^/]+$/, template: 'group-details' },
-      ]
-
+      // Page routes
+      if (pageMap[pathname]) return renderPage(pageMap[pathname], wsUrl, req)
       for (const { pattern, template } of dynamicPages) {
-        if (pattern.test(pathname)) {
-          return renderStxPage(template, wsUrl, req)
-        }
+        if (pattern.test(pathname)) return renderPage(template, wsUrl, req)
       }
 
       return new Response('Not Found', { status: 404 })
     },
   })
 
-  // eslint-disable-next-line no-console
-  console.log(`bun-queue dashboard running at http://${server.hostname}:${server.port}`)
-  // eslint-disable-next-line no-console
-  console.log(`WebSocket broadcast server running at ws://localhost:${broadcastPort}/app`)
+  console.log(`bun-queue dashboard running at http://localhost:${config.port}`) // eslint-disable-line no-console
+  console.log(`WebSocket broadcast server running at ws://localhost:${broadcastPort}/app`) // eslint-disable-line no-console
 }

@@ -24,7 +24,7 @@
         "@cwcss/crosswind": "^0.1.6",
         "@stacksjs/bun-queue": "workspace:*",
         "@stacksjs/stx": "^0.2.10",
-        "ts-broadcasting": "^0.0.1",
+        "ts-broadcasting": "^0.0.3",
       },
       "devDependencies": {
         "bun-plugin-stx": "^0.2.10",
@@ -248,7 +248,7 @@
 
     "tinyglobby": ["tinyglobby@0.2.15", "", { "dependencies": { "fdir": "^6.5.0", "picomatch": "^4.0.3" } }, "sha512-j2Zq4NyQYG5XMST4cbs02Ak8iJUdxRM0XI5QyxXuZOzKOINmWurp3smXu3y5wDcJrptwpSjgXHzIQxR0omXljQ=="],
 
-    "ts-broadcasting": ["ts-broadcasting@0.0.1", "", { "bin": { "broadcast": "./dist/bin/cli.js" } }, "sha512-oqpSRV+rXAoy7IZgaHKWwcAUV9Wx0JVA3z2AFWqo5/+5rqszdHHHUvxEIOVqq1JKQ9osW0RU22C4iJcaCX9WwQ=="],
+    "ts-broadcasting": ["ts-broadcasting@0.0.3", "", { "bin": { "broadcast": "./dist/bin/cli.js" } }, "sha512-bHnDCbgMpIFXj4F/x4x7SVbiaVpN8HtFcWBZWJpCrZ+KzGDr8UL2Xs5xBGbMvdnMWPYurNC/lgYWhTwYj+uVLQ=="],
 
     "ts-error-handling": ["ts-error-handling@0.1.1", "", {}, "sha512-d4VqdX0bJ+jvOYNsY58isJgrEr806Q9cjef5+1UO/kIn1M/+YYSwpR6fqdRhn9XXVASJLSzNmcnBSdl0fRCjDg=="],
 
