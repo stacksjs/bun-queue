@@ -1,5 +1,9 @@
-<script src='https://d3js.org/d3.v7.min.js'></script>
+@extends('layouts/app')
 
+@section('title')Job Dependencies — bun-queue@endsection
+
+
+@push('styles')
 <style>
   .graph-container svg { width: 100%; height: 100%; }
   .link { stroke: #27272a; stroke-width: 1.5; fill: none; }
@@ -8,8 +12,13 @@
   .node-circle:active { cursor: grabbing; }
   .node-label { font-size: 10px; fill: #a1a1aa; text-anchor: middle; pointer-events: none; user-select: none; }
 </style>
+@endpush
 
+@section('content')
 <script client>
+  const STATUS_COLORS = { completed: '#10b981', active: '#6366f1', waiting: '#f59e0b', pending: '#f59e0b', failed: '#ef4444' }
+  const DEFAULT_STATUS_COLOR = '#71717a'
+
   interface GraphNode {
     id: string
     name?: string
@@ -141,7 +150,7 @@
           failed: 'background: rgba(239, 68, 68, 0.2); color: #ef4444;',
         }
         statusEl.innerHTML =
-          '<span style='display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; \' + (badgeColors[badgeStatus] || badgeColors.waiting) + \''>' + (d.status || 'unknown') + '</span>'
+          `<span style="display: inline-block; padding: 1px 6px; border-radius: 9999px; font-size: 10px; font-weight: 500; ${badgeColors[badgeStatus] || badgeColors.waiting}">${d.status || 'unknown'}</span>`
 
         tooltipEl.style.left = (event.pageX + 12) + 'px'
         tooltipEl.style.top = (event.pageY - 10) + 'px'
@@ -232,3 +241,4 @@
     <div class='mt-1' ref='tooltip-status'></div>
   </div>
 </div>
+@endsection

@@ -1,3 +1,8 @@
+@extends('layouts/app')
+
+@section('title')Group Details — bun-queue@endsection
+
+@section('content')
 <script client>
   interface GroupData {
     name?: string
@@ -154,7 +159,7 @@
             </td>
             <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ formatTime(job.updatedAt || job.createdAt) }}</td>
             <td class='px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800'>
-              <a :href='\'/jobs/\' + job.id' class='text-indigo-500 no-underline hover:underline'>View</a>
+              <a :href="'/jobs/' + job.id" data-stx-link class='text-indigo-500 no-underline hover:underline'>View</a>
             </td>
           </tr>
         </template>
@@ -162,3 +167,4 @@
     </table>
   </div>
 </div>
+@endsection

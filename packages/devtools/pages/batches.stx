@@ -1,7 +1,14 @@
+@extends('layouts/app')
+
+@section('title')Batches — bun-queue@endsection
+
+@push('styles')
 <style>
   .progress-bar-fill { transition: width 0.5s ease; }
 </style>
+@endpush
 
+@section('content')
 <script client>
   interface Batch {
     id: string
@@ -119,7 +126,7 @@
             <div
               class='progress-bar-fill h-full rounded-full'
               :class='progressBarColorClass(batchStatus(batch))'
-              :style='\'width: \' + batchPct(batch) + \'%\''
+              :style="'width: ' + batchPct(batch) + '%'"
             ></div>
           </div>
           <div class='text-xs text-zinc-500 text-right tabular-nums mb-3'>{{ batchPct(batch) }}% complete</div>
@@ -153,7 +160,7 @@
           <!-- View Details link -->
           <div class='flex justify-end'>
             <a
-              :href='\'/batches/\' + batch.id'
+              :href="'/batches/' + batch.id"
               class='text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline'
             >
               View Details &rarr;
@@ -164,3 +171,4 @@
     </div>
   </div>
 </div>
+@endsection

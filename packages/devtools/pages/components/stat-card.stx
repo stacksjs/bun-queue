@@ -1,0 +1,12 @@
+<script>
+import type { StatVariant } from '../types/components'
+
+const label: string = ''
+const value: number = 0
+const variant: StatVariant = ''
+</script>
+
+<div class='stat-card'>
+  <div class='stat-label'>{{ label }}</div>
+  <div class='stat-value {{ variant === \'active\' ? \'accent\' : variant === \'completed\' ? \'success\' : variant === \'failed\' ? \'error\' : \'\' }}'>{{ value }}</div>
+</div>

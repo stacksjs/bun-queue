@@ -1,10 +1,16 @@
-<script src='https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js'></script>
+@extends('layouts/app')
 
+@section('title')bun-queue Dashboard@endsection
+
+
+@push('styles')
 <style>
   .chart-container { position: relative; height: 220px; width: 100%; }
   .chart-container-sm { position: relative; height: 180px; width: 100%; }
 </style>
+@endpush
 
+@section('content')
 <script client>
   interface DashboardStats {
     totalQueues: number
@@ -194,7 +200,7 @@
       <p class='text-sm text-zinc-500 mt-1'>Real-time job queue monitoring</p>
     </div>
     <div class='flex items-center gap-3'>
-      <div :if='wsStatus() === \'OPEN\'' class='flex items-center gap-1.5'>
+      <div :if="wsStatus() === 'OPEN'" class='flex items-center gap-1.5'>
         <span class='w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse'></span>
         <span class='text-xs text-zinc-500'>Live</span>
       </div>
@@ -321,3 +327,4 @@
     </div>
   </div>
 </div>
+@endsection

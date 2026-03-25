@@ -1,7 +1,14 @@
+@extends('layouts/app')
+
+@section('title')Queues — bun-queue@endsection
+
+@push('styles')
 <style>
   .search-input::placeholder { color: #71717a; }
 </style>
+@endpush
 
+@section('content')
 <script client>
   interface QueueItem {
     id: string
@@ -119,10 +126,11 @@
             </div>
           </div>
           <div class='pt-3 border-t border-zinc-800'>
-            <a :href='\'/queues/\' + q.id' class='text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details &rarr;</a>
+            <a :href="'/queues/' + q.id" data-stx-link class='text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details &rarr;</a>
           </div>
         </div>
       </template>
     </div>
   </div>
 </div>
+@endsection

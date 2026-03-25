@@ -20,17 +20,17 @@ console.log('JS build complete!')
 // 2. Build stx pages → dist/pages/ (HTML via bun-plugin-stx)
 const stxPages: string[] = []
 const glob = new Glob('*.stx')
-for await (const file of glob.scan('./src/pages')) {
-  stxPages.push(`./src/pages/${file}`)
+for await (const file of glob.scan('./pages')) {
+  stxPages.push(`./pages/${file}`)
 }
 
 const stxResult = await Bun.build({
   entrypoints: stxPages,
   outdir: './dist/pages',
   plugins: [stxPlugin({
-    componentsDir: './src/components',
-    layoutsDir: './src/layouts',
-    partialsDir: './src/partials',
+    componentsDir: './components',
+    layoutsDir: './layouts',
+    partialsDir: './partials',
   })],
 })
 

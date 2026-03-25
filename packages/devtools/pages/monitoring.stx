@@ -1,3 +1,8 @@
+@extends('layouts/app')
+
+@section('title')Real-time Monitoring — bun-queue@endsection
+
+@push('styles')
 <style>
   @keyframes pulse-dot {
     0%, 100% { opacity: 1; transform: scale(1); }
@@ -32,8 +37,13 @@
   .event-log-scroll::-webkit-scrollbar-track { background: transparent; }
   .event-log-scroll::-webkit-scrollbar-thumb { background: #27272a; border-radius: 2px; }
 </style>
+@endpush
 
+@section('content')
 <script client>
+  const REFRESH_INTERVAL = 3000
+  const MAX_EVENTS = 50
+
   interface MonitoringStats {
     throughputPerMinute: number
     avgLatency: number
@@ -168,9 +178,9 @@
     <div class='flex items-center gap-2 text-sm font-medium'>
       <div
         class='w-2 h-2 rounded-full status-dot-pulse'
-        :class='connected() ? \'bg-emerald-500\' : \'bg-red-500 disconnected\''
+        :class="connected() ? 'bg-emerald-500' : 'bg-red-500 disconnected'"
       ></div>
-      <span :style='\'color: \' + (connected() ? \'#10b981\' : \'#ef4444\')'>
+      <span :style="'color: ' + (connected() ? '#10b981' : '#ef4444')"
         {{ connected() ? 'Connected' : 'Disconnected' }}
       </span>
     </div>
@@ -261,3 +271,4 @@
     </div>
   </div>
 </div>
+@endsection

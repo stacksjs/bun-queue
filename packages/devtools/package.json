@@ -43,7 +43,7 @@
   ],
   "scripts": {
     "build": "bun --bun build.ts",
-    "dev": "bun --watch server.ts",
+    "dev": "bun --watch serve.ts",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "test:watch": "bun test --watch",

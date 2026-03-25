@@ -1,9 +1,15 @@
-<script src='https://cdn.jsdelivr.net/npm/chart.js@4'></script>
+@extends('layouts/app')
 
+@section('title')Queue Details — bun-queue@endsection
+
+
+@push('styles')
 <style>
   .progress-bar-fill { transition: width 0.5s ease; }
 </style>
+@endpush
 
+@section('content')
 <script client>
   interface QueueData {
     id: string
@@ -205,7 +211,7 @@
       <span class='text-zinc-50 font-semibold tabular-nums'>{{ progressPct() }}%</span>
     </div>
     <div class='w-full h-2 bg-[#1e1e26] rounded-full overflow-hidden'>
-      <div class='progress-bar-fill h-full rounded-full bg-emerald-500' :style='\'width: \' + progressPct() + \'%\''></div>
+      <div class='progress-bar-fill h-full rounded-full bg-emerald-500' :style="'width: ' + progressPct() + '%'"></div>
     </div>
   </div>
 
@@ -265,7 +271,7 @@
             <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ formatTime(job.createdAt) }}</td>
             <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums'>{{ job.duration ? job.duration + 'ms' : '—' }}</td>
             <td class='px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800'>
-              <a :href='\'/jobs/\' + job.id' class='text-indigo-500 no-underline hover:underline'>View</a>
+              <a :href="'/jobs/' + job.id" data-stx-link class='text-indigo-500 no-underline hover:underline'>View</a>
             </td>
           </tr>
         </template>
@@ -273,3 +279,4 @@
     </table>
   </div>
 </div>
+@endsection
