@@ -73,7 +73,6 @@
 </div>
 
 @stack('scripts')
-@stxRouter('main')
 
 <style>
   .sidebar.collapsed { width: 56px !important; }
