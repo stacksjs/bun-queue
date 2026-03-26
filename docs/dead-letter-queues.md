@@ -2,24 +2,6 @@
 title: Dead Letter Queues
 description: Handle permanently failed jobs with dead letter queues.
 ---
-
-# Dead Letter Queues
-
-Dead letter queues (DLQ) capture jobs that have failed multiple times and cannot be processed, allowing you to inspect and reprocess them later.
-
-## Enabling Dead Letter Queue
-
-### Queue-Level Configuration
-
-Enable DLQ for all jobs in a queue:
-
-```typescript
-import { Queue } from 'bun-queue'
-
-const queue = new Queue('emails', {
-  defaultDeadLetterOptions: {
-    enabled: true,
-    queueSuffix: '-dead-letter',  // Creates 'emails-dead-letter'
     maxRetries: 3,                 // Move to DLQ after 3 failures
     removeFromOriginalQueue: true
   }

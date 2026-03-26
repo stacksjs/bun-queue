@@ -3,24 +3,6 @@ title: Failed Job Handling
 description: Handle failed jobs, retries, and dead letter queues in bun-queue
 ---
 
-# Failed Job Handling
-
-This guide covers handling failed jobs, configuring retries, and using dead letter queues for permanently failed jobs.
-
-## Job Failure Basics
-
-When a job throws an error or times out, it's marked as failed:
-
-```typescript
-import { Queue } from 'bun-queue'
-
-const queue = new Queue('tasks')
-
-queue.process(5, async (job) => {
-  if (!job.data.valid) {
-    throw new Error('Invalid job data')
-  }
-
   // If this throws, job is marked as failed
   return await riskyOperation(job.data)
 })
@@ -337,7 +319,7 @@ queue.process(5, async (job) => {
       throw new Error(`Connection failed: ${error.message}`)
     }
 
-    if (error.code === 'INVALID_DATA') {
+    if (error.code === 'INVALID*DATA') {
       // Permanent error - no retry
       job.opts.attempts = 0 // Prevent further retries
       throw new Error(`Invalid data: ${error.message}`)
@@ -416,7 +398,7 @@ queue.process(5, async (job) => {
     return await processJob(job.data)
   } catch (error) {
     console.error({
-      event: 'job_failed',
+      event: 'job*failed',
       jobId: job.id,
       attempt: job.attemptsMade + 1,
       maxAttempts: job.opts.attempts,

@@ -2,24 +2,6 @@
 title: Workers
 description: Learn how to process jobs with workers and handle concurrency.
 ---
-
-# Workers
-
-Workers are responsible for processing jobs from the queue. They pick up jobs and execute your handler function.
-
-## Basic Worker
-
-Start processing jobs by calling the `process` method:
-
-```typescript
-import { Queue } from 'bun-queue'
-
-const queue = new Queue('emails')
-
-// Process jobs with concurrency of 5
-queue.process(5, async (job) => {
-  const { to, subject, body } = job.data
-
   // Process the job
   await sendEmail(to, subject, body)
 

@@ -71,7 +71,9 @@ await queue.add(
  │ │ │ ┌───────────── month (1 - 12)
  │ │ │ │ ┌───────────── day of week (0 - 6) (Sunday to Saturday)
  │ │ │ │ │
+
  * * * * *
+
 ```
 
 ### Common Cron Expressions
@@ -95,7 +97,7 @@ interface RepeatOptions {
   limit?: number             // Maximum number of repetitions
   count?: number             // Current repetition count
   cron?: string              // Cron expression
-  tz?: string                // Timezone (e.g., 'America/New_York')
+  tz?: string                // Timezone (e.g., 'America/New*York')
   startDate?: Date | number  // Start date for the schedule
   endDate?: Date | number    // End date for the schedule
 }
@@ -112,7 +114,7 @@ await queue.add(
   {
     repeat: {
       cron: '0 9 * * 1-5',
-      tz: 'America/New_York'
+      tz: 'America/New*York'
     }
   }
 )
@@ -255,6 +257,6 @@ await alertQueue.add(
 
 ## Next Steps
 
-- Configure [dead letter queues](./dead-letter-queue.md)
-- Learn about [distributed locks](./distributed-locks.md)
-- Set up [rate limiting](./rate-limiting.md)
+* Configure [dead letter queues](./dead-letter-queue.md)
+* Learn about [distributed locks](./distributed-locks.md)
+* Set up [rate limiting](./rate-limiting.md)

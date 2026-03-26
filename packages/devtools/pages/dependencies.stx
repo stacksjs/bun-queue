@@ -1,4 +1,4 @@
-@extends('layouts/app')
+@extends('layouts/default')
 
 @section('title')Job Dependencies — bun-queue@endsection
 

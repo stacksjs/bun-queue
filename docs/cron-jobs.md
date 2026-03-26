@@ -2,24 +2,6 @@
 title: Cron Jobs
 description: Schedule recurring jobs using cron expressions.
 ---
-
-# Cron Jobs
-
-bun-queue supports scheduling recurring jobs using standard cron expressions.
-
-## Scheduling a Cron Job
-
-```typescript
-import { Queue } from 'bun-queue'
-
-const notificationQueue = new Queue('notifications')
-
-// Schedule a job to run every minute
-const jobId = await notificationQueue.scheduleCron({
-  cronExpression: '* * * * *',
-  data: {
-    title: 'Status Check',
-    message: 'All systems operational'
   }
 })
 
@@ -37,7 +19,9 @@ Standard 5-field cron expression:
 │ │ │ ┌───────────── month (1-12)
 │ │ │ │ ┌───────────── day of week (0-6, 0=Sunday)
 │ │ │ │ │
+
 * * * * *
+
 ```
 
 ### Examples
@@ -82,7 +66,7 @@ await queue.scheduleCron({
   jobId: 'hourly-update-job',
 
   // Optional: Timezone (default: system timezone)
-  timezone: 'America/New_York',
+  timezone: 'America/New*York',
 
   // Optional: Maximum number of executions
   limit: 100,
@@ -114,7 +98,7 @@ await queue.scheduleCron({
 // Hourly job in Eastern Time
 await queue.scheduleCron({
   cronExpression: '0 * * * *',
-  timezone: 'America/New_York',
+  timezone: 'America/New*York',
   data: { task: 'hourly-sync' }
 })
 ```
@@ -212,7 +196,7 @@ await queue.scheduleCron({
 ```typescript
 await queue.scheduleCron({
   cronExpression: '30 9 * * *',  // 9:30 AM daily
-  timezone: 'America/New_York',
+  timezone: 'America/New*York',
   data: {
     type: 'daily-report',
     recipients: ['manager@example.com']
@@ -254,7 +238,7 @@ await queue.scheduleCron({
   cronExpression: '0 3 * * *',  // 3 AM daily
   data: {
     type: 'db-cleanup',
-    tables: ['temp_data', 'expired_sessions']
+    tables: ['temp*data', 'expired_sessions']
   },
   jobId: 'daily-cleanup'
 })

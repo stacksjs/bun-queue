@@ -1,9 +1,10 @@
-@extends('layouts/app')
+@extends('layouts/default')
 
 @section('title')Group Details — bun-queue@endsection
 
 @section('content')
 <script client>
+  const { formatTime } = stx.helpers
   interface GroupData {
     name?: string
     totalJobs?: number

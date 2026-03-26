@@ -2,24 +2,6 @@
 title: Worker Configuration
 description: Configure workers for processing jobs in bun-queue
 ---
-
-# Worker Configuration
-
-Workers are the processes that consume and execute jobs from queues. This guide covers worker configuration, concurrency, and best practices.
-
-## Basic Worker Setup
-
-### Processing Jobs
-
-```typescript
-import { Queue } from 'bun-queue'
-
-const queue = new Queue('tasks')
-
-// Simple worker with concurrency of 5
-queue.process(5, async (job) => {
-  console.log(`Processing job ${job.id}`)
-
   // Your job logic here
   const result = await processTask(job.data)
 

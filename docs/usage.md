@@ -3,23 +3,6 @@ title: Usage
 description: Learn how to use bun-queue to create, process, and manage jobs.
 ---
 
-# Usage
-
-## Quick Start
-
-```typescript
-import { Queue } from '@stacksjs/bun-queue'
-
-// Create a queue
-const queue = new Queue('emails')
-
-// Add a job
-const job = await queue.add({
-  to: 'user@example.com',
-  subject: 'Welcome!',
-  body: 'Thanks for signing up.',
-})
-
 // Process jobs (concurrency of 3)
 queue.process(3, async (job) => {
   await sendEmail(job.data.to, job.data.subject, job.data.body)

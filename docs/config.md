@@ -3,23 +3,6 @@ title: Configuration File
 description: Configure bun-queue using a configuration file.
 ---
 
-# Configuration File
-
-bun-queue can be configured using a `queue.config.ts` file or by passing options directly to the `Queue` constructor.
-
-## Constructor Options
-
-```typescript
-import { Queue } from '@stacksjs/bun-queue'
-
-const queue = new Queue('tasks', {
-  // Redis connection
-  redis: {
-    url: 'redis://localhost:6379',
-    // or provide an existing client:
-    // client: myRedisClient,
-  },
-
   // Key prefix for all Redis keys (default: 'queue')
   prefix: 'myapp',
 

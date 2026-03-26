@@ -1,9 +1,10 @@
-@extends('layouts/app')
+@extends('layouts/default')
 
 @section('title')Job Details — bun-queue@endsection
 
 @section('content')
 <script client>
+  const { formatTime } = stx.helpers
   interface JobDetail {
     id: string
     name?: string

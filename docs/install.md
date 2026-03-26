@@ -3,25 +3,6 @@ title: Install
 description: Install bun-queue and its dependencies.
 ---
 
-# Install
-
-## Prerequisites
-
-- [Bun](https://bun.sh) v1.0 or later
-- [Redis](https://redis.io) v6.0 or later
-
-## Package Manager
-
-::: code-group
-
-```sh [bun]
-bun add @stacksjs/bun-queue
-```
-
-```sh [npm]
-npm install @stacksjs/bun-queue
-```
-
 ```sh [pnpm]
 pnpm add @stacksjs/bun-queue
 ```

@@ -36,5 +36,3 @@ features:
     icon: "📈"
     details: "Scale across multiple instances with leader election."
 ---
-
-<Home />

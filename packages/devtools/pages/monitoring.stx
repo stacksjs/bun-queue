@@ -1,4 +1,4 @@
-@extends('layouts/app')
+@extends('layouts/default')
 
 @section('title')Real-time Monitoring — bun-queue@endsection
 
@@ -41,6 +41,7 @@
 
 @section('content')
 <script client>
+  const { formatEventTime } = stx.helpers
   const REFRESH_INTERVAL = 3000
   const MAX_EVENTS = 50
 

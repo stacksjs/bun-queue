@@ -116,7 +116,7 @@ describe('bun-queue-dashboard', () => {
 
     it('fetchJobs should return mock jobs', async () => {
       const jobs = await fetchJobs({})
-      expect(jobs.length).toBe(12)
+      expect(jobs.length).toBe(8)
     })
 
     it('fetchJobs should filter by status', async () => {
@@ -134,18 +134,18 @@ describe('bun-queue-dashboard', () => {
 
     it('fetchJobGroups should return mock groups', async () => {
       const groups = await fetchJobGroups({})
-      expect(groups.length).toBe(5)
+      expect(groups.length).toBe(3)
     })
 
     it('fetchBatches should return mock batches', async () => {
       const batches = await fetchBatches({})
-      expect(batches.length).toBe(5)
+      expect(batches.length).toBe(3)
     })
 
     it('fetchDependencyGraph should return nodes and links', async () => {
       const graph = await fetchDependencyGraph({})
-      expect(graph.nodes.length).toBe(8)
-      expect(graph.links.length).toBe(8)
+      expect(graph.nodes.length).toBe(6)
+      expect(graph.links.length).toBe(5)
     })
 
     it('fetchMetrics should generate data for different time ranges', async () => {

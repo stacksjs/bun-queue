@@ -2,24 +2,6 @@
 title: API Reference
 description: Complete API reference for all bun-queue classes and methods.
 ---
-
-# API Reference
-
-## Queue
-
-The main class for creating and managing job queues.
-
-### Constructor
-
-```typescript
-import { Queue } from '@stacksjs/bun-queue'
-
-const queue = new Queue<T>(name: string, options?: QueueConnectionConfig)
-```
-
-### Properties
-
-| Property | Type | Description |
 |----------|------|-------------|
 | `name` | `string` | Queue name |
 | `prefix` | `string` | Redis key prefix |

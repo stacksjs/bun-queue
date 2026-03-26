@@ -14,15 +14,17 @@ A cron expression consists of five fields that specify when a job should run:
 │ │ │ │ ┌───────────── day of week (0 - 6) (Sunday to Saturday)
 │ │ │ │ │
 │ │ │ │ │
+
 * * * * *
+
 ```
 
 ### Special Characters
 
-- `*`: Matches any value (wildcard)
-- `,`: Separates multiple values (e.g., `1,3,5`)
-- `-`: Specifies a range (e.g., `1-5`)
-- `/`: Specifies a step value (e.g., `*/2` means every 2 units)
+* `*`: Matches any value (wildcard)
+* `,`: Separates multiple values (e.g., `1,3,5`)
+* `-`: Specifies a range (e.g., `1-5`)
+* `/`: Specifies a step value (e.g., `*/2` means every 2 units)
 
 ## Common Cron Expressions
 
@@ -51,7 +53,7 @@ Example with timezone:
 ```typescript
 await queue.scheduleCron({
   cronExpression: '30 9 * * *', // Every day at 9:30am
-  timezone: 'America/New_York', // Eastern Time
+  timezone: 'America/New*York', // Eastern Time
   data: {
     // job data
   }
@@ -60,15 +62,15 @@ await queue.scheduleCron({
 
 ### Common Timezones
 
-- `UTC`: Coordinated Universal Time
-- `America/New_York`: Eastern Time (US & Canada)
-- `America/Chicago`: Central Time (US & Canada)
-- `America/Denver`: Mountain Time (US & Canada)
-- `America/Los_Angeles`: Pacific Time (US & Canada)
-- `Europe/London`: UK time
-- `Europe/Paris`: Central European Time
-- `Asia/Tokyo`: Japan Standard Time
-- `Australia/Sydney`: Australian Eastern Time
+* `UTC`: Coordinated Universal Time
+* `America/New*York`: Eastern Time (US & Canada)
+* `America/Chicago`: Central Time (US & Canada)
+* `America/Denver`: Mountain Time (US & Canada)
+* `America/Los*Angeles`: Pacific Time (US & Canada)
+* `Europe/London`: UK time
+* `Europe/Paris`: Central European Time
+* `Asia/Tokyo`: Japan Standard Time
+* `Australia/Sydney`: Australian Eastern Time
 
 ## Advanced Examples
 
@@ -128,5 +130,5 @@ await queue.unscheduleCron('daily-job')
 
 ## Additional Resources
 
-- [Crontab Guru](https://crontab.guru/): Interactive cron expression editor
-- [List of TZ database time zones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones): Complete list of valid timezone identifiers
+* [Crontab Guru](https://crontab.guru/): Interactive cron expression editor
+* [List of TZ database time zones](https://en.wikipedia.org/wiki/List*of*tz*database*time*zones): Complete list of valid timezone identifiers

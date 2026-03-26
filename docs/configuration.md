@@ -2,23 +2,6 @@
 title: Queue Configuration
 description: Configure bun-queue with various options for Redis, rate limiting, metrics, and more.
 ---
-
-# Queue Configuration
-
-bun-queue provides extensive configuration options to customize queue behavior.
-
-## Basic Configuration
-
-```typescript
-import { Queue } from 'bun-queue'
-
-const queue = new Queue('tasks', {
-  redis: {
-    url: 'redis://username:password@localhost:6379'
-  },
-  prefix: 'myapp',          // Prefix for Redis keys (default: 'queue')
-  verbose: true,            // Enable verbose logging
-  logLevel: 'info',         // Log level: 'debug' | 'info' | 'warn' | 'error' | 'silent'
 })
 ```
 
@@ -51,7 +34,9 @@ bun-queue reads these environment variables:
 - `REDIS_URL`: Redis connection string (default: `redis://localhost:6379`)
 
 ```bash
+
 # .env
+
 REDIS_URL=redis://localhost:6379
 ```
 

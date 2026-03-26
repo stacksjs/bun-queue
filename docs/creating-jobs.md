@@ -2,24 +2,6 @@
 title: Creating Jobs
 description: Learn how to create and add jobs to the queue with various options.
 ---
-
-# Creating Jobs
-
-Jobs are the fundamental units of work in bun-queue. Each job contains data that will be processed by a worker.
-
-## Basic Job Creation
-
-The simplest way to add a job is to call the `add` method on a queue:
-
-```typescript
-import { Queue } from 'bun-queue'
-
-const queue = new Queue('tasks')
-
-// Add a simple job
-const job = await queue.add({
-  task: 'process-image',
-  imageUrl: 'https://example.com/image.jpg'
 })
 
 console.log(`Job ${job.id} added to the queue`)

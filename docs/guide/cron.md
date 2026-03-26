@@ -3,24 +3,6 @@ title: Cron Jobs
 description: Schedule recurring jobs using cron expressions in bun-queue
 ---
 
-# Cron Jobs
-
-Schedule recurring jobs using standard cron expressions. This guide covers cron syntax, scheduling patterns, and managing scheduled jobs.
-
-## Overview
-
-Cron jobs in bun-queue allow you to:
-
-- Schedule jobs to run at specific times
-- Use standard cron expression syntax
-- Set timezone-aware schedules
-- Limit job execution count
-- Configure start and end dates
-
-## Basic Usage
-
-### Using CronScheduler
-
 ```typescript
 import { Queue, CronScheduler } from 'bun-queue'
 
@@ -126,7 +108,7 @@ const jobId = await scheduler.schedule({
   },
 
   // Optional: timezone
-  timezone: 'America/New_York',
+  timezone: 'America/New*York',
 
   // Optional: start date
   startDate: new Date('2024-01-01'),
@@ -159,7 +141,7 @@ Schedule jobs in a specific timezone:
 ```typescript
 await scheduler.schedule({
   cronExpression: '0 9 * * *', // 9 AM
-  timezone: 'America/Los_Angeles', // Pacific Time
+  timezone: 'America/Los*Angeles', // Pacific Time
   data: { task: 'morning-report' },
 })
 
@@ -172,10 +154,10 @@ await scheduler.schedule({
 
 Common timezones:
 
-- `America/New_York` (Eastern)
+- `America/New*York` (Eastern)
 - `America/Chicago` (Central)
 - `America/Denver` (Mountain)
-- `America/Los_Angeles` (Pacific)
+- `America/Los*Angeles` (Pacific)
 - `Europe/London`
 - `Europe/Paris`
 - `Asia/Tokyo`
@@ -244,7 +226,7 @@ await scheduler.schedule({
   cronExpression: '0 3 * * *', // 3 AM daily
   data: {
     task: 'db-cleanup',
-    tables: ['sessions', 'temp_data', 'logs'],
+    tables: ['sessions', 'temp*data', 'logs'],
     olderThanDays: 30,
   },
   timezone: 'UTC',
@@ -281,7 +263,7 @@ queue.process(1, async (job) => {
 ```typescript
 await scheduler.schedule({
   cronExpression: '0 9 * * 1', // Monday 9 AM
-  timezone: 'America/New_York',
+  timezone: 'America/New*York',
   data: {
     task: 'weekly-report',
     recipients: ['team@company.com'],
@@ -499,7 +481,7 @@ queue.process(1, async (job) => {
   const startTime = Date.now()
 
   console.log({
-    event: 'scheduled_job_start',
+    event: 'scheduled*job*start',
     jobId: job.id,
     task: job.data.task,
     scheduledFor: new Date(job.timestamp),
@@ -510,7 +492,7 @@ queue.process(1, async (job) => {
   const result = await performTask(job.data)
 
   console.log({
-    event: 'scheduled_job_complete',
+    event: 'scheduled*job*complete',
     jobId: job.id,
     duration: Date.now() - startTime,
   })

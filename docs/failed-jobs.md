@@ -3,24 +3,6 @@ title: Failed Job Handling
 description: Learn how to handle, retry, and manage failed jobs.
 ---
 
-# Failed Job Handling
-
-bun-queue provides comprehensive tools for handling and managing failed jobs.
-
-## Retry Configuration
-
-Configure automatic retries when adding jobs:
-
-```typescript
-await queue.add(data, {
-  attempts: 5,              // Maximum retry attempts
-  backoff: {
-    type: 'exponential',    // 'fixed' or 'exponential'
-    delay: 1000             // Base delay in milliseconds
-  }
-})
-```
-
 ### Backoff Strategies
 
 **Fixed Backoff:**

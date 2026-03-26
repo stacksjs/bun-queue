@@ -2,23 +2,6 @@
 title: Priority Queues
 description: Learn how to use priority queues to process jobs in priority order.
 ---
-
-# Priority Queues
-
-Priority queues allow you to process jobs based on their importance level, ensuring critical tasks are handled first.
-
-## Creating a Priority Queue
-
-```typescript
-import { PriorityQueue } from 'bun-queue'
-
-// Create a priority queue with 5 priority levels (0-4)
-const taskQueue = new PriorityQueue('tasks', {
-  levels: 5,           // Number of priority levels (0-4)
-  defaultLevel: 1,     // Default priority level for jobs
-})
-```
-
 ## Adding Jobs with Priority
 
 ```typescript
