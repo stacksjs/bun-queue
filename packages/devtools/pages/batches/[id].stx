@@ -39,8 +39,7 @@
   }
 
   const route = useRoute()
-  const pathParts: string[] = route.path.split('/')
-  const batchId: string = decodeURIComponent(pathParts[pathParts.length - 1])
+  const batchId: string = route.params.id ? decodeURIComponent(route.params.id) : decodeURIComponent(route.path.split('/').pop() || '')
 
   const batchName = state<string>('Batch')
   const batchStatus = state<string>('pending')

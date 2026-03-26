@@ -39,8 +39,7 @@
   }
 
   const route = useRoute()
-  const pathParts: string[] = route.path.split('/')
-  const queueId: string = decodeURIComponent(pathParts[pathParts.length - 1])
+  const queueId: string = route.params.id ? decodeURIComponent(route.params.id) : decodeURIComponent(route.path.split('/').pop() || '')
 
   const queueName = state<string>(queueId)
   const queueStatus = state<string>('active')
