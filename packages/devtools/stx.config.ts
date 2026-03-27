@@ -13,7 +13,7 @@ export default {
       meta: [
         { name: 'description', content: 'bun-queue job queue dashboard' },
       ],
-      scripts: [
+      script: [
         { src: 'https://cdn.jsdelivr.net/npm/chart.js@4', defer: true },
         { src: 'https://cdn.jsdelivr.net/npm/d3@7', defer: true },
       ],

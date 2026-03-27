@@ -231,7 +231,7 @@
 
   <!-- Graph -->
   <div class='graph-container flex-1 relative overflow-hidden' ref='graph-container'>
-    <div @show='statusMessage()' class='flex items-center justify-center h-full text-zinc-500 text-sm'>{{ statusMessage() }}</div>
+    <div :show='statusMessage()' class='flex items-center justify-center h-full text-zinc-500 text-sm'>{{ statusMessage() }}</div>
   </div>
 
   <!-- Tooltip -->

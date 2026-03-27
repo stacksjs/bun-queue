@@ -153,14 +153,14 @@
       <h1 class='text-lg font-semibold text-zinc-50'>Jobs</h1>
       <p class='text-sm text-zinc-500 mt-1'>Browse and filter job history</p>
     </div>
-    <div @if="wsStatus() === 'OPEN'" class='flex items-center gap-1.5'>
+    <div :if="wsStatus() === 'OPEN'" class='flex items-center gap-1.5'>
       <span class='w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse'></span>
       <span class='text-xs text-zinc-500'>Live</span>
     </div>
   </div>
 
   <!-- New items badge (scroll-to-pause) -->
-  <div @if='bufferedCount() > 0' class='mb-4'>
+  <div :if='bufferedCount() > 0' class='mb-4'>
     <button @click='flushBuffer()' class='w-full py-2 bg-indigo-500/10 border border-indigo-500/30 rounded-lg text-sm font-medium text-indigo-400 cursor-pointer hover:bg-indigo-500/20 transition-colors duration-150'>
       {{ bufferedCount() }} new job{{ bufferedCount() > 1 ? 's' : '' }} — click to show
     </button>
@@ -184,15 +184,15 @@
   <!-- Jobs Table -->
   <div class='bg-[#141419] border border-zinc-800 rounded-lg overflow-hidden' ref='table-container'>
     <!-- Loading state -->
-    <div @if='loading()' class='text-center py-12 text-zinc-500 text-sm'>Loading jobs...</div>
+    <div :if='loading()' class='text-center py-12 text-zinc-500 text-sm'>Loading jobs...</div>
 
     <!-- Empty state -->
-    <div @if='!loading() && filteredJobs().length === 0'>
+    <div :if='!loading() && filteredJobs().length === 0'>
       <EmptyState icon="search" title="No jobs found" message="Try adjusting your search or filters." />
     </div>
 
     <!-- Table -->
-    <table @if='!loading() && filteredJobs().length > 0' class='w-full border-collapse'>
+    <table :if='!loading() && filteredJobs().length > 0' class='w-full border-collapse'>
       <thead>
         <tr>
           <th class='px-4 py-2.5 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wide border-b border-zinc-800 bg-[#141419]'>Name</th>
@@ -216,7 +216,7 @@
             <td class='px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ job.createdAt }}</td>
             <td class='px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ job.completedAt || job.failedAt || job.processedAt || job.createdAt }}</td>
             <td class='px-4 py-2.5 text-right border-b border-zinc-800 whitespace-nowrap'>
-              <button @if="job.status === 'failed'" @click='retryJob(job.id)' class='text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3'>Retry</button>
+              <button :if="job.status === 'failed'" @click='retryJob(job.id)' class='text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3'>Retry</button>
               <StxLink :to="'/jobs/' + job.id" class='text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details</StxLink>
             </td>
           </tr>

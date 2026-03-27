@@ -92,22 +92,22 @@
 
   <div>
     <!-- Loading state -->
-    <div @show='loading()' class='text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg'>
+    <div :show='loading()' class='text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg'>
       Loading batches...
     </div>
 
     <!-- Error state -->
-    <div @show='!loading() && errorMessage()' class='text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg'>
+    <div :show='!loading() && errorMessage()' class='text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg'>
       {{ errorMessage() }}
     </div>
 
     <!-- Empty state -->
-    <div @show='!loading() && !errorMessage() && batches().length === 0'>
+    <div :show='!loading() && !errorMessage() && batches().length === 0'>
       <EmptyState icon="layers" title="No batches found" message="Create a batch to see it here." />
     </div>
 
     <!-- Batch cards grid -->
-    <div @show='!loading() && !errorMessage() && batches().length > 0' class='grid grid-cols-1 md:grid-cols-2 gap-4'>
+    <div :show='!loading() && !errorMessage() && batches().length > 0' class='grid grid-cols-1 md:grid-cols-2 gap-4'>
       <template @for='batch in batches()'>
         <div class='bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500'>
           <!-- Header: name + status badge -->
@@ -154,7 +154,7 @@
           <!-- Timestamps -->
           <div class='flex gap-4 text-xs text-zinc-500 mb-3 flex-wrap'>
             <span class='whitespace-nowrap'>Created: {{ formatTime(batch.createdAt) }}</span>
-            <span @show='batch.finishedAt' class='whitespace-nowrap'>Finished: {{ formatTime(batch.finishedAt) }}</span>
+            <span :show='batch.finishedAt' class='whitespace-nowrap'>Finished: {{ formatTime(batch.finishedAt) }}</span>
           </div>
 
           <!-- View Details link -->
