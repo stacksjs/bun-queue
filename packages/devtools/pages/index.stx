@@ -269,7 +269,9 @@
       <div @show='loading()' class='text-center py-8 text-zinc-500 text-sm'>Loading recent jobs...</div>
 
       <!-- Empty state -->
-      <div @show='!loading() && recentJobs().length === 0' class='text-center py-8 text-zinc-500 text-sm'>No recent jobs to display.</div>
+      <div @show='!loading() && recentJobs().length === 0'>
+        <EmptyState icon="inbox" title="No recent jobs" message="Jobs will appear here once dispatched." />
+      </div>
 
       <!-- Jobs table -->
       <table @show='!loading() && recentJobs().length > 0' class='w-full border-collapse'>
@@ -307,7 +309,9 @@
       <div @show='loading()' class='text-center py-8 text-zinc-500 text-sm'>Loading queues...</div>
 
       <!-- Empty state -->
-      <div @show='!loading() && queues().length === 0' class='text-center py-8 text-zinc-500 text-sm'>No queues found.</div>
+      <div @show='!loading() && queues().length === 0'>
+        <EmptyState icon="layers" title="No queues found" message="Start a queue worker to see queues here." />
+      </div>
 
       <!-- Queue cards -->
       <div @show='!loading() && queues().length > 0' class='flex flex-col gap-3'>

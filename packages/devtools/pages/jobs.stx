@@ -187,7 +187,9 @@
     <div :if='loading()' class='text-center py-12 text-zinc-500 text-sm'>Loading jobs...</div>
 
     <!-- Empty state -->
-    <div :if='!loading() && filteredJobs().length === 0' class='text-center py-12 text-zinc-500 text-sm'>No jobs found matching the current filters.</div>
+    <div :if='!loading() && filteredJobs().length === 0'>
+      <EmptyState icon="search" title="No jobs found" message="Try adjusting your search or filters." />
+    </div>
 
     <!-- Table -->
     <table :if='!loading() && filteredJobs().length > 0' class='w-full border-collapse'>

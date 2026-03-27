@@ -89,8 +89,8 @@
     </div>
 
     <!-- Empty state -->
-    <div @show='!loading() && !errorMessage() && filteredGroups().length === 0' class='text-center py-12 text-zinc-500 text-[0.8125rem]'>
-      No groups found. Jobs assigned to groups will appear here.
+    <div @show='!loading() && !errorMessage() && filteredGroups().length === 0'>
+      <EmptyState icon="users" title="No groups found" message="Jobs assigned to groups will appear here." />
     </div>
 
     <!-- Group cards grid -->

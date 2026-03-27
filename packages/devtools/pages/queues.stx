@@ -90,8 +90,8 @@
     </div>
 
     <!-- Empty state -->
-    <div @show='!loading() && !errorMessage() && filteredQueues().length === 0' class='text-center py-12 text-zinc-500 text-sm bg-[#141419] border border-zinc-800 rounded-lg'>
-      No queues found matching your search.
+    <div @show='!loading() && !errorMessage() && filteredQueues().length === 0'>
+      <EmptyState icon="search" title="No queues found" message="Try adjusting your search criteria." />
     </div>
 
     <!-- Queue cards grid -->
