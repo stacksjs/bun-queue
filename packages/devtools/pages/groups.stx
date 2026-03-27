@@ -1,6 +1,8 @@
 @extends('layouts/default')
 
-@section('title')Job Groups — bun-queue@endsection
+@section('title')
+  Job Groups — bun-queue
+@endsection
 
 @section('content')
 <script client>
@@ -121,7 +123,7 @@
           </div>
 
           <div class='mt-auto flex justify-end pt-3 border-t border-zinc-800'>
-            <a :href="'/groups/' + encodeURIComponent(group.id || group.name)" data-stx-link class='text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline'>View Details &rarr;</a>
+            <StxLink :to="'/groups/' + encodeURIComponent(group.id || group.name)" class='text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline'>View Details &rarr;</StxLink>
           </div>
         </div>
       </template>

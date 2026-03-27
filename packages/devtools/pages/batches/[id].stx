@@ -213,7 +213,7 @@
             <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ formatTime(job.createdAt) }}</td>
             <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums'>{{ job.duration ? job.duration + 'ms' : '—' }}</td>
             <td class='px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800'>
-              <a :href="'/jobs/' + job.id" data-stx-link class='text-indigo-500 no-underline hover:underline'>View</a>
+              <StxLink :to="'/jobs/' + job.id" class='text-indigo-500 no-underline hover:underline'>View</StxLink>
             </td>
           </tr>
         </template>

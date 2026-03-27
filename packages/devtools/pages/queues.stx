@@ -126,7 +126,7 @@
             </div>
           </div>
           <div class='pt-3 border-t border-zinc-800'>
-            <a :href="'/queues/' + q.id" data-stx-link class='text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details &rarr;</a>
+            <StxLink :to="'/queues/' + q.id" class='text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details &rarr;</StxLink>
           </div>
         </div>
       </template>

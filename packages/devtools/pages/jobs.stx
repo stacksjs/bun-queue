@@ -217,7 +217,7 @@
             <td class='px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ job.completedAt || job.failedAt || job.processedAt || job.createdAt }}</td>
             <td class='px-4 py-2.5 text-right border-b border-zinc-800 whitespace-nowrap'>
               <button @if="job.status === 'failed'" @click='retryJob(job.id)' class='text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3'>Retry</button>
-              <a :href="'/jobs/' + job.id" data-stx-link class='text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details</a>
+              <StxLink :to="'/jobs/' + job.id" class='text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details</StxLink>
             </td>
           </tr>
         </template>
