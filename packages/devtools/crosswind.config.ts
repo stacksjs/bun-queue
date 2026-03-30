@@ -1,6 +1,6 @@
 export default {
   content: [
-    './src/**/*.stx',
+    './pages/**/*.stx',
   ],
   output: './dist/crosswind.css',
   minify: false,
