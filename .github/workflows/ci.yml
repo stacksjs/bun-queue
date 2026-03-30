@@ -103,6 +103,6 @@ jobs:
 
       - name: Publish Commit
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: pantry publish:commit './packages/bun-queue' './packages/devtools'
+        run: pantry publish:commit './packages/bun-queue' && pantry publish:commit './packages/devtools'
         env:
           PANTRY_REGISTRY_TOKEN: ${{ secrets.PANTRY_TOKEN }}
