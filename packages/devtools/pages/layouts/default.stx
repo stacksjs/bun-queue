@@ -1,8 +1,7 @@
 <script client>
-  import { badgeClass, queueBadgeClass, progressBarColorClass, dotColor, healthColor } from '../functions/statusColors'
-  import { formatTime, formatDuration, formatEventTime, statusLabel } from '../functions/formatting'
-  import { chartOptions, createLineDataset } from '../functions/charts'
-  import { useSidebar } from '../stores/sidebar'
+  import { badgeClass, queueBadgeClass, progressBarColorClass, dotColor, healthColor } from '@/functions/statusColors'
+  import { formatTime, formatDuration, formatEventTime, statusLabel } from '@/functions/formatting'
+  import { chartOptions, createLineDataset } from '@/functions/charts'
 
   // Sidebar state from store
   const { collapsed, toggle } = useStore('sidebar')
