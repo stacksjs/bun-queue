@@ -1,63 +1,25 @@
 <script client>
-  // Sidebar toggle
-  const collapsed = useLocalStorage('sidebar-collapsed', false)
-  function toggle() { collapsed.set(!collapsed()) }
+  import { badgeClass, queueBadgeClass, progressBarColorClass, dotColor, healthColor } from '../functions/statusColors'
+  import { formatTime, formatDuration, formatEventTime, statusLabel } from '../functions/formatting'
+  import { chartOptions, createLineDataset } from '../functions/charts'
+  import { useSidebar } from '../stores/sidebar'
+
+  // Sidebar state from store
+  const { collapsed, toggle } = useStore('sidebar')
 
   // Register shared helpers on stx.helpers — available in all template expressions
   Object.assign(stx.helpers, {
-    // Badge classes for job statuses (active = indigo)
-    badgeClass(status) {
-      const map = { completed: 'bg-emerald-500/15 text-emerald-500', finished: 'bg-emerald-500/15 text-emerald-500', failed: 'bg-red-500/15 text-red-500', processing: 'bg-indigo-500/15 text-indigo-400', active: 'bg-indigo-500/15 text-indigo-400', waiting: 'bg-amber-500/15 text-amber-500', pending: 'bg-amber-500/15 text-amber-500', delayed: 'bg-zinc-500/15 text-zinc-500' }
-      return map[status] || 'bg-zinc-500/15 text-zinc-500'
-    },
-    // Badge classes for queue health statuses (active = emerald)
-    queueBadgeClass(status) {
-      const map = { active: 'bg-emerald-500/15 text-emerald-500', paused: 'bg-amber-500/15 text-amber-500', stopped: 'bg-red-500/15 text-red-500', completed: 'bg-emerald-500/15 text-emerald-500', failed: 'bg-red-500/15 text-red-500', waiting: 'bg-amber-500/15 text-amber-500', pending: 'bg-amber-500/15 text-amber-500' }
-      return map[status] || 'bg-zinc-500/15 text-zinc-500'
-    },
-    // Progress bar color
-    progressBarColorClass(status) {
-      const map = { completed: 'bg-emerald-500', finished: 'bg-emerald-500', failed: 'bg-red-500', processing: 'bg-indigo-500', active: 'bg-indigo-500', pending: 'bg-amber-500', waiting: 'bg-amber-500' }
-      return map[status] || 'bg-indigo-500'
-    },
-    // Dot color for monitoring events
-    dotColor(dot) {
-      const map = { completed: 'bg-emerald-500', started: 'bg-indigo-500', failed: 'bg-red-500', queued: 'bg-amber-500' }
-      return map[dot] || 'bg-zinc-500'
-    },
-    // Health indicator color
-    healthColor(errorRateValue) {
-      if (errorRateValue > 5) return 'bg-red-500'
-      if (errorRateValue > 1) return 'bg-amber-500'
-      return 'bg-emerald-500'
-    },
-    // Queue status label
-    statusLabel(status) {
-      const map = { active: 'Active', paused: 'Paused', stopped: 'Stopped' }
-      return map[status] || status
-    },
-    // Format timestamp to locale string
-    formatTime(ts) {
-      if (!ts) return '\u2014'
-      return new Date(ts).toLocaleString()
-    },
-    // Format duration in ms
-    formatDuration(duration) {
-      return duration ? (duration / 1000).toFixed(1) + 's' : '\u2014'
-    },
-    // Format current time for event log
-    formatEventTime() {
-      return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    },
-    // Chart.js dark theme options
-    chartOptions(overrides) {
-      const defaults = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 }, maxRotation: 0, maxTicksLimit: 10 } }, y: { grid: { color: 'rgba(39,39,42,0.5)' }, ticks: { color: '#71717a', font: { size: 10 } }, beginAtZero: true } }, interaction: { intersect: false, mode: 'index' } }
-      return overrides ? Object.assign({}, defaults, overrides) : defaults
-    },
-    // Chart.js line dataset
-    createLineDataset(label, data, color) {
-      return { label, data, borderColor: color, backgroundColor: color.replace(')', ', 0.1)').replace('rgb', 'rgba'), fill: true, tension: 0.4, pointRadius: 0, pointHitRadius: 10, borderWidth: 2 }
-    },
+    badgeClass,
+    queueBadgeClass,
+    progressBarColorClass,
+    dotColor,
+    healthColor,
+    statusLabel,
+    formatTime,
+    formatDuration,
+    formatEventTime,
+    chartOptions,
+    createLineDataset,
   })
 </script>
 
