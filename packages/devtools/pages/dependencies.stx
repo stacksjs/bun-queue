@@ -16,6 +16,8 @@
 
 @section('content')
 <script client>
+  import { useDependencies } from '@/stores/dependencies'
+
   const STATUS_COLORS = { completed: '#10b981', active: '#6366f1', waiting: '#f59e0b', pending: '#f59e0b', failed: '#ef4444' }
   const DEFAULT_STATUS_COLOR = '#71717a'
 
@@ -53,24 +55,12 @@
     return STATUS_COLORS[status] || DEFAULT_STATUS_COLOR
   }
 
+  const depsStore = useDependencies()
+
   let simulation: d3.Simulation<GraphNode, GraphLink> | null = null
 
   function loadDependencies(): void {
-    fetch('/api/dependencies')
-      .then((res: Response) => res.json())
-      .then((data: GraphData) => {
-        if (!data || !data.nodes || data.nodes.length === 0) {
-          statusMessage.set('No job dependencies found.')
-          return
-        }
-
-        statusMessage.set('')
-        buildGraph(data)
-      })
-      .catch((e: unknown) => {
-        console.error('Failed to load dependencies:', e)
-        statusMessage.set('Failed to load dependency graph.')
-      })
+    depsStore.refetch()
   }
 
   function buildGraph(data: GraphData): void {
@@ -200,7 +190,23 @@
     })
   }
 
-  onMount((): void => { loadDependencies() })
+  effect(() => {
+    if (depsStore.loading()) {
+      statusMessage.set('Loading dependency graph...')
+      return
+    }
+    if (depsStore.error()) {
+      statusMessage.set('Failed to load dependency graph.')
+      return
+    }
+    const data: GraphData = depsStore.data()
+    if (!data || !data.nodes || data.nodes.length === 0) {
+      statusMessage.set('No job dependencies found.')
+      return
+    }
+    statusMessage.set('')
+    buildGraph(data)
+  })
 </script>
 
 <div class='overflow-hidden h-screen flex flex-col'>

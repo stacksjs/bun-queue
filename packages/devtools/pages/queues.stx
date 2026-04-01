@@ -10,6 +10,8 @@
 
 @section('content')
 <script client>
+  import { useQueues } from '@/stores/queues'
+
   interface QueueItem {
     id: string
     name: string
@@ -20,10 +22,11 @@
     completedJobs: number
   }
 
-  const allQueues = state<QueueItem[]>([])
+  const queuesStore = useQueues()
+  const allQueues = queuesStore.data
+  const loading = queuesStore.loading
   const searchQuery = state<string>('')
-  const loading = state<boolean>(true)
-  const errorMessage = state<string>('')
+  const errorMessage = derived<string>(() => queuesStore.error() || '')
 
   const filteredQueues = derived<QueueItem[]>(() => {
     const query: string = searchQuery().toLowerCase().trim()
@@ -34,19 +37,8 @@
   })
 
   function loadQueues(): void {
-    loading.set(true)
-    errorMessage.set('')
-    fetch('/api/queues')
-      .then((res: Response) => res.json())
-      .then((queues: QueueItem[]) => { allQueues.set(queues) })
-      .catch((err: unknown) => {
-        console.error('Failed to load queues:', err)
-        errorMessage.set('Failed to load queues. Please try again.')
-      })
-      .finally(() => { loading.set(false) })
+    queuesStore.refetch()
   }
-
-  onMount((): void => { loadQueues() })
 </script>
 
 <div class='max-w-[1200px] mx-auto p-6'>

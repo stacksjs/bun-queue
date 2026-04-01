@@ -12,6 +12,8 @@
 
 @section('content')
 <script client>
+  import { useStats } from '@/stores/stats'
+
   const { chartOptions, createLineDataset } = stx.helpers
   interface MetricsData {
     timestamps: string[]
@@ -23,6 +25,8 @@
   interface StatsData {
     uptime: number
   }
+
+  const statsStore = useStats()
 
   let throughputChart: Chart | null = null
   let latencyChart: Chart | null = null
@@ -37,7 +41,10 @@
   const statThroughput = state<string>('--')
   const statLatency = state<string>('--')
   const statErrorRate = state<string>('--')
-  const statUptime = state<string>('--')
+  const statUptime = derived<string>(() => {
+    const s: StatsData = statsStore.data()
+    return s.uptime != null ? String(Math.round(s.uptime / 3600)) : '--'
+  })
 
   function selectRange(range: string): void {
     activeRange.set(range)
@@ -45,17 +52,10 @@
   }
 
   function loadMetrics(timeRange: string): void {
-    Promise.all([
-      fetch('/api/metrics?timeRange=' + timeRange),
-      fetch('/api/stats'),
-    ])
-      .then((responses: Response[]) =>
-        Promise.all([responses[0].json(), responses[1].json()])
-      )
-      .then((results: [MetricsData, StatsData]) => {
-        const mData: MetricsData = results[0]
-        const sData: StatsData = results[1]
-
+    statsStore.refetch()
+    globalThis.fetch('/api/metrics?timeRange=' + timeRange)
+      .then((res: Response) => res.json())
+      .then((mData: MetricsData) => {
         statThroughput.set(
           mData.throughput.length > 0
             ? String(Math.round(mData.throughput.reduce((a: number, b: number) => a + b, 0) / mData.throughput.length))
@@ -71,7 +71,6 @@
             ? (mData.errorRate.reduce((a: number, b: number) => a + b, 0) / mData.errorRate.length).toFixed(2)
             : '0.00'
         )
-        statUptime.set(String(Math.round(sData.uptime / 3600)))
 
         if (!throughputRef.current || !latencyRef.current || !errorRateRef.current) return
         if (throughputChart) throughputChart.destroy()

@@ -6,6 +6,8 @@
 
 @section('content')
 <script client>
+  import { useGroups } from '@/stores/groups'
+
   interface Group {
     id: string
     name?: string
@@ -19,10 +21,11 @@
     failedJobs?: number
   }
 
-  const allGroups = state<Group[]>([])
+  const groupsStore = useGroups()
+  const allGroups = groupsStore.data
+  const loading = groupsStore.loading
+  const errorMessage = derived<string>(() => groupsStore.error() || '')
   const searchQuery = state<string>('')
-  const loading = state<boolean>(true)
-  const errorMessage = state<string>('')
 
   const filteredGroups = derived<Group[]>(() => {
     const query: string = searchQuery().toLowerCase().trim()
@@ -38,19 +41,8 @@
   }
 
   function loadGroups(): void {
-    loading.set(true)
-    errorMessage.set('')
-    fetch('/api/groups')
-      .then((res: Response) => res.json())
-      .then((groups: Group[]) => { allGroups.set(groups) })
-      .catch((e: unknown) => {
-        console.error('Failed to load groups:', e)
-        errorMessage.set('Failed to load groups.')
-      })
-      .finally(() => { loading.set(false) })
+    groupsStore.refetch()
   }
-
-  onMount((): void => { loadGroups() })
 </script>
 
 <div class='max-w-[1200px] mx-auto p-6'>

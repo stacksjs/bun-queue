@@ -12,6 +12,10 @@
 
 @section('content')
 <script client>
+  import { useStats } from '@/stores/stats'
+  import { useJobs } from '@/stores/jobs'
+  import { useQueues } from '@/stores/queues'
+
   interface DashboardStats {
     totalQueues: number
     totalJobs: number
@@ -40,15 +44,41 @@
     throughput: number[]
   }
 
-  const loading = state<boolean>(true)
-  const activeQueues = state<string | number>('--')
-  const waitingJobs = state<string | number>('--')
-  const activeJobs = state<string | number>('--')
-  const completedJobs = state<string | number>('--')
-  const failedJobs = state<string | number>('--')
-  const processingRate = state<string | number>('--')
-  const recentJobs = state<DashboardJob[]>([])
-  const queues = state<DashboardQueue[]>([])
+  const statsStore = useStats()
+  const jobsStore = useJobs()
+  const queuesStore = useQueues()
+
+  const loading = derived<boolean>(() => statsStore.loading() || jobsStore.loading() || queuesStore.loading())
+
+  const activeQueues = derived<string | number>(() => {
+    const s: DashboardStats = statsStore.data()
+    return s.totalQueues ?? '--'
+  })
+  const waitingJobs = derived<string | number>(() => {
+    const s: DashboardStats = statsStore.data()
+    return s.totalJobs != null ? s.totalJobs - (s.activeJobs || 0) - (s.completedJobs || 0) - (s.failedJobs || 0) : '--'
+  })
+  const activeJobs = derived<string | number>(() => {
+    const s: DashboardStats = statsStore.data()
+    return s.activeJobs ?? '--'
+  })
+  const completedJobs = derived<string | number>(() => {
+    const s: DashboardStats = statsStore.data()
+    return s.completedJobs ?? '--'
+  })
+  const failedJobs = derived<string | number>(() => {
+    const s: DashboardStats = statsStore.data()
+    return s.failedJobs ?? '--'
+  })
+  const processingRate = derived<string | number>(() => {
+    const s: DashboardStats = statsStore.data()
+    return s.throughputPerMinute ?? '--'
+  })
+  const recentJobs = derived<DashboardJob[]>(() => {
+    const jobs: DashboardJob[] = jobsStore.data()
+    return jobs.slice(0, 5)
+  })
+  const queues = derived<DashboardQueue[]>(() => queuesStore.data())
 
   let throughputChart: Chart | null = null
   let queueStatusChart: Chart | null = null
@@ -57,19 +87,14 @@
   const queueStatusCanvas = useRef<HTMLCanvasElement>('queue-status-chart')
 
   function loadDashboard(): void {
-    loading.set(true)
-    fetch('/api/stats')
-      .then((statsRes: Response) => statsRes.json())
-      .then((stats: DashboardStats) => {
-        activeQueues.set(stats.totalQueues)
-        waitingJobs.set(stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs)
-        activeJobs.set(stats.activeJobs)
-        completedJobs.set(stats.completedJobs)
-        failedJobs.set(stats.failedJobs)
-        processingRate.set(stats.throughputPerMinute)
+    statsStore.refetch()
+    jobsStore.refetch()
+    queuesStore.refetch()
+    loadCharts()
+  }
 
-        return fetch('/api/metrics?timeRange=24h')
-      })
+  function loadCharts(): void {
+    globalThis.fetch('/api/metrics?timeRange=24h')
       .then((metricsRes: Response) => metricsRes.json())
       .then((metrics: MetricsData) => {
         if (!throughputCanvas.current) return
@@ -102,10 +127,7 @@
           }
         })
 
-        return fetch('/api/stats')
-      })
-      .then((statsRes2: Response) => statsRes2.json())
-      .then((stats: DashboardStats) => {
+        const stats: DashboardStats = statsStore.data()
         if (!queueStatusCanvas.current) return
         if (queueStatusChart) queueStatusChart.destroy()
         const ctx2 = queueStatusCanvas.current.getContext('2d')
@@ -114,7 +136,7 @@
           data: {
             labels: ['Completed', 'Active', 'Waiting', 'Failed'],
             datasets: [{
-              data: [stats.completedJobs, stats.activeJobs, stats.totalJobs - stats.activeJobs - stats.completedJobs - stats.failedJobs, stats.failedJobs],
+              data: [stats.completedJobs || 0, stats.activeJobs || 0, (stats.totalJobs || 0) - (stats.activeJobs || 0) - (stats.completedJobs || 0) - (stats.failedJobs || 0), stats.failedJobs || 0],
               backgroundColor: ['#10b981', '#6366f1', '#f59e0b', '#ef4444'],
               borderColor: '#141419',
               borderWidth: 2,
@@ -132,23 +154,9 @@
             cutout: '65%',
           }
         })
-
-        return fetch('/api/jobs')
-      })
-      .then((jobsRes: Response) => jobsRes.json())
-      .then((jobs: DashboardJob[]) => {
-        recentJobs.set(jobs.slice(0, 5))
-        return fetch('/api/queues')
-      })
-      .then((queuesRes: Response) => queuesRes.json())
-      .then((queueData: DashboardQueue[]) => {
-        queues.set(queueData)
       })
       .catch((err: unknown) => {
-        console.error('Failed to load dashboard:', err)
-      })
-      .finally(() => {
-        loading.set(false)
+        console.error('Failed to load charts:', err)
       })
   }
 
@@ -165,7 +173,7 @@
   }
 
   onMount((): (() => void) | void => {
-    loadDashboard()
+    loadCharts()
 
     if (!wsUrl) return
 

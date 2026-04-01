@@ -10,6 +10,8 @@
 
 @section('content')
 <script client>
+  import { useBatches } from '@/stores/batches'
+
   interface Batch {
     id: string
     name?: string
@@ -24,9 +26,10 @@
     finishedAt?: string
   }
 
-  const batches = state<Batch[]>([])
-  const loading = state<boolean>(true)
-  const errorMessage = state<string>('')
+  const batchesStore = useBatches()
+  const batches = batchesStore.data
+  const loading = batchesStore.loading
+  const errorMessage = derived<string>(() => batchesStore.error() || '')
 
   function batchStatus(b: Batch): string {
     return b.status || 'pending'
@@ -58,21 +61,8 @@
   }
 
   function loadBatches(): void {
-    loading.set(true)
-    errorMessage.set('')
-    fetch('/api/batches')
-      .then((res: Response) => res.json())
-      .then((data: Batch[]) => { batches.set(data) })
-      .catch((err: unknown) => {
-        console.error('Failed to load batches:', err)
-        errorMessage.set('Failed to load batches. Please try again.')
-      })
-      .finally(() => { loading.set(false) })
+    batchesStore.refetch()
   }
-
-  onMount((): void => {
-    loadBatches()
-  })
 </script>
 
 <div class='max-w-[1200px] mx-auto p-6'>

@@ -11,6 +11,8 @@
 
 @section('content')
 <script client>
+  import { useJobs } from '@/stores/jobs'
+
   interface Job {
     id: string
     name: string
@@ -27,10 +29,12 @@
     queue: string
   }
 
-  const allJobs = state<Job[]>([])
+  const jobsStore = useJobs()
+  const allJobs = jobsStore.data
+  const loading = jobsStore.loading
+
   const activeFilter = state<string>('all')
   const searchQuery = state<string>('')
-  const loading = state<boolean>(true)
 
   const isAtTop = state<boolean>(true)
   const buffer = state<Job[]>([])
@@ -57,18 +61,13 @@
   })
 
   function retryJob(jobId: string): void {
-    fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
-      .then(() => loadJobs())
+    globalThis.fetch('/api/jobs/' + encodeURIComponent(jobId) + '/retry', { method: 'POST' })
+      .then(() => jobsStore.refetch())
       .catch((err: unknown) => { console.error('Retry failed:', err) })
   }
 
-  function loadJobs(): Promise<void> {
-    loading.set(true)
-    return fetch('/api/jobs')
-      .then((res: Response) => res.json())
-      .then((data: Job[]) => { allJobs.set(data) })
-      .catch((err: unknown) => { console.error('Failed to load jobs:', err) })
-      .finally(() => { loading.set(false) })
+  function loadJobs(): void {
+    jobsStore.refetch()
   }
 
   function flushBuffer(): void {
@@ -80,7 +79,7 @@
   }
 
   function handleJobEvent(eventData: JobEvent): void {
-    fetch('/api/jobs/' + encodeURIComponent(eventData.jobId))
+    globalThis.fetch('/api/jobs/' + encodeURIComponent(eventData.jobId))
       .then((res: Response) => res.ok ? res.json() : null)
       .then((job: Job | null) => {
         if (!job) return
@@ -118,8 +117,6 @@
   const wsStatus = state<string>('CLOSED')
 
   onMount((): (() => void) | void => {
-    loadJobs()
-
     if (!wsUrl) return
 
     const ws = useWebSocket(wsUrl, {

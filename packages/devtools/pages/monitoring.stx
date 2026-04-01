@@ -41,6 +41,8 @@
 
 @section('content')
 <script client>
+  import { useStats } from '@/stores/stats'
+
   const { formatEventTime } = stx.helpers
   const REFRESH_INTERVAL = 3000
   const MAX_EVENTS = 50
@@ -74,12 +76,26 @@
     error?: string
   }
 
+  const statsStore = useStats()
+
   const connected = state<boolean>(true)
   const autoRefreshEnabled = state<boolean>(true)
-  const jobsPerSec = state<string>('--')
-  const avgLatency = state<string>('--')
-  const errorRate = state<string>('--')
-  const activeWorkers = state<string>('--')
+  const jobsPerSec = derived<string>(() => {
+    const s: MonitoringStats = statsStore.data()
+    return s.throughputPerMinute != null ? (s.throughputPerMinute / 60).toFixed(1) : '--'
+  })
+  const avgLatency = derived<string>(() => {
+    const s: MonitoringStats = statsStore.data()
+    return s.avgLatency != null ? String(s.avgLatency) : '--'
+  })
+  const errorRate = derived<string>(() => {
+    const s: MonitoringStats = statsStore.data()
+    return s.failedJobs != null ? ((s.failedJobs / Math.max(s.totalJobs, 1)) * 100).toFixed(2) : '--'
+  })
+  const activeWorkers = derived<string>(() => {
+    const s: MonitoringStats = statsStore.data()
+    return s.activeJobs != null ? String(s.activeJobs) : '--'
+  })
   const events = state<EventEntry[]>([])
   const queues = state<QueueHealth[]>([])
 
@@ -98,16 +114,8 @@
   }
 
   function refreshMonitoring(): void {
-    fetch('/api/stats')
-      .then((statsRes: Response) => statsRes.json())
-      .then((stats: MonitoringStats) => {
-        jobsPerSec.set((stats.throughputPerMinute / 60).toFixed(1))
-        avgLatency.set(String(stats.avgLatency))
-        errorRate.set(((stats.failedJobs / Math.max(stats.totalJobs, 1)) * 100).toFixed(2))
-        activeWorkers.set(String(stats.activeJobs))
-
-        return fetch('/api/queues/metrics')
-      })
+    statsStore.refetch()
+    globalThis.fetch('/api/queues/metrics')
       .then((queuesRes: Response) => queuesRes.json())
       .then((queueData: QueueHealth[]) => {
         queues.set(queueData)
