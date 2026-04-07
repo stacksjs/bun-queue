@@ -4,6 +4,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Group Details — bun-queue' })
   const { formatTime } = stx.helpers
   interface GroupData {
     name?: string

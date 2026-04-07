@@ -12,6 +12,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Batch Details — bun-queue' })
   const { formatTime } = stx.helpers
   interface BatchData {
     id: string

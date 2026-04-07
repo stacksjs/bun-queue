@@ -10,6 +10,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Batches — bun-queue' })
   import { useBatches } from '@/stores/batches'
 
   interface Batch {

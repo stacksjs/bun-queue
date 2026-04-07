@@ -16,6 +16,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Dependencies — bun-queue' })
   import { useDependencies } from '@/stores/dependencies'
 
   const STATUS_COLORS = { completed: '#10b981', active: '#6366f1', waiting: '#f59e0b', pending: '#f59e0b', failed: '#ef4444' }

@@ -12,6 +12,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Metrics — bun-queue' })
   import { useStats } from '@/stores/stats'
 
   const { chartOptions, createLineDataset } = stx.helpers

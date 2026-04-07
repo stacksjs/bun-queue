@@ -12,6 +12,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Dashboard — bun-queue' })
   import { useStats } from '@/stores/stats'
   import { useJobs } from '@/stores/jobs'
   import { useQueues } from '@/stores/queues'

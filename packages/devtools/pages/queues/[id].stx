@@ -11,6 +11,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Queue Details — bun-queue' })
   interface QueueData {
     id: string
     name: string

@@ -10,6 +10,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Queues — bun-queue' })
   import { useQueues } from '@/stores/queues'
 
   interface QueueItem {

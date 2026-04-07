@@ -41,6 +41,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Monitoring — bun-queue' })
   import { useStats } from '@/stores/stats'
 
   const { formatEventTime } = stx.helpers

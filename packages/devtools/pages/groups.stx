@@ -6,6 +6,7 @@
 
 @section('content')
 <script client>
+  useHead({ title: 'Groups — bun-queue' })
   import { useGroups } from '@/stores/groups'
 
   interface Group {
