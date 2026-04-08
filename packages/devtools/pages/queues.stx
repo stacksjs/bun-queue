@@ -84,7 +84,7 @@
 
     <!-- Empty state -->
     <div :show='!loading() && !errorMessage() && filteredQueues().length === 0'>
-      <EmptyState icon="search" title="No queues found" message="Try adjusting your search criteria." />
+      <EmptyState icon='search' title='No queues found' message='Try adjusting your search criteria.' />
     </div>
 
     <!-- Queue cards grid -->
@@ -119,7 +119,7 @@
             </div>
           </div>
           <div class='pt-3 border-t border-zinc-800'>
-            <StxLink :to="'/queues/' + q.id" class='text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details &rarr;</StxLink>
+            <StxLink :to='"/queues/" + q.id' class='text-sm font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details &rarr;</StxLink>
           </div>
         </div>
       </template>

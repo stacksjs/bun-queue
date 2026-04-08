@@ -2,69 +2,8 @@
 title: Priority Queues
 description: Learn how to use priority queues to process jobs in priority order.
 ---
-## Adding Jobs with Priority
 
 ```typescript
-// Add a low priority job
-await taskQueue.add(
-  { task: 'cleanup' },
-  { priority: 0 }  // Lowest priority
-)
-
-// Add a normal priority job
-await taskQueue.add(
-  { task: 'process-order' },
-  { priority: 2 }  // Medium priority
-)
-
-// Add a high priority job
-await taskQueue.add(
-  { task: 'critical-alert' },
-  { priority: 4 }  // Highest priority (for 5-level queue)
-)
-```
-
-## Priority Levels
-
-- Higher numbers = Higher priority
-- Jobs with higher priority are processed first
-- Jobs with same priority are processed in FIFO order
-
-```typescript
-const taskQueue = new PriorityQueue('tasks', { levels: 5 })
-
-// Priority 4: Critical - processed first
-// Priority 3: High
-// Priority 2: Normal
-// Priority 1: Low
-// Priority 0: Background - processed last
-```
-
-## Processing Priority Jobs
-
-```typescript
-taskQueue.process(5, async (job) => {
-  const priority = job.opts.priority
-
-  console.log(`Processing job ${job.id} with priority ${priority}`)
-
-  await processTask(job.data)
-
-  return { success: true }
-})
-```
-
-## Dynamic Priority Mapping
-
-Map data values to priority levels:
-
-```typescript
-interface TaskData {
-  name: string
-  importance: number  // 1-10
-}
-
-const taskQueue = new PriorityQueue<TaskData>('tasks', {
   levels: 5,
   defaultLevel: 1,
 })

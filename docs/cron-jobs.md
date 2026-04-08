@@ -2,72 +2,8 @@
 title: Cron Jobs
 description: Schedule recurring jobs using cron expressions.
 ---
-  }
-})
-
-console.log(`Scheduled cron job: ${jobId}`)
-```
-
-## Cron Expression Format
-
-Standard 5-field cron expression:
-
-```ts
-┌───────────── minute (0-59)
-│ ┌───────────── hour (0-23)
-│ │ ┌───────────── day of month (1-31)
-│ │ │ ┌───────────── month (1-12)
-│ │ │ │ ┌───────────── day of week (0-6, 0=Sunday)
-│ │ │ │ │
-
-* * * * *
-
-```
-
-### Examples
 
 ```typescript
-// Every minute
-'* * * * *'
-
-// Every hour at minute 0
-'0 * * * *'
-
-// Every day at 9:30 AM
-'30 9 * * *'
-
-// Every Monday at 8:00 AM
-'0 8 * * 1'
-
-// Every weekday (Monday-Friday) at 8:00 AM
-'0 8 * * 1-5'
-
-// First Monday of every month at 12:00 PM
-'0 12 1-7 * 1'
-
-// Every 5 minutes
-'*/5 * * * *'
-
-// Every 2 hours
-'0 */2 * * *'
-```
-
-## Cron Job Options
-
-```typescript
-await queue.scheduleCron({
-  // Required: Cron expression
-  cronExpression: '0 * * * *',
-
-  // Required: Job data
-  data: { task: 'hourly-update' },
-
-  // Optional: Custom job ID
-  jobId: 'hourly-update-job',
-
-  // Optional: Timezone (default: system timezone)
-  timezone: 'America/New*York',
-
   // Optional: Maximum number of executions
   limit: 100,
 

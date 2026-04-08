@@ -2,69 +2,8 @@
 title: Worker Configuration
 description: Configure workers for processing jobs in bun-queue
 ---
-  // Your job logic here
-  const result = await processTask(job.data)
-
-  return result
-})
-```
-
-### Using the Worker Class
-
-For more control, use the `Worker` class directly:
 
 ```typescript
-import { Queue, Worker } from 'bun-queue'
-
-const queue = new Queue('tasks')
-
-const worker = new Worker(queue, async (job) => {
-  console.log(`Worker processing job ${job.id}`)
-  return await processTask(job.data)
-}, {
-  concurrency: 5,
-  autostart: true,
-})
-```
-
-## Worker Configuration
-
-### Configuration Options
-
-```typescript
-interface WorkerOptions {
-  // Number of concurrent jobs to process
-  concurrency?: number
-
-  // Start processing immediately
-  autostart?: boolean
-
-  // Lock duration for jobs (ms)
-  lockDuration?: number
-
-  // How often to renew lock (ms)
-  lockRenewTime?: number
-
-  // How often to check for stalled jobs (ms)
-  stalledInterval?: number
-
-  // Max stalled count before job fails
-  maxStalledCount?: number
-
-  // Drain mode - stop after current jobs
-  drainDelay?: number
-}
-```
-
-### Example Configuration
-
-```typescript
-const worker = new Worker(queue, processor, {
-  concurrency: 10,
-  autostart: true,
-  lockDuration: 30000,        // 30 seconds
-  lockRenewTime: 15000,       // Renew lock every 15 seconds
-  stalledInterval: 30000,     // Check for stalled jobs every 30s
   maxStalledCount: 3,         // Fail job after 3 stalls
 })
 ```

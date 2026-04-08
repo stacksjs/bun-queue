@@ -2,72 +2,8 @@
 title: Creating Jobs
 description: Learn how to create and add jobs to the queue with various options.
 ---
-})
-
-console.log(`Job ${job.id} added to the queue`)
-```
-
-## Job Options
-
-Jobs support various options to control their behavior:
 
 ```typescript
-await queue.add(
-  { task: 'process-pdf', url: 'https://example.com/document.pdf' },
-  {
-    delay: 5000,           // Delay for 5 seconds before processing
-    attempts: 3,           // Retry up to 3 times on failure
-    backoff: {
-      type: 'exponential', // 'fixed' or 'exponential' backoff
-      delay: 1000,         // Base delay in milliseconds
-    },
-    priority: 10,          // Higher number = higher priority
-    removeOnComplete: true, // Remove job when completed
-    lifo: false,           // Process in FIFO order (default)
-    jobId: 'custom-id',    // Provide a custom job ID
-    timeout: 30000,        // Job timeout in milliseconds
-  }
-)
-```
-
-## Delayed Jobs
-
-Schedule jobs to run after a specific delay:
-
-```typescript
-// Add a job that will be processed after 30 seconds
-await queue.add(
-  { task: 'send-reminder', userId: 123 },
-  { delay: 30000 }
-)
-
-// Schedule a job for a specific time
-const futureTime = new Date('2024-12-25T10:00:00').getTime()
-const delay = futureTime - Date.now()
-
-await queue.add(
-  { task: 'send-christmas-greeting' },
-  { delay }
-)
-```
-
-## Job Dependencies
-
-Jobs can depend on other jobs and will only run after their dependencies complete:
-
-```typescript
-// First job - create report data
-const dataJob = await queue.add({
-  task: 'generate-report-data',
-  reportId: 'monthly-sales'
-})
-
-// Second job - depends on first job
-const pdfJob = await queue.add(
-  { task: 'generate-pdf', reportId: 'monthly-sales' },
-  { dependsOn: dataJob.id }
-)
-
 // Third job - depends on multiple jobs
 const emailJob = await queue.add(
   { task: 'send-report-email', reportId: 'monthly-sales' },

@@ -85,7 +85,7 @@
 
     <!-- Empty state -->
     <div :show='!loading() && !errorMessage() && filteredGroups().length === 0'>
-      <EmptyState icon="users" title="No groups found" message="Jobs assigned to groups will appear here." />
+      <EmptyState icon='users' title='No groups found' message='Jobs assigned to groups will appear here.' />
     </div>
 
     <!-- Group cards grid -->
@@ -116,7 +116,7 @@
           </div>
 
           <div class='mt-auto flex justify-end pt-3 border-t border-zinc-800'>
-            <StxLink :to="'/groups/' + encodeURIComponent(group.id || group.name)" class='text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline'>View Details &rarr;</StxLink>
+            <StxLink :to='"/groups/" + encodeURIComponent(group.id || group.name)' class='text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline'>View Details &rarr;</StxLink>
           </div>
         </div>
       </template>

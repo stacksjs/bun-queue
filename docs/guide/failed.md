@@ -3,68 +3,7 @@ title: Failed Job Handling
 description: Handle failed jobs, retries, and dead letter queues in bun-queue
 ---
 
-  // If this throws, job is marked as failed
-  return await riskyOperation(job.data)
-})
-```
-
-## Retry Configuration
-
-### Basic Retries
-
 ```typescript
-// Retry up to 3 times with no delay
-await queue.add(
-  { task: 'send-email' },
-  {
-    attempts: 3,
-  }
-)
-```
-
-### Fixed Backoff
-
-Retry with a constant delay between attempts:
-
-```typescript
-await queue.add(
-  { task: 'api-call' },
-  {
-    attempts: 5,
-    backoff: {
-      type: 'fixed',
-      delay: 5000, // Wait 5 seconds between each retry
-    },
-  }
-)
-// Retry times: 5s, 5s, 5s, 5s
-```
-
-### Exponential Backoff
-
-Retry with increasing delays:
-
-```typescript
-await queue.add(
-  { task: 'api-call' },
-  {
-    attempts: 5,
-    backoff: {
-      type: 'exponential',
-      delay: 1000, // Base delay of 1 second
-    },
-  }
-)
-// Retry times: 1s, 2s, 4s, 8s (exponential growth)
-```
-
-### Default Retry Configuration
-
-Set defaults for all jobs in a queue:
-
-```typescript
-const queue = new Queue('tasks', {
-  defaultJobOptions: {
     attempts: 3,
     backoff: {
       type: 'exponential',

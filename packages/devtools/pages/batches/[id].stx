@@ -126,7 +126,7 @@
       <svg width='160' height='160' viewBox='0 0 160 160'>
         <circle class='progress-ring-bg' cx='80' cy='80' r='65'/>
         <circle class='progress-ring-fill' cx='80' cy='80' r='65'
-          stroke-dasharray='408.4' :style="'stroke-dashoffset: ' + ringOffset()"/>
+          stroke-dasharray='408.4' :style='"stroke-dashoffset: " + ringOffset()'/>
       </svg>
       <div class='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center'>
         <div class='text-[2rem] font-bold text-zinc-50 tabular-nums leading-none'>{{ progressPct() }}%</div>
@@ -214,7 +214,7 @@
             <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ formatTime(job.createdAt) }}</td>
             <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums'>{{ job.duration ? job.duration + 'ms' : '—' }}</td>
             <td class='px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800'>
-              <StxLink :to="'/jobs/' + job.id" class='text-indigo-500 no-underline hover:underline'>View</StxLink>
+              <StxLink :to='"/jobs/" + job.id' class='text-indigo-500 no-underline hover:underline'>View</StxLink>
             </td>
           </tr>
         </template>

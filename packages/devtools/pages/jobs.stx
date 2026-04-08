@@ -151,7 +151,7 @@
       <h1 class='text-lg font-semibold text-zinc-50'>Jobs</h1>
       <p class='text-sm text-zinc-500 mt-1'>Browse and filter job history</p>
     </div>
-    <div :if="wsStatus() === 'OPEN'" class='flex items-center gap-1.5'>
+    <div :if='wsStatus() === "OPEN"' class='flex items-center gap-1.5'>
       <span class='w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse'></span>
       <span class='text-xs text-zinc-500'>Live</span>
     </div>
@@ -167,11 +167,11 @@
   <!-- Toolbar -->
   <div class='flex items-center gap-3 mb-6 flex-wrap'>
     <div class='flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1' ref='filter-bar'>
-      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class="{ active: activeFilter() === 'all' }" @click="activeFilter.set('all')" data-status='all'>All</button>
-      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class="{ active: activeFilter() === 'waiting' }" @click="activeFilter.set('waiting')" data-status='waiting'>Waiting</button>
-      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class="{ active: activeFilter() === 'active' }" @click="activeFilter.set('active')" data-status='active'>Active</button>
-      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class="{ active: activeFilter() === 'completed' }" @click="activeFilter.set('completed')" data-status='completed'>Completed</button>
-      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class="{ active: activeFilter() === 'failed' }" @click="activeFilter.set('failed')" data-status='failed'>Failed</button>
+      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class='{ active: activeFilter() === "all" }' @click='activeFilter.set("all")' data-status='all'>All</button>
+      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class='{ active: activeFilter() === "waiting" }' @click='activeFilter.set("waiting")' data-status='waiting'>Waiting</button>
+      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class='{ active: activeFilter() === "active" }' @click='activeFilter.set("active")' data-status='active'>Active</button>
+      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class='{ active: activeFilter() === "completed" }' @click='activeFilter.set("completed")' data-status='completed'>Completed</button>
+      <button class='filter-btn px-3 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150' :class='{ active: activeFilter() === "failed" }' @click='activeFilter.set("failed")' data-status='failed'>Failed</button>
     </div>
     <div class='relative flex-1 max-w-[280px]'>
       <svg class='absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>
@@ -186,7 +186,7 @@
 
     <!-- Empty state -->
     <div :if='!loading() && filteredJobs().length === 0'>
-      <EmptyState icon="search" title="No jobs found" message="Try adjusting your search or filters." />
+      <EmptyState icon='search' title='No jobs found' message='Try adjusting your search or filters.' />
     </div>
 
     <!-- Table -->
@@ -214,8 +214,8 @@
             <td class='px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ job.createdAt }}</td>
             <td class='px-4 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ job.completedAt || job.failedAt || job.processedAt || job.createdAt }}</td>
             <td class='px-4 py-2.5 text-right border-b border-zinc-800 whitespace-nowrap'>
-              <button :if="job.status === 'failed'" @click='retryJob(job.id)' class='text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3'>Retry</button>
-              <StxLink :to="'/jobs/' + job.id" class='text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details</StxLink>
+              <button :if='job.status === "failed"' @click='retryJob(job.id)' class='text-xs font-medium text-amber-400 bg-transparent border-none cursor-pointer hover:text-amber-300 transition-colors duration-150 mr-3'>Retry</button>
+              <StxLink :to='"/jobs/" + job.id' class='text-xs font-medium text-indigo-400 no-underline hover:text-indigo-500 hover:underline transition-colors duration-150'>View Details</StxLink>
             </td>
           </tr>
         </template>

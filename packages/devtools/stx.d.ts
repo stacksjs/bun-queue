@@ -5,6 +5,8 @@
  * This declaration file provides TypeScript types for them.
  */
 
+/* eslint-disable pickier/no-unused-vars */
+
 // Signals
 declare function state<T>(initial: T): {
   (): T

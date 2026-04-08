@@ -2,73 +2,8 @@
 title: Queue Configuration
 description: Configure bun-queue with various options for Redis, rate limiting, metrics, and more.
 ---
-})
-```
-
-## Redis Configuration
-
-### Connection String
 
 ```typescript
-const queue = new Queue('tasks', {
-  redis: {
-    url: 'redis://localhost:6379'
-  }
-})
-```
-
-### Custom Redis Client
-
-```typescript
-const queue = new Queue('tasks', {
-  redis: {
-    client: myRedisClient // Provide your own client
-  }
-})
-```
-
-### Environment Variables
-
-bun-queue reads these environment variables:
-
-- `REDIS_URL`: Redis connection string (default: `redis://localhost:6379`)
-
-```bash
-
-# .env
-
-REDIS_URL=redis://localhost:6379
-```
-
-## Default Job Options
-
-Set default options for all jobs in a queue:
-
-```typescript
-const queue = new Queue('tasks', {
-  defaultJobOptions: {
-    attempts: 5,
-    backoff: {
-      type: 'exponential',
-      delay: 5000
-    },
-    removeOnComplete: true,
-    removeOnFail: false,
-    timeout: 60000
-  }
-})
-```
-
-## Rate Limiting
-
-Configure rate limiting to control job processing speed:
-
-```typescript
-const queue = new Queue('api-calls', {
-  limiter: {
-    max: 100,         // Maximum jobs per duration
-    duration: 60000,  // Duration in milliseconds (1 minute)
-    keyPrefix: (data) => data.userId // Optional: rate limit per key
   }
 })
 ```

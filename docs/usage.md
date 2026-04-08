@@ -3,69 +3,7 @@ title: Usage
 description: Learn how to use bun-queue to create, process, and manage jobs.
 ---
 
-// Process jobs (concurrency of 3)
-queue.process(3, async (job) => {
-  await sendEmail(job.data.to, job.data.subject, job.data.body)
-  return { sent: true }
-})
-```
-
-## Adding Jobs
-
 ```typescript
-// Simple job
-const job = await queue.add({ task: 'resize', width: 800 })
-
-// With options
-const job = await queue.add(data, {
-  delay: 5000,             // delay 5 seconds
-  attempts: 3,             // retry up to 3 times
-  priority: 10,            // higher = processed first
-  backoff: { type: 'exponential', delay: 1000 },
-  removeOnComplete: true,
-  timeout: 30000,
-  jobId: 'unique-id',      // custom ID, prevents duplicates
-})
-```
-
-## Processing Jobs
-
-```typescript
-// Basic processing
-queue.process(5, async (job) => {
-  console.log('Processing:', job.id, job.data)
-  await job.updateProgress(50)
-  // ... do work ...
-  await job.updateProgress(100)
-  return { result: 'done' }
-})
-```
-
-Throwing an error inside the handler marks the job as failed. If `attempts > 1`, it will be retried.
-
-## Job Dependencies
-
-Chain jobs so they run in order:
-
-```typescript
-const fetchJob = await queue.add({ step: 'fetch-data' })
-const transformJob = await queue.add(
-  { step: 'transform' },
-  { dependsOn: fetchJob.id },
-)
-const loadJob = await queue.add(
-  { step: 'load' },
-  { dependsOn: [fetchJob.id, transformJob.id] },
-)
-```
-
-## Events
-
-```typescript
-queue.events.on('jobCompleted', (jobId, result) => {
-  console.log(`Job ${jobId} done:`, result)
-})
-
 queue.events.on('jobFailed', (jobId, error) => {
   console.error(`Job ${jobId} failed:`, error.message)
 })

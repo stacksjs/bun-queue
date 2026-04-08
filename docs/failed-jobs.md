@@ -3,69 +3,7 @@ title: Failed Job Handling
 description: Learn how to handle, retry, and manage failed jobs.
 ---
 
-### Backoff Strategies
-
-**Fixed Backoff:**
 ```typescript
-{
-  backoff: {
-    type: 'fixed',
-    delay: 5000  // Always wait 5 seconds between retries
-  }
-}
-```
-
-**Exponential Backoff:**
-```typescript
-{
-  backoff: {
-    type: 'exponential',
-    delay: 1000  // 1s, 2s, 4s, 8s, 16s...
-  }
-}
-```
-
-## Accessing Failed Jobs
-
-Get all failed jobs:
-
-```typescript
-const failedJobs = await queue.getJobs('failed')
-
-for (const job of failedJobs) {
-  console.log('Job ID:', job.id)
-  console.log('Failed reason:', job.failedReason)
-  console.log('Attempts made:', job.attemptsMade)
-  console.log('Stacktrace:', job.stacktrace)
-}
-```
-
-## Retrying Failed Jobs
-
-Manually retry a failed job:
-
-```typescript
-const job = await queue.getJob('failed-job-id')
-
-if (job) {
-  await job.retry()
-  console.log('Job retried')
-}
-```
-
-Retry with new arguments:
-
-```typescript
-await queue.retryJob('failed-job-id', { newData: 'updated' })
-```
-
-## Failed Job Manager
-
-Use the FailedJobManager for advanced failed job management:
-
-```typescript
-import { FailedJobManager } from 'bun-queue'
-
 const failedJobManager = new FailedJobManager('redis', {
   prefix: 'myapp'
 })

@@ -94,7 +94,7 @@
 
     <!-- Empty state -->
     <div :show='!loading() && !errorMessage() && batches().length === 0'>
-      <EmptyState icon="layers" title="No batches found" message="Create a batch to see it here." />
+      <EmptyState icon='layers' title='No batches found' message='Create a batch to see it here.' />
     </div>
 
     <!-- Batch cards grid -->
@@ -117,7 +117,7 @@
             <div
               class='progress-bar-fill h-full rounded-full'
               :class='progressBarColorClass(batchStatus(batch))'
-              :style="'width: ' + batchPct(batch) + '%'"
+              :style='"width: " + batchPct(batch) + "%"'
             ></div>
           </div>
           <div class='text-xs text-zinc-500 text-right tabular-nums mb-3'>{{ batchPct(batch) }}% complete</div>
@@ -151,7 +151,7 @@
           <!-- View Details link -->
           <div class='flex justify-end'>
             <a
-              :href="'/batches/' + batch.id"
+              :href='"/batches/" + batch.id'
               class='text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline'
             >
               View Details &rarr;
