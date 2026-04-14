@@ -2,39 +2,6 @@
 title: Cron Jobs
 description: Schedule recurring jobs using cron expressions.
 ---
-
-```typescript
-  // Optional: Maximum number of executions
-  limit: 100,
-
-  // Optional: Start date
-  startDate: new Date('2024-01-01'),
-
-  // Optional: End date
-  endDate: new Date('2024-12-31'),
-
-  // Optional: Job options
-  attempts: 3,
-  backoff: { type: 'exponential', delay: 1000 }
-})
-```
-
-## Timezone Support
-
-Schedule jobs in specific timezones:
-
-```typescript
-// Daily job at 9:30 AM London time
-await queue.scheduleCron({
-  cronExpression: '30 9 * * *',
-  timezone: 'Europe/London',
-  data: { task: 'daily-report' }
-})
-
-// Hourly job in Eastern Time
-await queue.scheduleCron({
-  cronExpression: '0 * * * *',
-  timezone: 'America/New*York',
   data: { task: 'hourly-sync' }
 })
 ```

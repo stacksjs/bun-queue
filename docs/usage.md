@@ -2,40 +2,6 @@
 title: Usage
 description: Learn how to use bun-queue to create, process, and manage jobs.
 ---
-
-```typescript
-queue.events.on('jobFailed', (jobId, error) => {
-  console.error(`Job ${jobId} failed:`, error.message)
-})
-
-queue.events.on('jobProgress', (jobId, progress) => {
-  console.log(`Job ${jobId}: ${progress}%`)
-})
-
-queue.events.on('jobStalled', (jobId) => {
-  console.warn(`Job ${jobId} stalled`)
-})
-```
-
-## Querying Jobs
-
-```typescript
-// Single job
-const job = await queue.getJob('job-id')
-
-// By status
-const waiting = await queue.getJobs('waiting')
-const active = await queue.getJobs('active')
-const failed = await queue.getJobs('failed')
-
-// Counts
-const counts = await queue.getJobCounts()
-// { waiting: 5, active: 2, completed: 10, failed: 1, delayed: 3, paused: 0 }
-```
-
-## Queue Controls
-
-```typescript
 await queue.pause()    // pause processing
 await queue.resume()   // resume processing
 await queue.empty()    // remove all jobs

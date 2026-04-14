@@ -2,39 +2,6 @@
 title: Worker Configuration
 description: Configure workers for processing jobs in bun-queue
 ---
-
-```typescript
-  maxStalledCount: 3,         // Fail job after 3 stalls
-})
-```
-
-## Concurrency
-
-### Setting Concurrency
-
-```typescript
-// Process 1 job at a time (serial)
-queue.process(1, async (job) => { ... })
-
-// Process up to 10 jobs concurrently
-queue.process(10, async (job) => { ... })
-
-// Dynamic concurrency based on system
-const cores = navigator.hardwareConcurrency || 4
-queue.process(cores, async (job) => { ... })
-```
-
-### Concurrency Strategies
-
-**CPU-bound tasks** (image processing, compression):
-```typescript
-// Use number of CPU cores
-const concurrency = navigator.hardwareConcurrency || 4
-queue.process(concurrency, async (job) => {
-  await processImage(job.data.imageUrl)
-})
-```
-
 **I/O-bound tasks** (API calls, database operations):
 ```typescript
 // Higher concurrency for I/O tasks

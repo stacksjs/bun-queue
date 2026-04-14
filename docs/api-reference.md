@@ -4,39 +4,6 @@ description: Complete API reference for all bun-queue classes and methods.
 ---
 
 ```typescript
-await queue.scheduleCron(options: CronJobOptions): Promise<string>
-await queue.unscheduleCron(jobId: string): Promise<boolean>
-```
-
-#### Dead Letter Queue
-
-```typescript
-queue.getDeadLetterQueue(): DeadLetterQueue<T>
-queue.getDefaultDeadLetterOptions(): DeadLetterQueueOptions | undefined
-await queue.moveToDeadLetter(jobId: string, reason: string): Promise<boolean>
-await queue.getDeadLetterJobs(start?: number, end?: number): Promise<Job<T>[]>
-await queue.republishDeadLetterJob(jobId: string, options?: { resetRetries?: boolean }): Promise<Job<T> | null>
-await queue.removeDeadLetterJob(jobId: string): Promise<boolean>
-await queue.clearDeadLetterQueue(): Promise<void>
-```
-
-#### Job Classes
-
-```typescript
-await queue.dispatchJob(job: JobContract, ...args: any[]): Promise<Job<any>>
-queue.processJobs(concurrency?: number): void
-await queue.addJobBatch(jobs: JobContract[], options?: { batchId?: string, allowFailures?: boolean }): Promise<Job<any>[]>
-await queue.retryJob(jobId: string, newArgs?: any[]): Promise<Job<any> | null>
-await queue.getFailedJobClasses(): Promise<Array<{ job, jobClass, error, failedAt }>>
-await queue.getJobClassStats(): Promise<{ byClass, overall }>
-await queue.clearJobClasses(): Promise<void>
-await queue.pauseJobClasses(): Promise<void>
-await queue.resumeJobClasses(): Promise<void>
-```
-
-#### Metrics & Scaling
-
-```typescript
 await queue.getMetrics(): Promise<QueueMetrics>
 queue.getInstanceId(): string
 queue.isLeader(): boolean

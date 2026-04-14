@@ -26,7 +26,7 @@
 
 @include('sidebar')
 
-<div class='main-wrapper transition-all duration-200 ease-in-out min-h-screen' style='margin-left: 240px;'>
+<div class='min-h-screen duration-200 ease-in-out transition-all main-wrapper' style='margin-left: 240px;'>
   @stack('styles')
   <main>
     @yield('content')

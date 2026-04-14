@@ -2,40 +2,6 @@
 title: Priority Queues
 description: Learn how to use priority queues to process jobs in priority order.
 ---
-
-```typescript
-  levels: 5,
-  defaultLevel: 1,
-})
-
-// Map importance (1-10) to priority levels (0-4)
-function getPriority(importance: number): number {
-  return Math.min(Math.floor(importance / 2.5), 4)
-}
-
-// Add tasks with dynamic priority
-const tasks = [
-  { name: 'Low priority task', importance: 1 },
-  { name: 'Medium priority task', importance: 5 },
-  { name: 'High priority task', importance: 8 },
-  { name: 'Critical task', importance: 10 },
-]
-
-for (const task of tasks) {
-  await taskQueue.add(task, { priority: getPriority(task.importance) })
-}
-```
-
-## Dynamic Reordering
-
-Enable dynamic reordering to allow priority changes while jobs are waiting:
-
-```typescript
-const taskQueue = new PriorityQueue('tasks', {
-  levels: 5,
-  defaultLevel: 1,
-  dynamicReordering: true,
-  reorderInterval: 2000,  // Reorder every 2 seconds
 })
 ```
 

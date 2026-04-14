@@ -1,39 +1,39 @@
 <!-- Sidebar -->
-<aside class='sidebar fixed top-0 left-0 bottom-0 flex flex-col z-[100] overflow-hidden bg-[#141419] border-r border-zinc-800 transition-all duration-200 ease-in-out' :class='{ collapsed: collapsed() }' id='sidebar' ref='sidebar' style='width: 240px;'>
-  <div class='flex items-center justify-between p-4 border-b border-zinc-800 min-h-[56px]'>
-    <StxLink to='/' class='flex items-center gap-2.5 no-underline text-zinc-50 font-bold text-[0.9375rem] whitespace-nowrap overflow-hidden'>
-      <div class='w-6 h-6 bg-indigo-500 rounded-md flex items-center justify-center shrink-0 text-xs text-white font-extrabold'>Q</div>
+<aside class='flex bottom-0 fixed left-0 overflow-hidden top-0 z-[100] flex-col bg-[#141419] border-r border-zinc-800 duration-200 ease-in-out transition-all sidebar' :class='{ } collapsed() collapsed:' id='sidebar' ref='sidebar' style='width: 240px;'>
+  <div class='flex items-center justify-between p-4 min-h-[56px] border-b border-zinc-800'>
+    <StxLink to='/' class='flex overflow-hidden gap-2.5 items-center font-bold no-underline text-[0.9375rem] text-zinc-50 whitespace-nowrap'>
+      <div class='flex items-center justify-center shrink-0 h-6 w-6 font-extrabold text-white text-xs bg-indigo-500 rounded-md'>Q</div>
       <span class='sidebar-brand-text'>bun-queue</span>
     </StxLink>
-    <button class='sidebar-toggle-btn bg-transparent border-none text-zinc-500 cursor-pointer p-1 rounded flex items-center justify-center transition-colors duration-150 shrink-0 hover:text-zinc-50' @click='toggle()' ref='sidebar-toggle' title='Toggle sidebar'>
+    <button class='flex items-center justify-center shrink-0 p-1 text-zinc-500 hover:text-zinc-50 bg-transparent border-none rounded duration-150 transition-colors cursor-pointer sidebar-toggle-btn' @click='toggle()' ref='sidebar-toggle' title='Toggle sidebar'>
       <svg width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='currentColor' stroke-width='1.5' stroke-linecap='round'><path d='M3 4h10M3 8h10M3 12h10'/></svg>
     </button>
   </div>
-  <nav class='flex-1 p-2 overflow-y-auto overflow-x-hidden' id='sidebar-nav' ref='sidebar-nav'>
-    <div class='nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden'>Navigation</div>
-    <StxLink to='/' class='nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150' activeClass='active' prefetch>
-      <svg class='w-[18px] h-[18px] shrink-0 opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='7'/><rect x='14' y='3' width='7' height='7'/><rect x='3' y='14' width='7' height='7'/><rect x='14' y='14' width='7' height='7'/></svg>
+  <nav class='overflow-x-hidden overflow-y-auto flex-1 p-2' id='sidebar-nav' ref='sidebar-nav'>
+    <div class='overflow-hidden pb-1.5 pt-3 px-3 font-semibold text-[0.625rem] text-zinc-500 tracking-wider uppercase whitespace-nowrap nav-label'>Navigation</div>
+    <StxLink to='/' class='flex overflow-hidden gap-3 items-center mb-px px-3 py-2 font-medium no-underline text-sm text-zinc-400 whitespace-nowrap hover:text-zinc-50 hover:bg-[#1e1e26] rounded-md duration-150 transition-all nav-item' activeClass='active' prefetch>
+      <svg class='shrink-0 h-[18px] w-[18px] opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='3' width='7' height='7'/><rect x='14' y='3' width='7' height='7'/><rect x='3' y='14' width='7' height='7'/><rect x='14' y='14' width='7' height='7'/></svg>
       <span class='nav-item-text'>Dashboard</span>
     </StxLink>
-    <StxLink to='/monitoring' class='nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150' activeClass='active' prefetch>
-      <svg class='w-[18px] h-[18px] shrink-0 opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-4l-3 9L9 3l-3 9H2'/></svg>
+    <StxLink to='/monitoring' class='flex overflow-hidden gap-3 items-center mb-px px-3 py-2 font-medium no-underline text-sm text-zinc-400 whitespace-nowrap hover:text-zinc-50 hover:bg-[#1e1e26] rounded-md duration-150 transition-all nav-item' activeClass='active' prefetch>
+      <svg class='shrink-0 h-[18px] w-[18px] opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-4l-3 9L9 3l-3 9H2'/></svg>
       <span class='nav-item-text'>Monitoring</span>
     </StxLink>
-    <StxLink to='/metrics' class='nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150' activeClass='active' prefetch>
-      <svg class='w-[18px] h-[18px] shrink-0 opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>
+    <StxLink to='/metrics' class='flex overflow-hidden gap-3 items-center mb-px px-3 py-2 font-medium no-underline text-sm text-zinc-400 whitespace-nowrap hover:text-zinc-50 hover:bg-[#1e1e26] rounded-md duration-150 transition-all nav-item' activeClass='active' prefetch>
+      <svg class='shrink-0 h-[18px] w-[18px] opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><line x1='18' y1='20' x2='18' y2='10'/><line x1='12' y1='20' x2='12' y2='4'/><line x1='6' y1='20' x2='6' y2='14'/></svg>
       <span class='nav-item-text'>Metrics</span>
     </StxLink>
-    <div class='nav-label text-[0.625rem] font-semibold text-zinc-500 uppercase tracking-wider px-3 pt-3 pb-1.5 whitespace-nowrap overflow-hidden'>Management</div>
-    <StxLink to='/groups' class='nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150' activeClass='active' prefetch>
-      <svg class='w-[18px] h-[18px] shrink-0 opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>
+    <div class='overflow-hidden pb-1.5 pt-3 px-3 font-semibold text-[0.625rem] text-zinc-500 tracking-wider uppercase whitespace-nowrap nav-label'>Management</div>
+    <StxLink to='/groups' class='flex overflow-hidden gap-3 items-center mb-px px-3 py-2 font-medium no-underline text-sm text-zinc-400 whitespace-nowrap hover:text-zinc-50 hover:bg-[#1e1e26] rounded-md duration-150 transition-all nav-item' activeClass='active' prefetch>
+      <svg class='shrink-0 h-[18px] w-[18px] opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2'/><circle cx='9' cy='7' r='4'/><path d='M23 21v-2a4 4 0 0 0-3-3.87'/><path d='M16 3.13a4 4 0 0 1 0 7.75'/></svg>
       <span class='nav-item-text'>Groups</span>
     </StxLink>
-    <StxLink to='/batches' class='nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150' activeClass='active' prefetch>
-      <svg class='w-[18px] h-[18px] shrink-0 opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='7' width='20' height='14' rx='2' ry='2'/><path d='M16 3H8l-2 4h12l-2-4z'/></svg>
+    <StxLink to='/batches' class='flex overflow-hidden gap-3 items-center mb-px px-3 py-2 font-medium no-underline text-sm text-zinc-400 whitespace-nowrap hover:text-zinc-50 hover:bg-[#1e1e26] rounded-md duration-150 transition-all nav-item' activeClass='active' prefetch>
+      <svg class='shrink-0 h-[18px] w-[18px] opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='7' width='20' height='14' rx='2' ry='2'/><path d='M16 3H8l-2 4h12l-2-4z'/></svg>
       <span class='nav-item-text'>Batches</span>
     </StxLink>
-    <StxLink to='/jobs' class='nav-item flex items-center gap-3 px-3 py-2 rounded-md text-zinc-400 text-sm font-medium no-underline whitespace-nowrap overflow-hidden mb-px hover:bg-[#1e1e26] hover:text-zinc-50 transition-all duration-150' activeClass='active' prefetch>
-      <svg class='w-[18px] h-[18px] shrink-0 opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/><line x1='16' y1='17' x2='8' y2='17'/></svg>
+    <StxLink to='/jobs' class='flex overflow-hidden gap-3 items-center mb-px px-3 py-2 font-medium no-underline text-sm text-zinc-400 whitespace-nowrap hover:text-zinc-50 hover:bg-[#1e1e26] rounded-md duration-150 transition-all nav-item' activeClass='active' prefetch>
+      <svg class='shrink-0 h-[18px] w-[18px] opacity-70' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/><polyline points='14 2 14 8 20 8'/><line x1='16' y1='13' x2='8' y2='13'/><line x1='16' y1='17' x2='8' y2='17'/></svg>
       <span class='nav-item-text'>Jobs</span>
     </StxLink>
   </nav>

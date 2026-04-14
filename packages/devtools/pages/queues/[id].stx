@@ -159,48 +159,48 @@
   })
 </script>
 
-<div class='max-w-[1200px] mx-auto p-6'>
-  <StxLink to='/queues' class='inline-flex items-center gap-1.5 text-zinc-500 no-underline text-[0.8125rem] mb-4 transition-colors duration-150 hover:text-indigo-500'>
+<div class='mx-auto p-6 max-w-[1200px]'>
+  <StxLink to='/queues' class='inline-flex gap-1.5 items-center mb-4 no-underline text-[0.8125rem] text-zinc-500 hover:text-indigo-500 duration-150 transition-colors'>
     <svg width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='15 18 9 12 15 6'/></svg>
     Back to Queues
   </StxLink>
 
   <div class='flex items-center justify-between mb-6'>
     <div>
-      <h1 class='text-xl font-semibold text-zinc-50 flex items-center gap-3'>
+      <h1 class='flex gap-3 items-center font-semibold text-xl text-zinc-50'>
         <span>{{ queueName() }}</span>
         <span
-          class='inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium'
+          class='inline-flex items-center px-2 py-0.5 font-medium text-[0.6875rem] rounded-full'
           :class='queueBadgeClass(queueStatus())'
         >
           {{ queueStatus() }}
         </span>
       </h1>
-      <p class='text-[0.8125rem] text-zinc-500 mt-1'>Queue details and job history</p>
+      <p class='mt-1 text-[0.8125rem] text-zinc-500'>Queue details and job history</p>
     </div>
   </div>
 
   <!-- Stats -->
-  <div class='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6'>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wider'>Total Jobs</div>
-      <div class='text-[1.75rem] font-bold text-zinc-50 mt-1 tabular-nums'>{{ statTotal() }}</div>
+  <div class='grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 mb-6'>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wider uppercase'>Total Jobs</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-zinc-50'>{{ statTotal() }}</div>
     </div>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wider'>Pending</div>
-      <div class='text-[1.75rem] font-bold text-amber-500 mt-1 tabular-nums'>{{ statPending() }}</div>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wider uppercase'>Pending</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-amber-500'>{{ statPending() }}</div>
     </div>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wider'>Active</div>
-      <div class='text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums'>{{ statActive() }}</div>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wider uppercase'>Active</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-indigo-500'>{{ statActive() }}</div>
     </div>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wider'>Completed</div>
-      <div class='text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums'>{{ statCompleted() }}</div>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wider uppercase'>Completed</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-emerald-500'>{{ statCompleted() }}</div>
     </div>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 transition-colors duration-150 hover:border-indigo-500'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wider'>Failed</div>
-      <div class='text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums'>{{ statFailed() }}</div>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wider uppercase'>Failed</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-red-500'>{{ statFailed() }}</div>
     </div>
   </div>
 
@@ -208,17 +208,17 @@
   <div class='mb-6'>
     <div class='flex justify-between mb-2 text-[0.8125rem]'>
       <span class='text-zinc-400'>Completion Progress</span>
-      <span class='text-zinc-50 font-semibold tabular-nums'>{{ progressPct() }}%</span>
+      <span class='font-semibold tabular-nums text-zinc-50'>{{ progressPct() }}%</span>
     </div>
-    <div class='w-full h-2 bg-[#1e1e26] rounded-full overflow-hidden'>
-      <div class='progress-bar-fill h-full rounded-full bg-emerald-500' :style='"width: " + progressPct() + "%"'></div>
+    <div class='overflow-hidden h-2 w-full bg-[#1e1e26] rounded-full'>
+      <div class='h-full bg-emerald-500 rounded-full progress-bar-fill' :style='"width: " + progressPct() + "%"'></div>
     </div>
   </div>
 
   <!-- Throughput chart -->
-  <div class='bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6'>
+  <div class='mb-6 p-6 bg-[#141419] border border-zinc-800 rounded-lg'>
     <div class='flex items-center justify-between mb-4'>
-      <span class='text-sm font-semibold text-zinc-50'>Throughput</span>
+      <span class='font-semibold text-sm text-zinc-50'>Throughput</span>
     </div>
     <div class='relative h-[260px]'>
       <canvas ref='throughput-chart'></canvas>
@@ -226,23 +226,23 @@
   </div>
 
   <!-- Jobs table -->
-  <div class='bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6'>
+  <div class='mb-6 p-6 bg-[#141419] border border-zinc-800 rounded-lg'>
     <div class='flex items-center justify-between mb-4'>
-      <span class='text-sm font-semibold text-zinc-50'>Jobs in this Queue</span>
+      <span class='font-semibold text-sm text-zinc-50'>Jobs in this Queue</span>
     </div>
 
     <!-- Loading state -->
-    <div :show='loading()' class='text-center py-8 text-zinc-500 text-[0.8125rem]'>
+    <div :show='loading()' class='py-8 text-[0.8125rem] text-center text-zinc-500'>
       Loading jobs...
     </div>
 
     <!-- Empty state -->
-    <div :show='!loading() && jobs().length === 0' class='text-center py-8 text-zinc-500 text-[0.8125rem]'>
+    <div :show='!loading() && jobs().length === 0' class='py-8 text-[0.8125rem] text-center text-zinc-500'>
       No jobs found in this queue.
     </div>
 
     <!-- Error state -->
-    <div :show='!loading() && errorMessage()' class='text-center py-8 text-zinc-500 text-[0.8125rem]'>
+    <div :show='!loading() && errorMessage()' class='py-8 text-[0.8125rem] text-center text-zinc-500'>
       {{ errorMessage() }}
     </div>
 
@@ -250,28 +250,28 @@
     <table :show='!loading() && !errorMessage() && jobs().length > 0' class='w-full border-collapse'>
       <thead>
         <tr>
-          <th class='px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800'>ID</th>
-          <th class='px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800'>Name</th>
-          <th class='px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800'>Status</th>
-          <th class='px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800'>Attempts</th>
-          <th class='px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800'>Created</th>
-          <th class='px-3 py-2 text-right text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800'>Duration</th>
-          <th class='px-3 py-2 text-left text-[0.6875rem] font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-800'></th>
+          <th class='px-3 py-2 font-medium text-[0.6875rem] text-left text-zinc-500 tracking-wider uppercase border-b border-zinc-800'>ID</th>
+          <th class='px-3 py-2 font-medium text-[0.6875rem] text-left text-zinc-500 tracking-wider uppercase border-b border-zinc-800'>Name</th>
+          <th class='px-3 py-2 font-medium text-[0.6875rem] text-left text-zinc-500 tracking-wider uppercase border-b border-zinc-800'>Status</th>
+          <th class='px-3 py-2 font-medium text-[0.6875rem] text-right text-zinc-500 tracking-wider uppercase border-b border-zinc-800'>Attempts</th>
+          <th class='px-3 py-2 font-medium text-[0.6875rem] text-left text-zinc-500 tracking-wider uppercase border-b border-zinc-800'>Created</th>
+          <th class='px-3 py-2 font-medium text-[0.6875rem] text-right text-zinc-500 tracking-wider uppercase border-b border-zinc-800'>Duration</th>
+          <th class='px-3 py-2 font-medium text-[0.6875rem] text-left text-zinc-500 tracking-wider uppercase border-b border-zinc-800'></th>
         </tr>
       </thead>
       <tbody>
         <template @for='job in jobs()'>
           <tr class='hover:bg-[#1e1e26]'>
-            <td class='px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 font-mono text-xs'>{{ job.id }}</td>
-            <td class='px-3 py-2.5 text-[0.8125rem] text-zinc-50 font-medium border-b border-zinc-800'>{{ job.name || '—' }}</td>
+            <td class='px-3 py-2.5 font-mono text-[0.8125rem] text-xs text-zinc-400 border-b border-zinc-800'>{{ job.id }}</td>
+            <td class='px-3 py-2.5 font-medium text-[0.8125rem] text-zinc-50 border-b border-zinc-800'>{{ job.name || '—' }}</td>
             <td class='px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800'>
-              <span class='inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium' :class='queueBadgeClass(job.status)'>{{ job.status }}</span>
+              <span class='inline-flex items-center px-2 py-0.5 font-medium text-[0.6875rem] rounded-full' :class='queueBadgeClass(job.status)'>{{ job.status }}</span>
             </td>
-            <td class='px-3 py-2.5 text-[0.8125rem] text-zinc-400 border-b border-zinc-800 text-right tabular-nums'>{{ (job.attempts || 0) + '/' + (job.maxAttempts || 3) }}</td>
+            <td class='px-3 py-2.5 tabular-nums text-[0.8125rem] text-right text-zinc-400 border-b border-zinc-800'>{{ (job.attempts || 0) + '/' + (job.maxAttempts || 3) }}</td>
             <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800'>{{ formatTime(job.createdAt) }}</td>
-            <td class='px-3 py-2.5 text-xs text-zinc-400 border-b border-zinc-800 text-right font-mono tabular-nums'>{{ job.duration ? job.duration + 'ms' : '—' }}</td>
+            <td class='px-3 py-2.5 font-mono tabular-nums text-right text-xs text-zinc-400 border-b border-zinc-800'>{{ job.duration ? job.duration + 'ms' : '—' }}</td>
             <td class='px-3 py-2.5 text-[0.8125rem] border-b border-zinc-800'>
-              <StxLink :to='"/jobs/" + job.id' class='text-indigo-500 no-underline hover:underline'>View</StxLink>
+              <StxLink :to='"/jobs/" + job.id' class='no-underline text-indigo-500 hover:underline'>View</StxLink>
             </td>
           </tr>
         </template>

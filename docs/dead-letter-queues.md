@@ -3,42 +3,6 @@ title: Dead Letter Queues
 description: Handle permanently failed jobs with dead letter queues.
 ---
 
-```typescript
-// Republish a specific job
-const job = await queue.republishDeadLetterJob('job-id')
-
-if (job) {
-  console.log(`Job ${job.id} republished to the main queue`)
-}
-
-// Republish with reset retries
-await queue.republishDeadLetterJob('job-id', {
-  resetRetries: true  // Reset attempt counter
-})
-```
-
-## Removing Dead Letter Jobs
-
-```typescript
-// Remove a specific job from DLQ
-const removed = await queue.removeDeadLetterJob('job-id')
-
-if (removed) {
-  console.log('Job removed from dead letter queue')
-}
-
-// Clear entire dead letter queue
-await queue.clearDeadLetterQueue()
-```
-
-## Manual Movement to DLQ
-
-Manually move a job to the dead letter queue:
-
-```typescript
-await queue.moveToDeadLetter('job-id', 'Manual intervention required')
-```
-
 ## Dead Letter Queue Events
 
 Listen for DLQ events:

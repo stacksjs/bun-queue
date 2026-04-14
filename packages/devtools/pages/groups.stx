@@ -46,24 +46,24 @@
   }
 </script>
 
-<div class='max-w-[1200px] mx-auto p-6'>
-  <div class='flex items-center justify-between mb-6 flex-wrap gap-4'>
+<div class='mx-auto p-6 max-w-[1200px]'>
+  <div class='flex flex-wrap gap-4 items-center justify-between mb-6'>
     <div>
-      <h1 class='text-xl font-semibold text-zinc-50'>Job Groups</h1>
-      <p class='text-[0.8125rem] text-zinc-500 mt-1'>Browse and manage job groups</p>
+      <h1 class='font-semibold text-xl text-zinc-50'>Job Groups</h1>
+      <p class='mt-1 text-[0.8125rem] text-zinc-500'>Browse and manage job groups</p>
     </div>
     <div class='flex gap-3 items-center'>
       <div class='relative'>
-        <svg class='absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>
+        <svg class='absolute left-3 top-1/2 text-zinc-500 pointer-events-none -translate-y-1/2' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>
         <input
           type='text'
-          class='py-2 pr-3 pl-9 bg-[#141419] border border-zinc-800 rounded-md text-zinc-50 text-[0.8125rem] outline-none w-[260px] transition-colors duration-150 placeholder:text-zinc-500 focus:border-indigo-500'
+          class='pl-9 pr-3 py-2 w-[260px] text-[0.8125rem] text-zinc-50 placeholder:text-zinc-500 bg-[#141419] border border-zinc-800 outline-none rounded-md focus:border-indigo-500 duration-150 transition-colors'
           placeholder='Search groups...'
           @input='searchQuery.set($event.target.value)'
         >
       </div>
       <button
-        class='inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50'
+        class='inline-flex gap-1.5 items-center px-3 py-2 font-medium text-[0.8125rem] text-zinc-400 hover:text-zinc-50 bg-[#1e1e26] border border-zinc-800 rounded-md hover:border-indigo-500 duration-150 transition-all cursor-pointer'
         @click='loadGroups()'
       >
         <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='23 4 23 10 17 10'/><path d='M20.49 15a9 9 0 1 1-2.12-9.36L23 10'/></svg>
@@ -74,12 +74,12 @@
 
   <div>
     <!-- Loading state -->
-    <div :show='loading()' class='text-center py-12 text-zinc-500 text-[0.8125rem]'>
+    <div :show='loading()' class='py-12 text-[0.8125rem] text-center text-zinc-500'>
       Loading groups...
     </div>
 
     <!-- Error state -->
-    <div :show='!loading() && errorMessage()' class='text-center py-12 text-zinc-500 text-[0.8125rem]'>
+    <div :show='!loading() && errorMessage()' class='py-12 text-[0.8125rem] text-center text-zinc-500'>
       {{ errorMessage() }}
     </div>
 
@@ -89,34 +89,34 @@
     </div>
 
     <!-- Group cards grid -->
-    <div :show='!loading() && !errorMessage() && filteredGroups().length > 0' class='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+    <div :show='!loading() && !errorMessage() && filteredGroups().length > 0' class='grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3'>
       <template @for='group in filteredGroups()'>
-        <div class='bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500 flex flex-col'>
+        <div class='flex flex-col p-5 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
           <div class='flex items-center justify-between mb-4'>
-            <span class='text-[0.9375rem] font-semibold text-zinc-50'>{{ group.name || group.id || 'Unknown' }}</span>
-            <span class='bg-indigo-500/15 text-indigo-400 px-2 py-0.5 rounded-full text-[0.6875rem] font-semibold tabular-nums'>{{ groupJobCount(group) }} jobs</span>
+            <span class='font-semibold text-[0.9375rem] text-zinc-50'>{{ group.name || group.id || 'Unknown' }}</span>
+            <span class='px-2 py-0.5 font-semibold tabular-nums text-[0.6875rem] text-indigo-400 bg-indigo-500/15 rounded-full'>{{ groupJobCount(group) }} jobs</span>
           </div>
 
-          <div class='flex gap-4 mb-4 flex-wrap'>
-            <div class='flex items-center gap-1.5 text-xs'>
-              <span class='w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0'></span>
+          <div class='flex flex-wrap gap-4 mb-4'>
+            <div class='flex gap-1.5 items-center text-xs'>
+              <span class='shrink-0 h-1.5 w-1.5 bg-indigo-500 rounded-full'></span>
               <span class='text-zinc-500'>Active</span>
-              <span class='text-zinc-400 font-semibold tabular-nums'>{{ group.active || group.activeJobs || 0 }}</span>
+              <span class='font-semibold tabular-nums text-zinc-400'>{{ group.active || group.activeJobs || 0 }}</span>
             </div>
-            <div class='flex items-center gap-1.5 text-xs'>
-              <span class='w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0'></span>
+            <div class='flex gap-1.5 items-center text-xs'>
+              <span class='shrink-0 h-1.5 w-1.5 bg-emerald-500 rounded-full'></span>
               <span class='text-zinc-500'>Completed</span>
-              <span class='text-zinc-400 font-semibold tabular-nums'>{{ group.completed || group.completedJobs || 0 }}</span>
+              <span class='font-semibold tabular-nums text-zinc-400'>{{ group.completed || group.completedJobs || 0 }}</span>
             </div>
-            <div class='flex items-center gap-1.5 text-xs'>
-              <span class='w-1.5 h-1.5 rounded-full bg-red-500 shrink-0'></span>
+            <div class='flex gap-1.5 items-center text-xs'>
+              <span class='shrink-0 h-1.5 w-1.5 bg-red-500 rounded-full'></span>
               <span class='text-zinc-500'>Failed</span>
-              <span class='text-zinc-400 font-semibold tabular-nums'>{{ group.failed || group.failedJobs || 0 }}</span>
+              <span class='font-semibold tabular-nums text-zinc-400'>{{ group.failed || group.failedJobs || 0 }}</span>
             </div>
           </div>
 
-          <div class='mt-auto flex justify-end pt-3 border-t border-zinc-800'>
-            <StxLink :to='"/groups/" + encodeURIComponent(group.id || group.name)' class='text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline'>View Details &rarr;</StxLink>
+          <div class='flex justify-end mt-auto pt-3 border-t border-zinc-800'>
+            <StxLink :to='"/groups/" + encodeURIComponent(group.id || group.name)' class='font-medium no-underline text-[0.8125rem] text-indigo-500 hover:text-indigo-400 hover:underline duration-150 transition-colors'>View Details &rarr;</StxLink>
           </div>
         </div>
       </template>

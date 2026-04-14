@@ -66,14 +66,14 @@
   }
 </script>
 
-<div class='max-w-[1200px] mx-auto p-6'>
-  <div class='flex items-center justify-between mb-6 flex-wrap gap-4'>
+<div class='mx-auto p-6 max-w-[1200px]'>
+  <div class='flex flex-wrap gap-4 items-center justify-between mb-6'>
     <div>
-      <h1 class='text-xl font-semibold text-zinc-50'>Batches</h1>
-      <p class='text-[0.8125rem] text-zinc-500 mt-1'>Monitor batch job progress and status</p>
+      <h1 class='font-semibold text-xl text-zinc-50'>Batches</h1>
+      <p class='mt-1 text-[0.8125rem] text-zinc-500'>Monitor batch job progress and status</p>
     </div>
     <button
-      class='inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[0.8125rem] font-medium cursor-pointer transition-all duration-150 bg-[#1e1e26] border border-zinc-800 text-zinc-400 hover:border-indigo-500 hover:text-zinc-50'
+      class='inline-flex gap-1.5 items-center px-3 py-1.5 font-medium text-[0.8125rem] text-zinc-400 hover:text-zinc-50 bg-[#1e1e26] border border-zinc-800 rounded-md hover:border-indigo-500 duration-150 transition-all cursor-pointer'
       @click='loadBatches()'
     >
       <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='23 4 23 10 17 10'/><path d='M20.49 15a9 9 0 1 1-2.12-9.36L23 10'/></svg>
@@ -83,12 +83,12 @@
 
   <div>
     <!-- Loading state -->
-    <div :show='loading()' class='text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg'>
+    <div :show='loading()' class='py-12 text-[0.8125rem] text-center text-zinc-500 bg-[#141419] border border-zinc-800 rounded-lg'>
       Loading batches...
     </div>
 
     <!-- Error state -->
-    <div :show='!loading() && errorMessage()' class='text-center py-12 text-zinc-500 text-[0.8125rem] bg-[#141419] border border-zinc-800 rounded-lg'>
+    <div :show='!loading() && errorMessage()' class='py-12 text-[0.8125rem] text-center text-zinc-500 bg-[#141419] border border-zinc-800 rounded-lg'>
       {{ errorMessage() }}
     </div>
 
@@ -98,14 +98,14 @@
     </div>
 
     <!-- Batch cards grid -->
-    <div :show='!loading() && !errorMessage() && batches().length > 0' class='grid grid-cols-1 md:grid-cols-2 gap-4'>
+    <div :show='!loading() && !errorMessage() && batches().length > 0' class='grid gap-4 grid-cols-1 md:grid-cols-2'>
       <template @for='batch in batches()'>
-        <div class='bg-[#141419] border border-zinc-800 rounded-lg p-5 transition-colors duration-150 hover:border-indigo-500'>
+        <div class='p-5 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
           <!-- Header: name + status badge -->
           <div class='flex items-center justify-between mb-4'>
-            <span class='text-[0.9375rem] font-semibold text-zinc-50'>{{ batchName(batch) }}</span>
+            <span class='font-semibold text-[0.9375rem] text-zinc-50'>{{ batchName(batch) }}</span>
             <span
-              class='inline-flex items-center px-2 py-0.5 rounded-full text-[0.6875rem] font-medium'
+              class='inline-flex items-center px-2 py-0.5 font-medium text-[0.6875rem] rounded-full'
               :class='badgeClass(batchStatus(batch))'
             >
               {{ batchStatus(batch) }}
@@ -113,37 +113,37 @@
           </div>
 
           <!-- Progress bar -->
-          <div class='w-full h-1.5 bg-[#1e1e26] rounded-full overflow-hidden mb-2'>
+          <div class='overflow-hidden mb-2 h-1.5 w-full bg-[#1e1e26] rounded-full'>
             <div
-              class='progress-bar-fill h-full rounded-full'
+              class='h-full rounded-full progress-bar-fill'
               :class='progressBarColorClass(batchStatus(batch))'
               :style='"width: " + batchPct(batch) + "%"'
             ></div>
           </div>
-          <div class='text-xs text-zinc-500 text-right tabular-nums mb-3'>{{ batchPct(batch) }}% complete</div>
+          <div class='mb-3 tabular-nums text-right text-xs text-zinc-500'>{{ batchPct(batch) }}% complete</div>
 
           <!-- Stats grid -->
-          <div class='grid grid-cols-4 gap-2 mb-3'>
+          <div class='grid gap-2 grid-cols-4 mb-3'>
             <div class='text-center'>
-              <div class='text-lg font-bold text-zinc-50 tabular-nums'>{{ batchTotal(batch) }}</div>
-              <div class='text-[0.6875rem] text-zinc-500 uppercase tracking-wider'>Total</div>
+              <div class='font-bold tabular-nums text-lg text-zinc-50'>{{ batchTotal(batch) }}</div>
+              <div class='text-[0.6875rem] text-zinc-500 tracking-wider uppercase'>Total</div>
             </div>
             <div class='text-center'>
-              <div class='text-lg font-bold text-emerald-500 tabular-nums'>{{ batchProcessed(batch) }}</div>
-              <div class='text-[0.6875rem] text-zinc-500 uppercase tracking-wider'>Processed</div>
+              <div class='font-bold tabular-nums text-emerald-500 text-lg'>{{ batchProcessed(batch) }}</div>
+              <div class='text-[0.6875rem] text-zinc-500 tracking-wider uppercase'>Processed</div>
             </div>
             <div class='text-center'>
-              <div class='text-lg font-bold text-red-500 tabular-nums'>{{ batchFailed(batch) }}</div>
-              <div class='text-[0.6875rem] text-zinc-500 uppercase tracking-wider'>Failed</div>
+              <div class='font-bold tabular-nums text-lg text-red-500'>{{ batchFailed(batch) }}</div>
+              <div class='text-[0.6875rem] text-zinc-500 tracking-wider uppercase'>Failed</div>
             </div>
             <div class='text-center'>
-              <div class='text-lg font-bold text-amber-500 tabular-nums'>{{ batchPending(batch) }}</div>
-              <div class='text-[0.6875rem] text-zinc-500 uppercase tracking-wider'>Pending</div>
+              <div class='font-bold tabular-nums text-amber-500 text-lg'>{{ batchPending(batch) }}</div>
+              <div class='text-[0.6875rem] text-zinc-500 tracking-wider uppercase'>Pending</div>
             </div>
           </div>
 
           <!-- Timestamps -->
-          <div class='flex gap-4 text-xs text-zinc-500 mb-3 flex-wrap'>
+          <div class='flex flex-wrap gap-4 mb-3 text-xs text-zinc-500'>
             <span class='whitespace-nowrap'>Created: {{ formatTime(batch.createdAt) }}</span>
             <span :show='batch.finishedAt' class='whitespace-nowrap'>Finished: {{ formatTime(batch.finishedAt) }}</span>
           </div>
@@ -152,7 +152,7 @@
           <div class='flex justify-end'>
             <a
               :href='"/batches/" + batch.id'
-              class='text-indigo-500 no-underline text-[0.8125rem] font-medium transition-colors duration-150 hover:text-indigo-400 hover:underline'
+              class='font-medium no-underline text-[0.8125rem] text-indigo-500 hover:text-indigo-400 hover:underline duration-150 transition-colors'
             >
               View Details &rarr;
             </a>

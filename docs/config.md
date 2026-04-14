@@ -2,37 +2,6 @@
 title: Configuration File
 description: Configure bun-queue using a configuration file.
 ---
-
-### `QueueConfig`
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `redis.url` | `string` | `redis://localhost:6379` | Redis connection URL |
-| `redis.client` | `RedisClient` | — | Existing Redis client |
-| `prefix` | `string` | `'queue'` | Redis key prefix |
-| `logLevel` | `LogLevel` | `'warn'` | Logging verbosity |
-| `defaultJobOptions` | `JobOptions` | `{}` | Defaults for all jobs |
-| `limiter` | `RateLimiter` | — | Rate limiting config |
-| `metrics.enabled` | `boolean` | `false` | Enable metrics |
-| `metrics.collectInterval` | `number` | `5000` | Metrics interval (ms) |
-| `stalledJobCheckInterval` | `number` | — | Stalled check interval (ms) |
-| `maxStalledJobRetries` | `number` | `3` | Max stalled retries |
-| `distributedLock` | `boolean` | `true` | Enable distributed locks |
-| `defaultDeadLetterOptions` | `DeadLetterQueueOptions` | — | DLQ defaults |
-| `horizontalScaling` | `object` | — | Horizontal scaling config |
-
-### `JobOptions`
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `delay` | `number` | `0` | Delay before processing (ms) |
-| `attempts` | `number` | `1` | Max retry attempts |
-| `backoff` | `{ type, delay }` | — | Retry backoff strategy |
-| `backoff.type` | `'fixed' &#124; 'exponential'` | — | Backoff type |
-| `backoff.delay` | `number` | — | Base delay (ms) |
-| `removeOnComplete` | `boolean &#124; number` | `false` | Remove on complete, or keep N |
-| `removeOnFail` | `boolean &#124; number` | `false` | Remove on fail, or keep N |
-| `priority` | `number` | `0` | Higher = processed first |
 | `lifo` | `boolean` | `false` | Last-in-first-out order |
 | `timeout` | `number` | — | Job timeout (ms) |
 | `jobId` | `string` | auto | Custom job ID |

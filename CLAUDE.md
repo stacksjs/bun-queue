@@ -73,8 +73,8 @@ If stx is missing a composable, directive, or has a bug:
 | `setTimeout(fn, ms)` | `useTimeout(fn, ms)` |
 | `setInterval(fn, ms)` | `useInterval(fn, ms)` |
 | `setInterval` + fetch (polling) | `useFetch()` with reactive deps or SSE |
-| `el.classList.add('x')` | `:class="{ x: condition }"` directive |
-| `el.classList.toggle('x')` | `:class="{ x: isActive() }"` with signal |
+| `el.classList.add('x')` | `:class="{ } condition x:"` directive |
+| `el.classList.toggle('x')` | `:class="{ } isActive() x:"` with signal |
 | `el.style.display = 'none'` | `:if="condition"` directive |
 | `el.style.color = 'red'` | `:style="{ color: val() }"` directive |
 | `el.innerHTML = '...'` | `{{ expression }}` or `{!! rawHtml !!}` |
@@ -148,7 +148,7 @@ Even with exceptions, **never** use `getElementById` or `querySelector` — alwa
 ### 6. Inline style/class manipulation in JS
 
 **Wrong:** `effect(function() { el.classList.add('collapsed') })`
-**Right:** `:class="{ collapsed: isCollapsed() }"` on the element — stx handles the DOM updates
+**Right:** `:class="{ } isCollapsed() collapsed:"` on the element — stx handles the DOM updates
 
 ### 7. Not cleaning up Chart.js/D3 on SPA navigation
 
@@ -179,7 +179,7 @@ The canonical router manages active classes on elements with `data-stx-link`. Wi
 | `{{ expr }}` | Text interpolation | `<span>{{ job.name }}</span>` |
 | `{!! expr !!}` | Raw HTML output | `{!! htmlContent !!}` |
 | `:attr="expr"` | Attribute binding | `:href="job.url"`, `:disabled="loading()"` |
-| `:class="expr"` | Class binding (object or array) | `:class="{ active: isActive(), hidden: !show() }"` |
+| `:class="expr"` | Class binding (object or array) | `:class="!show() { } isActive(), active: hidden:"` |
 | `:style="expr"` | Style binding (object) | `:style="{ color: textColor(), opacity: fade() }"` |
 | `:if="expr"` | Conditional render | `:if="items().length > 0"` |
 | `:for="x in items"` | List render | `:for="job in jobs()"` |

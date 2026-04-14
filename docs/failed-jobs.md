@@ -2,37 +2,6 @@
 title: Failed Job Handling
 description: Learn how to handle, retry, and manage failed jobs.
 ---
-
-```typescript
-const failedJobManager = new FailedJobManager('redis', {
-  prefix: 'myapp'
-})
-
-// Get all failed jobs
-const allFailed = await failedJobManager.all()
-
-// Find a specific failed job
-const failedJob = await failedJobManager.find('job-id')
-
-// Retry a failed job
-await failedJobManager.retry('job-id')
-
-// Retry all failed jobs
-const retriedCount = await failedJobManager.retryAll()
-
-// Forget (delete) a failed job
-await failedJobManager.forget('job-id')
-
-// Flush all failed jobs
-await failedJobManager.flush()
-
-// Prune old failed jobs (default: older than 7 days)
-const prunedCount = await failedJobManager.prune(168) // hours
-
-// Get count of failed jobs
-const count = await failedJobManager.count()
-```
-
 ## Filter Failed Jobs
 
 Filter by queue or connection:

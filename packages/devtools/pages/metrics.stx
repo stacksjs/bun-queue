@@ -117,17 +117,17 @@
   })
 </script>
 
-<div class='max-w-[1200px] mx-auto p-6'>
+<div class='mx-auto p-6 max-w-[1200px]'>
   <div class='flex items-center justify-between mb-6'>
     <div>
-      <h1 class='text-lg font-semibold text-zinc-50'>Performance Metrics</h1>
-      <p class='text-sm text-zinc-500 mt-1'>Job throughput, latency, and error analysis</p>
+      <h1 class='font-semibold text-lg text-zinc-50'>Performance Metrics</h1>
+      <p class='mt-1 text-sm text-zinc-500'>Job throughput, latency, and error analysis</p>
     </div>
-    <div class='flex gap-1 bg-[#141419] border border-zinc-800 rounded-md p-1'>
+    <div class='flex gap-1 p-1 bg-[#141419] border border-zinc-800 rounded-md'>
       <template @for='range in timeRanges()'>
         <button
-          class='time-range-btn px-3.5 py-1.5 border-none rounded text-zinc-400 text-sm font-medium cursor-pointer hover:text-zinc-50 hover:bg-[#1e1e26] transition-all duration-150'
-          :class='{ active: activeRange() === range }'
+          class='px-3.5 py-1.5 font-medium text-sm text-zinc-400 hover:text-zinc-50 hover:bg-[#1e1e26] border-none rounded duration-150 transition-all cursor-pointer time-range-btn'
+          :class='{ } === activeRange() range active:'
           @click='selectRange(range)'
         >{{ range }}</button>
       </template>
@@ -135,33 +135,33 @@
   </div>
 
   <!-- Summary Stats -->
-  <div class='grid grid-cols-4 gap-4 mb-6 max-sm:grid-cols-2'>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Avg Throughput</div>
-      <div class='text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums'>{{ statThroughput() }}</div>
-      <div class='text-xs text-zinc-500 font-normal'>jobs/min</div>
+  <div class='grid gap-4 grid-cols-4 max-sm:grid-cols-2 mb-6'>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wide uppercase'>Avg Throughput</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-indigo-500'>{{ statThroughput() }}</div>
+      <div class='font-normal text-xs text-zinc-500'>jobs/min</div>
     </div>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Avg Latency</div>
-      <div class='text-[1.75rem] font-bold text-indigo-500 mt-1 tabular-nums'>{{ statLatency() }}</div>
-      <div class='text-xs text-zinc-500 font-normal'>ms</div>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wide uppercase'>Avg Latency</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-indigo-500'>{{ statLatency() }}</div>
+      <div class='font-normal text-xs text-zinc-500'>ms</div>
     </div>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Avg Error Rate</div>
-      <div class='text-[1.75rem] font-bold text-red-500 mt-1 tabular-nums'>{{ statErrorRate() }}</div>
-      <div class='text-xs text-zinc-500 font-normal'>%</div>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wide uppercase'>Avg Error Rate</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-red-500'>{{ statErrorRate() }}</div>
+      <div class='font-normal text-xs text-zinc-500'>%</div>
     </div>
-    <div class='bg-[#141419] border border-zinc-800 rounded-lg p-4 hover:border-indigo-500 transition-colors duration-150'>
-      <div class='text-xs font-medium text-zinc-500 uppercase tracking-wide'>Uptime</div>
-      <div class='text-[1.75rem] font-bold text-emerald-500 mt-1 tabular-nums'>{{ statUptime() }}</div>
-      <div class='text-xs text-zinc-500 font-normal'>hours</div>
+    <div class='p-4 bg-[#141419] border border-zinc-800 rounded-lg hover:border-indigo-500 duration-150 transition-colors'>
+      <div class='font-medium text-xs text-zinc-500 tracking-wide uppercase'>Uptime</div>
+      <div class='mt-1 font-bold tabular-nums text-[1.75rem] text-emerald-500'>{{ statUptime() }}</div>
+      <div class='font-normal text-xs text-zinc-500'>hours</div>
     </div>
   </div>
 
   <!-- Throughput Chart -->
-  <div class='bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6'>
+  <div class='mb-6 p-6 bg-[#141419] border border-zinc-800 rounded-lg'>
     <div class='flex items-center justify-between mb-4'>
-      <span class='text-sm font-semibold text-zinc-50'>Job Throughput</span>
+      <span class='font-semibold text-sm text-zinc-50'>Job Throughput</span>
     </div>
     <div class='chart-container'>
       <canvas ref='throughput-chart'></canvas>
@@ -169,9 +169,9 @@
   </div>
 
   <!-- Latency Chart -->
-  <div class='bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6'>
+  <div class='mb-6 p-6 bg-[#141419] border border-zinc-800 rounded-lg'>
     <div class='flex items-center justify-between mb-4'>
-      <span class='text-sm font-semibold text-zinc-50'>Job Latency</span>
+      <span class='font-semibold text-sm text-zinc-50'>Job Latency</span>
     </div>
     <div class='chart-container'>
       <canvas ref='latency-chart'></canvas>
@@ -179,9 +179,9 @@
   </div>
 
   <!-- Error Rate Chart -->
-  <div class='bg-[#141419] border border-zinc-800 rounded-lg p-6 mb-6'>
+  <div class='mb-6 p-6 bg-[#141419] border border-zinc-800 rounded-lg'>
     <div class='flex items-center justify-between mb-4'>
-      <span class='text-sm font-semibold text-zinc-50'>Error Rate</span>
+      <span class='font-semibold text-sm text-zinc-50'>Error Rate</span>
     </div>
     <div class='chart-container'>
       <canvas ref='error-rate-chart'></canvas>

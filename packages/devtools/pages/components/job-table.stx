@@ -27,11 +27,11 @@ const jobs: JobTableRow[] = []
             <td>{{ job.queue }}</td>
             <td style='color: var(--text); font-weight: 500;'>{{ job.name }}</td>
             <td>
-              <span class='badge {{ job.status === \'completed\' ? \'badge-success\' : job.status === \'failed\' ? \'badge-error\' : job.status === \'active\' ? \'badge-info\' : job.status === \'waiting\' ? \'badge-warning\' : \'badge-muted\' }}'>{{ job.status }}</span>
+              <span class='{{ \ === badge job.status'completed\' ? \'badge-success\' : job.status === \'failed\' ? \'badge-error\' : job.status === \'active\' ? \'badge-info\' : job.status === \'waiting\' ? \'badge-warning\' : \'badge-muted\' }}'>{{ job.status }}</span>
             </td>
-            <td class='text-right tabular-nums'>{{ job.attempts }}/{{ job.maxAttempts }}</td>
+            <td class='tabular-nums text-right'>{{ job.attempts }}/{{ job.maxAttempts }}</td>
             <td style='font-size: 0.75rem;'>{{ job.createdAt }}</td>
-            <td class='text-right mono tabular-nums' style='font-size: 0.75rem;'>{{ job.duration ? job.duration + 'ms' : '—' }}</td>
+            <td class='tabular-nums text-right mono' style='font-size: 0.75rem;'>{{ job.duration ? job.duration + 'ms' : '—' }}</td>
           </tr>
         @endforeach
       </tbody>

@@ -2,40 +2,6 @@
 title: Cron Jobs
 description: Schedule recurring jobs using cron expressions in bun-queue
 ---
-
-```typescript
-// Every weekday at 6 PM
-'0 18 * * 1-5'
-
-// First day of every month at midnight
-'0 0 1 * *'
-
-// Every hour from 9 AM to 5 PM
-'0 9-17 * * *'
-```
-
-### Syntax Examples
-
-| Expression | Description |
-|------------|-------------|
-| `*` | Every unit |
-| `5` | At exactly 5 |
-| `*/5` | Every 5 units |
-| `1-5` | From 1 to 5 |
-| `1,3,5` | At 1, 3, and 5 |
-| `1-5/2` | Every 2nd from 1 to 5 (1, 3, 5) |
-
-## CronScheduler API
-
-### Schedule a Job
-
-```typescript
-import { Queue, CronScheduler } from 'bun-queue'
-
-const queue = new Queue('tasks')
-const scheduler = new CronScheduler(queue)
-
-const jobId = await scheduler.schedule({
   // Required: cron expression
   cronExpression: '0 */2 * * *', // Every 2 hours
 

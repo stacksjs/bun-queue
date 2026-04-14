@@ -2,40 +2,6 @@
 title: Failed Job Handling
 description: Handle failed jobs, retries, and dead letter queues in bun-queue
 ---
-
-```typescript
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 1000,
-    },
-  },
-})
-```
-
-## Monitoring Failed Jobs
-
-### Get Failed Jobs
-
-```typescript
-// Get all failed jobs
-const failedJobs = await queue.getJobs('failed')
-
-for (const job of failedJobs) {
-  console.log('Failed job:', job.id)
-  console.log('Data:', job.data)
-  console.log('Reason:', job.failedReason)
-  console.log('Attempts:', job.attemptsMade)
-  console.log('Stacktrace:', job.stacktrace)
-}
-```
-
-### Get Job Counts
-
-```typescript
-const counts = await queue.getJobCounts()
-console.log('Failed jobs:', counts.failed)
-console.log('Waiting jobs:', counts.waiting)
 console.log('Active jobs:', counts.active)
 ```
 

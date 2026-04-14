@@ -2,38 +2,6 @@
 title: Creating Jobs
 description: Learn how to create and add jobs to the queue with various options.
 ---
-
-```typescript
-// Third job - depends on multiple jobs
-const emailJob = await queue.add(
-  { task: 'send-report-email', reportId: 'monthly-sales' },
-  { dependsOn: [dataJob.id, pdfJob.id] }
-)
-```
-
-## Batch Job Creation
-
-Add multiple jobs efficiently:
-
-```typescript
-import { JobContract } from 'bun-queue'
-
-// Define job classes
-class SendEmailJob implements JobContract {
-  constructor(
-    public email: string,
-    public subject: string
-  ) {}
-
-  async handle() {
-    await sendEmail(this.email, this.subject)
-  }
-}
-
-// Add as a batch
-const jobs = [
-  new SendEmailJob('user1@example.com', 'Welcome'),
-  new SendEmailJob('user2@example.com', 'Welcome'),
   new SendEmailJob('user3@example.com', 'Welcome'),
 ]
 

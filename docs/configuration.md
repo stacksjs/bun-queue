@@ -2,39 +2,6 @@
 title: Queue Configuration
 description: Configure bun-queue with various options for Redis, rate limiting, metrics, and more.
 ---
-
-```typescript
-  }
-})
-```
-
-### Key-Based Rate Limiting
-
-Rate limit based on job data:
-
-```typescript
-const queue = new Queue('api-calls', {
-  limiter: {
-    max: 10,
-    duration: 1000,
-    keyPrefix: (data) => `user:${data.userId}` // Limit per user
-  }
-})
-```
-
-## Metrics Configuration
-
-Enable built-in metrics collection:
-
-```typescript
-const queue = new Queue('tasks', {
-  metrics: {
-    enabled: true,
-    collectInterval: 5000 // Collect metrics every 5 seconds
-  }
-})
-
-// Get metrics
 const metrics = await queue.getMetrics()
 console.log(metrics)
 ```
