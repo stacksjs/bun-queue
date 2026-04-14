@@ -2,21 +2,6 @@
 title: Usage
 description: Learn how to use bun-queue to create, process, and manage jobs.
 ---
-await queue.pause()    // pause processing
-await queue.resume()   // resume processing
-await queue.empty()    // remove all jobs
-await queue.close()    // graceful shutdown
-
-// Health check
-const ok = await queue.ping() // true if Redis connected
-
-// Bulk operations
-await queue.bulkRemove(['job-1', 'job-2'])
-```
-
-## Job Classes
-
-For more structured jobs, use class-based dispatch:
 
 ```typescript
 import { JobBase } from '@stacksjs/bun-queue'

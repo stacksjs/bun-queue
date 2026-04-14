@@ -2,24 +2,6 @@
 title: Dead Letter Queues
 description: Handle permanently failed jobs with dead letter queues.
 ---
-
-## Dead Letter Queue Events
-
-Listen for DLQ events:
-
-```typescript
-queue.events.on('jobMovedToDeadLetter', (jobId, dlqName, reason) => {
-  console.log(`Job ${jobId} moved to ${dlqName}: ${reason}`)
-
-  // Send notification
-  notifyAdmins({
-    type: 'job-moved-to-dlq',
-    jobId,
-    reason
-  })
-})
-
-queue.events.on('jobRepublishedFromDeadLetter', (jobId, originalQueueName) => {
   console.log(`Job ${jobId} republished to ${originalQueueName}`)
 })
 ```

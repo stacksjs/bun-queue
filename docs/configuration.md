@@ -2,24 +2,6 @@
 title: Queue Configuration
 description: Configure bun-queue with various options for Redis, rate limiting, metrics, and more.
 ---
-const metrics = await queue.getMetrics()
-console.log(metrics)
-```
-
-## Stalled Job Detection
-
-Configure detection and handling of stalled jobs:
-
-```typescript
-const queue = new Queue('tasks', {
-  stalledJobCheckInterval: 30000, // Check every 30 seconds
-  maxStalledJobRetries: 3         // Retry stalled jobs up to 3 times
-})
-```
-
-## Distributed Lock
-
-Enable distributed locking for job processing:
 
 ```typescript
 const queue = new Queue('tasks', {

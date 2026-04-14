@@ -2,21 +2,6 @@
 title: Cron Jobs
 description: Schedule recurring jobs using cron expressions in bun-queue
 ---
-  // Required: cron expression
-  cronExpression: '0 */2 * * *', // Every 2 hours
-
-  // Required: job data
-  data: {
-    task: 'sync-data',
-    source: 'api',
-  },
-
-  // Optional: timezone
-  timezone: 'America/New*York',
-
-  // Optional: start date
-  startDate: new Date('2024-01-01'),
-
   // Optional: end date
   endDate: new Date('2024-12-31'),
 

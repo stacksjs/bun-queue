@@ -2,23 +2,6 @@
 title: Workers
 description: Learn how to process jobs with workers and handle concurrency.
 ---
-
-- **Fixed**: Always waits the same delay between retries
-- **Exponential**: Delay doubles with each retry (1s, 2s, 4s, 8s, ...)
-
-## Worker with Distributed Lock
-
-Jobs are processed with distributed locks to prevent race conditions:
-
-```typescript
-const queue = new Queue('tasks', {
-  distributedLock: true // Enabled by default
-})
-
-queue.process(5, async (job) => {
-  // This job is locked - no other worker can process it
-  await performCriticalOperation(job.data)
-  return { success: true }
 })
 ```
 

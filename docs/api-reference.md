@@ -3,22 +3,6 @@ title: API Reference
 description: Complete API reference for all bun-queue classes and methods.
 ---
 
-```typescript
-await queue.getMetrics(): Promise<QueueMetrics>
-queue.getInstanceId(): string
-queue.isLeader(): boolean
-await queue.getLeaderId(): Promise<string | null>
-await queue.getClusterInfo(): Promise<Record<string, any> | null>
-queue.getLock(): DistributedLock | null
-```
-
-#### Key Helpers
-
-```typescript
-queue.getKey(name: string): string       // e.g. "queue:emails:waiting"
-queue.getJobKey(jobId: string): string   // e.g. "queue:emails:abc123"
-```
-
 ---
 
 ## Job

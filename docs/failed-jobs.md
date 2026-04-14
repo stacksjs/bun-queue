@@ -2,25 +2,6 @@
 title: Failed Job Handling
 description: Learn how to handle, retry, and manage failed jobs.
 ---
-## Filter Failed Jobs
-
-Filter by queue or connection:
-
-```typescript
-// Get failed jobs for a specific queue
-const emailFailures = await failedJobManager.getFailedJobsByQueue('emails')
-
-// Get failed jobs for a specific connection
-const redisFailures = await failedJobManager.getFailedJobsByConnection('redis')
-```
-
-## Failed Job Events
-
-Listen for failed job events:
-
-```typescript
-queue.events.on('jobFailed', (jobId, error) => {
-  console.error(`Job ${jobId} failed:`, error.message)
 
   // Log to external service
   logToSentry(error, { jobId })

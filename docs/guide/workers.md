@@ -2,21 +2,6 @@
 title: Worker Configuration
 description: Configure workers for processing jobs in bun-queue
 ---
-**I/O-bound tasks** (API calls, database operations):
-```typescript
-// Higher concurrency for I/O tasks
-queue.process(50, async (job) => {
-  await fetch(job.data.webhookUrl, {
-    method: 'POST',
-    body: JSON.stringify(job.data.payload),
-  })
-})
-```
-
-**Memory-intensive tasks**:
-```typescript
-// Lower concurrency to manage memory
-queue.process(2, async (job) => {
   await processLargeFile(job.data.filePath)
 })
 ```

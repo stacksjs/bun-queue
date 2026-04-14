@@ -2,21 +2,6 @@
 title: Failed Job Handling
 description: Handle failed jobs, retries, and dead letter queues in bun-queue
 ---
-console.log('Active jobs:', counts.active)
-```
-
-### Listen to Failure Events
-
-```typescript
-queue.on('jobFailed', (jobId, error) => {
-  console.error(`Job ${jobId} failed:`, error.message)
-
-  // Alert, log, or take action
-  alerting.notify({
-    title: 'Job Failed',
-    message: error.message,
-    jobId,
-  })
 })
 ```
 

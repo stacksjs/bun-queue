@@ -2,23 +2,6 @@
 title: Cron Jobs
 description: Schedule recurring jobs using cron expressions.
 ---
-  data: { task: 'hourly-sync' }
-})
-```
-
-## Limiting Executions
-
-Limit the number of times a job runs:
-
-```typescript
-// Run only 5 times
-await queue.scheduleCron({
-  cronExpression: '* * * * *',
-  data: { task: 'limited-task' },
-  limit: 5
-})
-```
-
 ## Date Range Scheduling
 
 Set start and end dates:

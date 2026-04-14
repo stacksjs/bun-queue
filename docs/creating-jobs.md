@@ -2,22 +2,6 @@
 title: Creating Jobs
 description: Learn how to create and add jobs to the queue with various options.
 ---
-  new SendEmailJob('user3@example.com', 'Welcome'),
-]
-
-const addedJobs = await queue.addJobBatch(jobs, {
-  batchId: 'welcome-emails-batch',
-  allowFailures: true
-})
-```
-
-## Job Progress Tracking
-
-Update and track job progress during processing:
-
-```typescript
-queue.process(1, async (job) => {
-  const items = job.data.items
 
   for (let i = 0; i < items.length; i++) {
     await processItem(items[i])

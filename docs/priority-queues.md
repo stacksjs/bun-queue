@@ -2,22 +2,6 @@
 title: Priority Queues
 description: Learn how to use priority queues to process jobs in priority order.
 ---
-})
-```
-
-## Priority Queue Configuration
-
-Full configuration options:
-
-```typescript
-const taskQueue = new PriorityQueue('tasks', {
-  // Priority settings
-  levels: 10,            // Support 0-9 priority levels
-  defaultLevel: 5,       // Default to middle priority
-  dynamicReordering: true,
-  reorderInterval: 5000,
-}, {
-  // Queue settings (same as regular Queue)
   redis: { url: 'redis://localhost:6379' },
   prefix: 'myapp',
   limiter: {
