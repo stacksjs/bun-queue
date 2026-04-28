@@ -53,10 +53,10 @@
   "dependencies": {
     "@cwcss/crosswind": "^0.2.0",
     "@stacksjs/bun-queue": "workspace:*",
-    "@stacksjs/stx": "^0.2.10",
-    "ts-broadcasting": "^0.0.4"
+    "@stacksjs/stx": "^0.2.21",
+    "ts-broadcasting": "^0.0.5"
   },
   "devDependencies": {
-    "bun-plugin-stx": "^0.2.10"
+    "bun-plugin-stx": "^0.2.21"
   }
 }
