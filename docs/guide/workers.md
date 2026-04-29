@@ -2,6 +2,115 @@
 title: Worker Configuration
 description: Configure workers for processing jobs in bun-queue
 ---
+  // Your job logic here
+  const result = await processTask(job.data)
+
+  return result
+})
+```
+
+### Using the Worker Class
+
+For more control, use the `Worker` class directly:
+
+```typescript
+import { Queue, Worker } from 'bun-queue'
+
+const queue = new Queue('tasks')
+
+const worker = new Worker(queue, async (job) => {
+  console.log(`Worker processing job ${job.id}`)
+  return await processTask(job.data)
+}, {
+  concurrency: 5,
+  autostart: true,
+})
+```
+
+## Worker Configuration
+
+### Configuration Options
+
+```typescript
+interface WorkerOptions {
+  // Number of concurrent jobs to process
+  concurrency?: number
+
+  // Start processing immediately
+  autostart?: boolean
+
+  // Lock duration for jobs (ms)
+  lockDuration?: number
+
+  // How often to renew lock (ms)
+  lockRenewTime?: number
+
+  // How often to check for stalled jobs (ms)
+  stalledInterval?: number
+
+  // Max stalled count before job fails
+  maxStalledCount?: number
+
+  // Drain mode - stop after current jobs
+  drainDelay?: number
+}
+```
+
+### Example Configuration
+
+```typescript
+const worker = new Worker(queue, processor, {
+  concurrency: 10,
+  autostart: true,
+  lockDuration: 30000,        // 30 seconds
+  lockRenewTime: 15000,       // Renew lock every 15 seconds
+  stalledInterval: 30000,     // Check for stalled jobs every 30s
+  maxStalledCount: 3,         // Fail job after 3 stalls
+})
+```
+
+## Concurrency
+
+### Setting Concurrency
+
+```typescript
+// Process 1 job at a time (serial)
+queue.process(1, async (job) => { ... })
+
+// Process up to 10 jobs concurrently
+queue.process(10, async (job) => { ... })
+
+// Dynamic concurrency based on system
+const cores = navigator.hardwareConcurrency || 4
+queue.process(cores, async (job) => { ... })
+```
+
+### Concurrency Strategies
+
+**CPU-bound tasks** (image processing, compression):
+```typescript
+// Use number of CPU cores
+const concurrency = navigator.hardwareConcurrency || 4
+queue.process(concurrency, async (job) => {
+  await processImage(job.data.imageUrl)
+})
+```
+
+**I/O-bound tasks** (API calls, database operations):
+```typescript
+// Higher concurrency for I/O tasks
+queue.process(50, async (job) => {
+  await fetch(job.data.webhookUrl, {
+    method: 'POST',
+    body: JSON.stringify(job.data.payload),
+  })
+})
+```
+
+**Memory-intensive tasks**:
+```typescript
+// Lower concurrency to manage memory
+queue.process(2, async (job) => {
   await processLargeFile(job.data.filePath)
 })
 ```

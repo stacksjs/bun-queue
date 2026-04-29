@@ -2,6 +2,117 @@
 title: Cron Jobs
 description: Schedule recurring jobs using cron expressions in bun-queue
 ---
+
+```typescript
+import { Queue, CronScheduler } from 'bun-queue'
+
+const queue = new Queue('scheduled-tasks')
+const scheduler = new CronScheduler(queue)
+
+// Schedule a job to run every hour
+await scheduler.schedule({
+  cronExpression: '0 * * * *',
+  data: { task: 'hourly-cleanup' },
+})
+```
+
+### Using Repeat Options
+
+Alternatively, use the `repeat` option when adding jobs:
+
+```typescript
+await queue.add(
+  { task: 'daily-report' },
+  {
+    repeat: {
+      cron: '0 9 * * *', // Every day at 9 AM
+    },
+  }
+)
+```
+
+## Cron Expression Syntax
+
+Cron expressions have 5 fields:
+
+```text
+┌─── Minute (0-59)
+│ ┌─── Hour (0-23)
+│ │ ┌─── Day of month (1-31)
+│ │ │ ┌─── Month (1-12)
+│ │ │ │ ┌─── Day of week (0-6, Sunday=0)
+│ │ │ │ │
+x x x x x
+```
+
+### Common Patterns
+
+```typescript
+// Every minute
+'* * * * *'
+
+// Every hour (at minute 0)
+'0 * * * *'
+
+// Every day at midnight
+'0 0 * * *'
+
+// Every day at 9 AM
+'0 9 * * *'
+
+// Every Monday at 9 AM
+'0 9 * * 1'
+
+// Every 15 minutes
+'*/15 * * * *'
+
+// Every weekday at 6 PM
+'0 18 * * 1-5'
+
+// First day of every month at midnight
+'0 0 1 * *'
+
+// Every hour from 9 AM to 5 PM
+'0 9-17 * * *'
+```
+
+### Syntax Examples
+
+| Expression | Description |
+|------------|-------------|
+| `*` | Every unit |
+| `5` | At exactly 5 |
+| `*/5` | Every 5 units |
+| `1-5` | From 1 to 5 |
+| `1,3,5` | At 1, 3, and 5 |
+| `1-5/2` | Every 2nd from 1 to 5 (1, 3, 5) |
+
+## CronScheduler API
+
+### Schedule a Job
+
+```typescript
+import { Queue, CronScheduler } from 'bun-queue'
+
+const queue = new Queue('tasks')
+const scheduler = new CronScheduler(queue)
+
+const jobId = await scheduler.schedule({
+  // Required: cron expression
+  cronExpression: '0 */2 * * *', // Every 2 hours
+
+  // Required: job data
+  data: {
+    task: 'sync-data',
+    source: 'api',
+  },
+
+  // Optional: timezone
+  timezone: 'America/New*York',
+
+  // Optional: start date
+  startDate: new Date('2024-01-01'),
+
   // Optional: end date
   endDate: new Date('2024-12-31'),
 
