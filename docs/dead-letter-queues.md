@@ -2,38 +2,6 @@
 title: Dead Letter Queues
 description: Handle permanently failed jobs with dead letter queues.
 ---
-  console.log(`Job ${jobId} republished to ${originalQueueName}`)
-})
-```
-
-## Accessing the Dead Letter Queue Directly
-
-```typescript
-const dlq = queue.getDeadLetterQueue()
-
-// Get DLQ name
-const dlqName = dlq.getQueueName()
-console.log('Dead letter queue name:', dlqName)
-
-// Get all jobs
-const jobs = await dlq.getJobs()
-
-// Move a job to DLQ
-await dlq.moveToDeadLetter(failedJob, 'Processing timeout')
-
-// Republish a job
-await dlq.republishJob('job-id', { resetRetries: true })
-
-// Remove a job
-await dlq.removeJob('job-id')
-
-// Clear the queue
-await dlq.clear()
-```
-
-## Configuration Options
-
-| Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `enabled` | boolean | false | Enable dead letter queue |
 | `queueSuffix` | string | '-dead-letter' | Suffix for DLQ name |

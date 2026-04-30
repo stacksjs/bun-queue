@@ -2,38 +2,6 @@
 title: Cron Jobs
 description: Schedule recurring jobs using cron expressions.
 ---
-## Date Range Scheduling
-
-Set start and end dates:
-
-```typescript
-await queue.scheduleCron({
-  cronExpression: '0 9 * * 1-5',
-  data: { task: 'weekday-briefing' },
-  startDate: new Date('2024-01-01'),
-  endDate: new Date('2024-06-30')
-})
-```
-
-## Unscheduling Cron Jobs
-
-Stop a scheduled cron job:
-
-```typescript
-// Schedule a cron job
-const jobId = await queue.scheduleCron({
-  cronExpression: '* * * * *',
-  data: { task: 'test' },
-  jobId: 'my-cron-job'
-})
-
-// Later, unschedule it
-const success = await queue.unscheduleCron(jobId)
-
-if (success) {
-  console.log('Job unscheduled successfully')
-}
-```
 
 ## Processing Cron Jobs
 

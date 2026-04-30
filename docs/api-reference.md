@@ -2,41 +2,6 @@
 title: API Reference
 description: Complete API reference for all bun-queue classes and methods.
 ---
-
----
-
-## Job
-
-Represents a single job in the queue.
-
-### Properties
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `id` | `string` | Job ID |
-| `data` | `T` | Job payload |
-| `name` | `string` | Queue name |
-| `opts` | `JobOptions` | Job options |
-| `progress` | `number` | Progress (0-100) |
-| `delay` | `number` | Delay in ms |
-| `timestamp` | `number` | Creation timestamp |
-| `attemptsMade` | `number` | Number of attempts |
-| `stacktrace` | `string[]` | Error stacktraces |
-| `returnvalue` | `any` | Return value after completion |
-| `finishedOn` | `number &#124; undefined` | Completion timestamp |
-| `processedOn` | `number &#124; undefined` | Processing start timestamp |
-| `failedReason` | `string &#124; undefined` | Failure reason |
-| `dependencies` | `string[] &#124; undefined` | Dependency job IDs |
-
-### Methods
-
-```typescript
-// Refresh job data from Redis
-await job.refresh(): Promise<void>
-
-// Update progress (0-100)
-await job.updateProgress(progress: number): Promise<void>
-
 // Move to completed
 await job.moveToCompleted(returnvalue?: any): Promise<void>
 

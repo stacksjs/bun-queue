@@ -2,39 +2,6 @@
 title: Priority Queues
 description: Learn how to use priority queues to process jobs in priority order.
 ---
-  redis: { url: 'redis://localhost:6379' },
-  prefix: 'myapp',
-  limiter: {
-    max: 100,
-    duration: 60000
-  }
-})
-```
-
-## Getting Job Counts
-
-Get job counts across all priority levels:
-
-```typescript
-const counts = await taskQueue.getJobCounts()
-console.log(counts)
-// { waiting: 15, active: 3, completed: 100, failed: 2, delayed: 5, paused: 0 }
-```
-
-## Getting Jobs by Status
-
-Retrieve jobs from all priority levels:
-
-```typescript
-// Get all waiting jobs (from all priority levels)
-const waitingJobs = await taskQueue.getJobs('waiting')
-
-for (const job of waitingJobs) {
-  console.log(`Job ${job.id}: priority ${job.opts.priority}`)
-}
-```
-
-## Emergency Priority Jobs
 
 Add emergency jobs that bypass the normal queue:
 

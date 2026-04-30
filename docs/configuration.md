@@ -2,39 +2,6 @@
 title: Queue Configuration
 description: Configure bun-queue with various options for Redis, rate limiting, metrics, and more.
 ---
-
-```typescript
-const queue = new Queue('tasks', {
-  distributedLock: true // Enable distributed locks (default)
-})
-```
-
-## Dead Letter Queue
-
-Configure automatic dead letter queue handling:
-
-```typescript
-const queue = new Queue('tasks', {
-  defaultDeadLetterOptions: {
-    enabled: true,
-    queueSuffix: '-dead-letter', // Suffix for dead letter queue name
-    maxRetries: 3,               // Move to DLQ after 3 failures
-    removeFromOriginalQueue: true
-  }
-})
-```
-
-## Horizontal Scaling
-
-Configure horizontal scaling for distributed processing:
-
-```typescript
-const queue = new Queue('tasks', {
-  horizontalScaling: {
-    enabled: true,
-    instanceId: 'worker-1',        // Unique ID for this instance
-    maxWorkersPerInstance: 10,
-    jobsPerWorker: 10,
     leaderElection: {
       heartbeatInterval: 5000,
       leaderTimeout: 30000

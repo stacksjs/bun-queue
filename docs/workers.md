@@ -2,41 +2,6 @@
 title: Workers
 description: Learn how to process jobs with workers and handle concurrency.
 ---
-})
-```
-
-## Pausing and Resuming
-
-Control job processing:
-
-```typescript
-// Pause the queue - no new jobs will be processed
-await queue.pause()
-
-// Resume processing
-await queue.resume()
-```
-
-## Graceful Shutdown
-
-Stop processing gracefully:
-
-```typescript
-// Close the queue and wait for active jobs
-await queue.close()
-```
-
-## Processing Job Classes
-
-Use class-based jobs for better organization:
-
-```typescript
-import { Queue, JobContract } from 'bun-queue'
-
-// Define a job class
-class SendWelcomeEmailJob implements JobContract {
-  delay = 0
-  tries = 3
   timeout = 30000
   backoff = [1000, 2000, 4000]
 

@@ -2,38 +2,6 @@
 title: Usage
 description: Learn how to use bun-queue to create, process, and manage jobs.
 ---
-
-```typescript
-import { JobBase } from '@stacksjs/bun-queue'
-
-class SendWelcomeEmail extends JobBase {
-  tries = 3
-  timeout = 30000
-  backoff = [1000, 2000, 4000]
-
-  constructor(public email: string) {
-    super()
-  }
-
-  async handle() {
-    await sendEmail(this.email)
-  }
-
-  uniqueId() {
-    return `welcome-${this.email}`
-  }
-}
-
-// Dispatch
-await queue.dispatchJob(new SendWelcomeEmail('user@example.com'))
-
-// Process class-based jobs
-queue.processJobs(5)
-```
-
-## Dispatch Helpers
-
-```typescript
 import { dispatch, dispatchAfter, dispatchIf, chain, batch } from '@stacksjs/bun-queue'
 
 // Basic dispatch

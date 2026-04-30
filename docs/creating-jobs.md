@@ -2,43 +2,6 @@
 title: Creating Jobs
 description: Learn how to create and add jobs to the queue with various options.
 ---
-
-  for (let i = 0; i < items.length; i++) {
-    await processItem(items[i])
-
-    // Update progress (0-100)
-    await job.updateProgress(Math.round((i + 1) / items.length * 100))
-  }
-
-  return { processed: items.length }
-})
-```
-
-## Custom Job IDs
-
-Prevent duplicate jobs by using custom IDs:
-
-```typescript
-// This ensures only one job per user order
-await queue.add(
-  { orderId: 12345, action: 'process' },
-  { jobId: `order-${12345}` }
-)
-
-// Adding the same job ID again won't create a duplicate
-await queue.add(
-  { orderId: 12345, action: 'process' },
-  { jobId: `order-${12345}` }
-)
-```
-
-## Job Lifecycle Events
-
-Listen to job events:
-
-```typescript
-const queue = new Queue('tasks')
-
 // Listen to job events
 queue.events.on('jobAdded', (jobId, queueName) => {
   console.log(`Job ${jobId} added to ${queueName}`)

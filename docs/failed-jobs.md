@@ -2,41 +2,6 @@
 title: Failed Job Handling
 description: Learn how to handle, retry, and manage failed jobs.
 ---
-
-  // Log to external service
-  logToSentry(error, { jobId })
-})
-```
-
-## Error Handling in Workers
-
-Handle errors gracefully in your worker:
-
-```typescript
-queue.process(5, async (job) => {
-  try {
-    await riskyOperation(job.data)
-  } catch (error) {
-    // Log the error
-    console.error('Job failed:', error)
-
-    // Optionally add context before re-throwing
-    error.jobId = job.id
-    error.jobData = job.data
-
-    throw error  // Job will be marked as failed
-  }
-})
-```
-
-## Custom Failure Handling
-
-Implement custom failure handling:
-
-```typescript
-queue.process(5, async (job) => {
-  try {
-    return await processJob(job.data)
   } catch (error) {
     // Check if this is the last attempt
     const maxAttempts = job.opts.attempts || 1
