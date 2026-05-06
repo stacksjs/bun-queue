@@ -65,8 +65,8 @@
   },
   "devDependencies": {
     "@stacksjs/bunpress": "^0.1.4",
-    "@types/bun": "^1.3.11",
-    "better-dx": "^0.2.7"
+    "@types/bun": "^1.3.13",
+    "better-dx": "^0.2.12"
   },
   "git-hooks": {
     "pre-commit": {
