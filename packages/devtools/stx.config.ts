@@ -20,7 +20,7 @@ export default {
       bodyClass: 'bg-[#0a0a0f] text-zinc-50 leading-relaxed min-h-screen',
     },
   },
-  css: './crosswind.config.ts',
+  css: './config/crosswind.ts',
   router: {
     container: 'main',
   },
