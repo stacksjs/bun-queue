@@ -1,3 +1,123 @@
+[Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.0...v0.1.1)
+
+## 🚀 Features
+
+- add useHead page titles across all devtools pages ([e0f18a4](https://github.com/stacksjs/bun-queue/commit/e0f18a4)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: add EmptyState component for table/list empty states ([89f70b2](https://github.com/stacksjs/bun-queue/commit/89f70b2)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- use file-based dynamic routes for detail pages ([86857b2](https://github.com/stacksjs/bun-queue/commit/86857b2)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+
+## 🐛 Bug Fixes
+
+- **pkg**: resolve @stacksjs/bun-queue exports to built dist ([3a3e281](https://github.com/stacksjs/bun-queue/commit/3a3e281)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **scripts**: stop double-generating CHANGELOG on release ([8f0da90](https://github.com/stacksjs/bun-queue/commit/8f0da90)) _(by Glenn Michael Torregosa <gtorregosa@gmail.com>)_
+- restore docs content deleted by pickier --fix ([7bcaab8](https://github.com/stacksjs/bun-queue/commit/7bcaab8)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- add setup-bun to publish-commit job ([d999f31](https://github.com/stacksjs/bun-queue/commit/d999f31)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- resolve lint errors ([b47e7c8](https://github.com/stacksjs/bun-queue/commit/b47e7c8)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- make store exports callable (Pinia composable pattern) ([ceddd5d](https://github.com/stacksjs/bun-queue/commit/ceddd5d)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- use @/ import paths for functions (not relative) ([ac213f0](https://github.com/stacksjs/bun-queue/commit/ac213f0)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- scan partials and components in crosswind config ([a61d48e](https://github.com/stacksjs/bun-queue/commit/a61d48e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: update crosswind content path to pages/ ([52263f8](https://github.com/stacksjs/bun-queue/commit/52263f8)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- chain pantry publish:commit calls for single-arg CLI ([75d53da](https://github.com/stacksjs/bun-queue/commit/75d53da)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: use :show and :if instead of @show and @if ([bc01844](https://github.com/stacksjs/bun-queue/commit/bc01844)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: use @if directive instead of :if for conditionals ([b4fea1f](https://github.com/stacksjs/bun-queue/commit/b4fea1f)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- restructure devtools to root-level dirs and fix SPA navigation ([ae736b6](https://github.com/stacksjs/bun-queue/commit/ae736b6)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: use @show directive instead of :show for visibility ([c37b22d](https://github.com/stacksjs/bun-queue/commit/c37b22d)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: guard canvas ref access for Chart.js pages ([897c227](https://github.com/stacksjs/bun-queue/commit/897c227)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- Bun Redis client compatibility — replace MULTI/EXEC with Lua EVAL ([33d6eb7](https://github.com/stacksjs/bun-queue/commit/33d6eb7)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- sidebar active link highlighting and scoped nav management ([7bc9e58](https://github.com/stacksjs/bun-queue/commit/7bc9e58)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+
+## ♻️ Code Refactoring
+
+- replace inline fetch with shared stores ([71e3149](https://github.com/stacksjs/bun-queue/commit/71e3149)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- extract shared logic into functions/ and stores/ ([de5e211](https://github.com/stacksjs/bun-queue/commit/de5e211)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- replace data-stx-link with StxLink component ([bde86ef](https://github.com/stacksjs/bun-queue/commit/bde86ef)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- move router config to stx.config.ts, remove @stxRouter directive ([95970c0](https://github.com/stacksjs/bun-queue/commit/95970c0)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- remove HTML boilerplate from layouts — use auto-shell ([0be539f](https://github.com/stacksjs/bun-queue/commit/0be539f)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: use stx serveApp() for full SPA pipeline ([fca3189](https://github.com/stacksjs/bun-queue/commit/fca3189)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: migrate to @extends + @stxRouter SPA pattern ([f35caeb](https://github.com/stacksjs/bun-queue/commit/f35caeb)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: migrate to stx v2 app shell for SPA navigation ([3ae9d71](https://github.com/stacksjs/bun-queue/commit/3ae9d71)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: replace <a> tags with <StxLink> for router-managed navigation ([407959d](https://github.com/stacksjs/bun-queue/commit/407959d)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **devtools**: extract shared functions into src/functions/ to eliminate duplication ([404d71a](https://github.com/stacksjs/bun-queue/commit/404d71a)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+
+## 📚 Documentation
+
+- rewrite placeholder docs and add comprehensive API reference ([982bc81](https://github.com/stacksjs/bun-queue/commit/982bc81)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+
+## 🤖 Continuous Integration
+
+- **buddy-bot**: add daily cleanup cron to workflow ([8644827](https://github.com/stacksjs/bun-queue/commit/8644827)) _(by Glenn Michael Torregosa <gtorregosa@gmail.com>)_
+- **buddy-bot**: regenerate workflow from current template ([9d24e71](https://github.com/stacksjs/bun-queue/commit/9d24e71)) _(by Glenn Michael Torregosa <gtorregosa@gmail.com>)_
+- drop redundant setup-bun (pantry installs bun via deps.yaml) ([31a431d](https://github.com/stacksjs/bun-queue/commit/31a431d)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+
+## 🧹 Chores
+
+- release v0.1.1 ([d2b92f2](https://github.com/stacksjs/bun-queue/commit/d2b92f2)) _(by Chris <chrisbreuer93@gmail.com>)_
+- upgrade to TypeScript 7 ([ed35015](https://github.com/stacksjs/bun-queue/commit/ed35015)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **config**: move stx.config.ts to config/stx.ts ([bd7c223](https://github.com/stacksjs/bun-queue/commit/bd7c223)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **config**: move crosswind.config.ts to config/crosswind.ts ([c305813](https://github.com/stacksjs/bun-queue/commit/c305813)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: upgrade @cwcss/crosswind to 0.2.6 ([76b8b30](https://github.com/stacksjs/bun-queue/commit/76b8b30)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: refresh bun.lock to pick up pickier 0.1.35 ([ed58d55](https://github.com/stacksjs/bun-queue/commit/ed58d55)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: refresh bun.lock to pick up pickier 0.1.33 ([b86627a](https://github.com/stacksjs/bun-queue/commit/b86627a)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: refresh bun.lock to pick up @stacksjs/logsmith 0.2.3 ([1ef47d8](https://github.com/stacksjs/bun-queue/commit/1ef47d8)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: refresh bun.lock to pick up buddy-bot 0.9.20 ([eae9cec](https://github.com/stacksjs/bun-queue/commit/eae9cec)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: bump better-dx to ^0.2.15 ([2e26491](https://github.com/stacksjs/bun-queue/commit/2e26491)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- switch lint scripts from eslint to pickier ([9289923](https://github.com/stacksjs/bun-queue/commit/9289923)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- refresh bun.lock to pick up bun-plugin-dtsx@0.9.18 ([39d33ac](https://github.com/stacksjs/bun-queue/commit/39d33ac)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- refresh bun.lock and apply pickier --fix ([01e0448](https://github.com/stacksjs/bun-queue/commit/01e0448)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- refresh bun.lock ([79b202b](https://github.com/stacksjs/bun-queue/commit/79b202b)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- refresh bun.lock to pick up latest pickier ([27ca53a](https://github.com/stacksjs/bun-queue/commit/27ca53a)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([4fda0ba](https://github.com/stacksjs/bun-queue/commit/4fda0ba)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- fresh install to pick up dtsx 0.9.14 and bunfig 0.15.9 ([cd5b52e](https://github.com/stacksjs/bun-queue/commit/cd5b52e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- fresh install to pick up pickier 0.1.21 ([2e5ffb7](https://github.com/stacksjs/bun-queue/commit/2e5ffb7)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- gitignore pantry directory ([9617b07](https://github.com/stacksjs/bun-queue/commit/9617b07)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- minor updates ([3db5ed8](https://github.com/stacksjs/bun-queue/commit/3db5ed8)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- fix lint errors ([3ba0d8b](https://github.com/stacksjs/bun-queue/commit/3ba0d8b)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- minor updates ([5d6947e](https://github.com/stacksjs/bun-queue/commit/5d6947e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- add css config path to stx.config.ts ([77b1ba1](https://github.com/stacksjs/bun-queue/commit/77b1ba1)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- add stx runtime type declarations ([70d86d3](https://github.com/stacksjs/bun-queue/commit/70d86d3)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update all non-major dependencies (rebased) (#750) ([7981bfb](https://github.com/stacksjs/bun-queue/commit/7981bfb)) _(by [github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>](https://github.com/github-actions[bot]))_ ([#750](https://github.com/stacksjs/bun-queue/issues/750), [#750](https://github.com/stacksjs/bun-queue/issues/750))
+- gitignore .output and .stx build artifacts ([325fb94](https://github.com/stacksjs/bun-queue/commit/325fb94)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([22514ce](https://github.com/stacksjs/bun-queue/commit/22514ce)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- fix lint errors ([93d529a](https://github.com/stacksjs/bun-queue/commit/93d529a)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- repo cleanup and modernization ([133ea09](https://github.com/stacksjs/bun-queue/commit/133ea09)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- use Pantry action for publish-commit and add job dependencies ([ee5f3db](https://github.com/stacksjs/bun-queue/commit/ee5f3db)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **deps**: update all non-major dependencies (rebased) (#749) ([769198c](https://github.com/stacksjs/bun-queue/commit/769198c)) _(by [github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>](https://github.com/github-actions[bot]))_ ([#749](https://github.com/stacksjs/bun-queue/issues/749), [#749](https://github.com/stacksjs/bun-queue/issues/749))
+- wip ([bb5511b](https://github.com/stacksjs/bun-queue/commit/bb5511b)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([804036d](https://github.com/stacksjs/bun-queue/commit/804036d)) _(by Chris <chrisbreuer93@gmail.com>)_
+- wip ([3592d4b](https://github.com/stacksjs/bun-queue/commit/3592d4b)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- fix lint warnings ([fe7ddff](https://github.com/stacksjs/bun-queue/commit/fe7ddff)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- fix lint warnings ([12b664f](https://github.com/stacksjs/bun-queue/commit/12b664f)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- remove .pickierignore ([879a97e](https://github.com/stacksjs/bun-queue/commit/879a97e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- update better-dx to ^0.2.7 ([f70b24c](https://github.com/stacksjs/bun-queue/commit/f70b24c)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- update CLAUDE.md with project context and crosswind details ([97dc4dd](https://github.com/stacksjs/bun-queue/commit/97dc4dd)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- add proper claude code guidelines ([234cf64](https://github.com/stacksjs/bun-queue/commit/234cf64)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- use pantry monorepo action instead of pantry-setup ([78eb523](https://github.com/stacksjs/bun-queue/commit/78eb523)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- ignore claude config in linter ([e581187](https://github.com/stacksjs/bun-queue/commit/e581187)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- add claude code guidelines ([bf8ae85](https://github.com/stacksjs/bun-queue/commit/bf8ae85)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([52bc411](https://github.com/stacksjs/bun-queue/commit/52bc411)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([032a98b](https://github.com/stacksjs/bun-queue/commit/032a98b)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: update all non-major dependencies (rebased) (#748) ([119c710](https://github.com/stacksjs/bun-queue/commit/119c710)) _(by [github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>](https://github.com/github-actions[bot]))_ ([#748](https://github.com/stacksjs/bun-queue/issues/748), [#748](https://github.com/stacksjs/bun-queue/issues/748))
+- wip ([a5e1f6d](https://github.com/stacksjs/bun-queue/commit/a5e1f6d)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([8335bc1](https://github.com/stacksjs/bun-queue/commit/8335bc1)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([4dc8ad1](https://github.com/stacksjs/bun-queue/commit/4dc8ad1)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([095a06c](https://github.com/stacksjs/bun-queue/commit/095a06c)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([948c459](https://github.com/stacksjs/bun-queue/commit/948c459)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([4239b10](https://github.com/stacksjs/bun-queue/commit/4239b10)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([291da0b](https://github.com/stacksjs/bun-queue/commit/291da0b)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([98dcb35](https://github.com/stacksjs/bun-queue/commit/98dcb35)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([f5f1238](https://github.com/stacksjs/bun-queue/commit/f5f1238)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([0defec8](https://github.com/stacksjs/bun-queue/commit/0defec8)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([45b798e](https://github.com/stacksjs/bun-queue/commit/45b798e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([9764184](https://github.com/stacksjs/bun-queue/commit/9764184)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([47274a6](https://github.com/stacksjs/bun-queue/commit/47274a6)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- wip ([051514a](https://github.com/stacksjs/bun-queue/commit/051514a)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+- _Glenn Michael Torregosa <gtorregosa@gmail.com>_
+- _glennmichael123 <gtorregosa@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.0.1...v0.1.0)
 
 ### 🧹 Chores
