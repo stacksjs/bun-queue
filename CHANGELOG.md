@@ -1,3 +1,22 @@
+[Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.1...v0.1.2)
+
+## 🐛 Bug Fixes
+
+- **build**: emit flat dist/index.js and minify library bundle ([808ebae](https://github.com/stacksjs/bun-queue/commit/808ebae)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **pkg**: resolve @stacksjs/bun-queue exports to built dist ([7c24a31](https://github.com/stacksjs/bun-queue/commit/7c24a31)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🧹 Chores
+
+- release v0.1.2 ([2cb8e3d](https://github.com/stacksjs/bun-queue/commit/2cb8e3d)) _(by Chris <chrisbreuer93@gmail.com>)_
+- upgrade to TypeScript 7 ([a2eec91](https://github.com/stacksjs/bun-queue/commit/a2eec91)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **deps**: refresh bun.lock to pick up pickier 0.1.37 ([245729e](https://github.com/stacksjs/bun-queue/commit/245729e)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+- **deps**: bump stx and ts-cloud packages to latest ([0a17439](https://github.com/stacksjs/bun-queue/commit/0a17439)) _(by glennmichael123 <gtorregosa@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+- _glennmichael123 <gtorregosa@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.0.1...v0.1.0)
 
 ### 🧹 Chores
