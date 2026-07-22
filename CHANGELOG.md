@@ -1,3 +1,17 @@
+[Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.3...v0.1.4)
+
+## 🐛 Bug Fixes
+
+- **ci**: typecheck package verification before build ([7923c74](https://github.com/stacksjs/bun-queue/commit/7923c74)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🧹 Chores
+
+- release v0.1.4 ([963d4cd](https://github.com/stacksjs/bun-queue/commit/963d4cd)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.2...v0.1.3)
 
 ## 🐛 Bug Fixes
