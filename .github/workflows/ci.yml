@@ -63,6 +63,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis:7.4.5-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
     steps:
       - uses: actions/checkout@v6
 
@@ -82,6 +93,13 @@ jobs:
 
       - name: Unit Test
         run: bun test
+        env:
+          REDIS_URL: redis://127.0.0.1:6379/0
+
+      - name: Verify published Redis artifact
+        run: bun run verify:package
+        env:
+          REDIS_URL: redis://127.0.0.1:6379/0
 
   publish-commit:
     needs: [lint, typecheck, test]
