@@ -55,7 +55,7 @@
     "zip:darwin-x64": "zip -j bin/queue-darwin-x64.zip bin/queue-darwin-x64",
     "zip:darwin-arm64": "zip -j bin/queue-darwin-arm64.zip bin/queue-darwin-arm64",
     "fresh": "bunx rimraf node_modules/ bun.lock && bun i",
-    "prepublishOnly": "bun --bun run build && bun run compile:all && bun run zip",
+    "prepublishOnly": "bun --bun build.ts",
     "test": "bun test",
     "lint": "bunx --bun pickier .",
     "lint:fix": "bunx --bun pickier . --fix",
