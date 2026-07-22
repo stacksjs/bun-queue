@@ -1,3 +1,19 @@
+[Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.2...v0.1.3)
+
+## 🐛 Bug Fixes
+
+- **build**: publish Redis command assets ([e20745a](https://github.com/stacksjs/bun-queue/commit/e20745a)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **queue**: make initialization and shutdown deterministic ([484afc8](https://github.com/stacksjs/bun-queue/commit/484afc8)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🧹 Chores
+
+- release v0.1.3 ([47314cb](https://github.com/stacksjs/bun-queue/commit/47314cb)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **deps**: declare bun ^1.3.14 in deps.yaml ([84a72b7](https://github.com/stacksjs/bun-queue/commit/84a72b7)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.1...v0.1.2)
 
 ## 🐛 Bug Fixes
