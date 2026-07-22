@@ -1,9 +1,12 @@
 import { dts } from 'bun-plugin-dtsx'
 import { cpSync, rmSync, statSync } from 'node:fs'
 
+const packageOutput = 'packages/bun-queue/dist'
+rmSync(packageOutput, { recursive: true, force: true })
+
 await Bun.build({
   entrypoints: ['packages/bun-queue/src/index.ts'],
-  outdir: './dist',
+  outdir: packageOutput,
   target: 'bun',
   plugins: [dts({
     build: {
@@ -15,7 +18,7 @@ await Bun.build({
 })
 
 const commandSource = 'packages/bun-queue/src/commands'
-const commandOutput = 'dist/commands'
+const commandOutput = `${packageOutput}/commands`
 rmSync(commandOutput, { recursive: true, force: true })
 cpSync(commandSource, commandOutput, {
   recursive: true,
