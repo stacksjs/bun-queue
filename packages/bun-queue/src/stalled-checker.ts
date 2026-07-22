@@ -26,11 +26,12 @@ class StalledJobChecker {
 
     this.logger.info(`Starting stalled job checker for queue ${this.queue.name}`)
 
-    // Run check immediately
-    this.checkStalledJobs()
-
-    // Schedule periodic checks
-    this.timer = setInterval(() => this.checkStalledJobs(), this.interval)
+    // Schedule the first check after one interval. Starting an untracked
+    // asynchronous check here lets close() shut Redis down underneath it,
+    // which keeps reconnect timers alive after an otherwise clean shutdown.
+    this.timer = setInterval(() => {
+      if (this.running) void this.checkStalledJobs()
+    }, this.interval)
   }
 
   /**

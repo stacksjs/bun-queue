@@ -43,6 +43,9 @@ export class Queue<T = any> {
   private workCoordinator: WorkCoordinator | null = null
   private instanceId: string
   private horizontalScalingEnabled: boolean = false
+  private initialization: Promise<void>
+  private initializationError: Error | null = null
+  private closed = false
 
   // Enhanced job class functionality
   private jobProcessor: JobProcessor
@@ -78,8 +81,6 @@ export class Queue<T = any> {
 
     if (stalledJobCheckInterval) {
       this.stalledChecker = new StalledJobChecker(this, stalledJobCheckInterval, maxStalledJobRetries)
-      this.stalledChecker.start()
-      this.logger.debug(`Stalled job checker started for queue ${name}`)
     }
 
     // Initialize rate limiter if provided
@@ -98,9 +99,6 @@ export class Queue<T = any> {
     this.cronScheduler = new CronScheduler(this)
     this.logger.debug(`Cron scheduler initialized for queue ${name}`)
 
-    // Initialize scripts
-    this.init()
-
     this.defaultDeadLetterOptions = options?.defaultDeadLetterOptions
 
     // Initialize dead letter queue if enabled by default
@@ -114,6 +112,10 @@ export class Queue<T = any> {
       this.horizontalScalingEnabled = true
       this.initializeHorizontalScaling(options)
     }
+
+    // Initialization is observable and awaited by health checks, job writes,
+    // and close(). This prevents a late script load from racing shutdown.
+    this.initialization = this.init()
   }
 
   /**
@@ -177,13 +179,25 @@ export class Queue<T = any> {
     try {
       const commandsDir = `${import.meta.dir}/commands`
       await scriptLoader.load(this.redisClient, commandsDir)
+      if (this.closed) return
+      if (this.stalledChecker) {
+        this.stalledChecker.start()
+        this.logger.debug(`Stalled job checker started for queue ${this.name}`)
+      }
       this.events.emitReady()
       this.logger.info(`Queue ${this.name} initialized successfully`)
     }
     catch (err) {
-      this.logger.error(`Error initializing queue ${this.name}: ${(err as Error).message}`)
-      this.events.emitError(err as Error)
+      this.initializationError = err as Error
+      this.logger.error(`Error initializing queue ${this.name}: ${this.initializationError.message}`)
+      this.events.emitError(this.initializationError)
     }
+  }
+
+  private async ensureReady(): Promise<void> {
+    await this.initialization
+    if (this.initializationError) throw this.initializationError
+    if (this.closed) throw new Error(`Queue ${this.name} is closed`)
   }
 
   /**
@@ -191,6 +205,7 @@ export class Queue<T = any> {
    */
   async add(data: T, options?: JobOptions): Promise<Job<T>> {
     try {
+      await this.ensureReady()
       // Check rate limit if configured
       if (this.limiter) {
         // If we have keyPrefix in the limiter, check rate limit based on data
@@ -386,6 +401,8 @@ export class Queue<T = any> {
    */
   async close(): Promise<void> {
     try {
+      this.closed = true
+      await this.initialization
       // Stop horizontal scaling components if enabled
       if (this.horizontalScalingEnabled) {
         if (this._horizontalScalingInterval) {
@@ -412,12 +429,17 @@ export class Queue<T = any> {
         this.cleanupService = null
       }
 
+      if (this.metrics) {
+        this.metrics.stop()
+        this.metrics = null
+      }
+
       if (this.stalledChecker) {
         this.stalledChecker.stop()
         this.stalledChecker = null
       }
 
-      this.redisClient.close()
+      if (this.redisClient.connected) this.redisClient.close()
       this.logger.info(`Queue ${this.name} closed`)
     }
     catch (err) {
@@ -691,6 +713,7 @@ export class Queue<T = any> {
    */
   async ping(): Promise<boolean> {
     try {
+      await this.ensureReady()
       const response = await this.redisClient.send('PING', [])
       return response === 'PONG'
     }

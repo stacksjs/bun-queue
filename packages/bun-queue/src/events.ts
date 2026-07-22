@@ -88,7 +88,10 @@ class JobEvents extends EventEmitter {
    */
   emitError(error: Error): void {
     this.logger.error(`Queue ${this.queueName} error: ${error.message}`)
-    this.emit('error', error)
+    // EventEmitter throws an uncaught exception for an unhandled `error`
+    // event. Queue initialization already records and surfaces this failure
+    // through its readiness/health APIs, so notify only registered listeners.
+    if (this.listenerCount('error') > 0) this.emit('error', error)
   }
 
   /**
