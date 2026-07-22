@@ -7,7 +7,8 @@ const commandDir = resolve(import.meta.dir, '../dist/commands')
 if (!existsSync(resolve(commandDir, 'addStandardJob-8.lua')) || !existsSync(resolve(commandDir, 'includes/storeJob.lua')))
   throw new Error('Published dist is missing Redis command assets')
 
-const { Queue } = await import('../dist/index.js')
+const artifactUrl = new URL('../dist/index.js', import.meta.url).href
+const { Queue } = await import(artifactUrl)
 const queue = new Queue(`published-contract-${process.pid}`, {
   driver: 'redis',
   redis: { url: process.env.REDIS_URL || 'redis://127.0.0.1:6379/0' },
