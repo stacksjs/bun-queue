@@ -1,3 +1,17 @@
+[Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.5...v0.1.6)
+
+## 🐛 Bug Fixes
+
+- **publish**: retain Redis command assets ([b1d56a8](https://github.com/stacksjs/bun-queue/commit/b1d56a8)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🧹 Chores
+
+- release v0.1.6 ([52e2bc4](https://github.com/stacksjs/bun-queue/commit/52e2bc4)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.4...v0.1.5)
 
 ## 🐛 Bug Fixes
