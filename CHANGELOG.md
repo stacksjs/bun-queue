@@ -1,3 +1,17 @@
+[Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.4...v0.1.5)
+
+## 🐛 Bug Fixes
+
+- **build**: target the publishable workspace ([a9d3925](https://github.com/stacksjs/bun-queue/commit/a9d3925)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🧹 Chores
+
+- release v0.1.5 ([b89f284](https://github.com/stacksjs/bun-queue/commit/b89f284)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.3...v0.1.4)
 
 ## 🐛 Bug Fixes

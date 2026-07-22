@@ -1,7 +1,7 @@
 {
   "name": "@stacksjs/bun-queue",
   "type": "module",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "private": true,
   "description": "A Redis-backed job queue built for Bun.",
   "author": "Chris Breuer <chris@stacksjs.org>",
