@@ -1,3 +1,17 @@
+[Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.6...v0.1.7)
+
+## 🐛 Bug Fixes
+
+- **release**: decouple npm and native artifacts ([53fa759](https://github.com/stacksjs/bun-queue/commit/53fa759)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🧹 Chores
+
+- release v0.1.7 ([93237ec](https://github.com/stacksjs/bun-queue/commit/93237ec)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.5...v0.1.6)
 
 ## 🐛 Bug Fixes
