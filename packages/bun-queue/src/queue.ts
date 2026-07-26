@@ -1031,7 +1031,7 @@ export class Queue<T = any> {
       delay: job.delay,
       attempts: job.tries,
       timeout: job.timeout,
-      backoff: job.backoff ? { type: 'fixed', delay: job.backoff[0] } : undefined,
+      backoff: job.backoff,
       jobId: job.uniqueId?.(),
       removeOnComplete: true,
       removeOnFail: false,
@@ -1078,7 +1078,7 @@ export class Queue<T = any> {
         delay: job.delay,
         attempts: job.tries,
         timeout: job.timeout,
-        backoff: job.backoff ? { type: 'fixed', delay: job.backoff[0] } : undefined,
+        backoff: job.backoff,
         jobId: job.uniqueId?.() ? `${batchId}_${job.uniqueId()}` : undefined,
       }
 

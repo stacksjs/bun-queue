@@ -1,5 +1,6 @@
 import type { Job } from './job'
 import type { Queue } from './queue'
+import { backoffDelay } from './utils'
 
 export class Worker<T = any> {
   queue: Queue<T>
@@ -200,15 +201,7 @@ export class Worker<T = any> {
 
         if (job.attemptsMade < maxAttempts) {
           // Calculate delay for retry based on backoff strategy
-          let delay = 0
-          if (job.opts.backoff) {
-            if (job.opts.backoff.type === 'fixed') {
-              delay = job.opts.backoff.delay
-            }
-            else if (job.opts.backoff.type === 'exponential') {
-              delay = job.opts.backoff.delay * 2 ** (job.attemptsMade - 1)
-            }
-          }
+          const delay = backoffDelay(job.opts.backoff, job.attemptsMade)
 
           if (delay > 0) {
             // Add to delayed set

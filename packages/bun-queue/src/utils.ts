@@ -1,4 +1,4 @@
-import type { JobOptions, QueueConfig } from './types'
+import type { BackoffOptions, JobOptions, QueueConfig } from './types'
 import { RedisClient } from 'bun'
 import process from 'node:process'
 import { config } from './config'
@@ -32,6 +32,34 @@ export function mergeOptions(options?: JobOptions): JobOptions {
     ...config.defaultJobOptions,
     ...options,
   }
+}
+
+/**
+ * Resolves a backoff setting into the delay, in milliseconds, to wait before
+ * the next attempt.
+ *
+ * `attemptsMade` is the number of attempts that have already failed, so it is
+ * 1 when the first attempt has just failed. An explicit per-attempt array is
+ * indexed by that attempt (`backoff[attemptsMade - 1]`) and clamps to its last
+ * entry once the schedule runs out, which is what makes `[1000, 5000]` mean
+ * "1s, then 5s from here on" rather than "1s, 5s, then no wait at all".
+ */
+export function backoffDelay(backoff: BackoffOptions | undefined, attemptsMade: number): number {
+  if (!backoff)
+    return 0
+
+  if (Array.isArray(backoff)) {
+    if (backoff.length === 0)
+      return 0
+
+    const index = Math.min(Math.max(attemptsMade - 1, 0), backoff.length - 1)
+    return Number(backoff[index]) || 0
+  }
+
+  if (backoff.type === 'exponential')
+    return backoff.delay * 2 ** Math.max(attemptsMade - 1, 0)
+
+  return backoff.delay
 }
 
 /**

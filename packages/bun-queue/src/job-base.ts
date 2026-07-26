@@ -92,7 +92,7 @@ export abstract class JobBase implements JobContract, Queueable, Dispatchable, I
       delay: this.delay,
       attempts: this.tries,
       timeout: this.timeout,
-      backoff: this.backoff ? { type: 'fixed', delay: this.backoff[0] } : undefined,
+      backoff: this.backoff,
       jobId: this.uniqueId?.(),
     }
 

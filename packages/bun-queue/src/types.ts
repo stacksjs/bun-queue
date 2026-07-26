@@ -60,13 +60,29 @@ export type { RedisClient }
 
 export type JobStatus = 'waiting' | 'active' | 'completed' | 'failed' | 'delayed' | 'paused'
 
-export interface JobOptions {
-  delay?: number
-  attempts?: number
-  backoff?: {
+/**
+ * Retry backoff, in milliseconds.
+ *
+ * The object form describes a strategy: `fixed` waits `delay` before every
+ * retry, `exponential` doubles it each attempt (`delay * 2 ** (n - 1)`).
+ *
+ * The array form gives an explicit per-attempt schedule — `[1000, 5000, 30000]`
+ * waits 1s after the first failure, 5s after the second, and 30s after the
+ * third and every one after it. This is what job classes express through
+ * `withBackoff()`, and it is accepted here so the same schedule survives a
+ * plain `queue.add()`.
+ */
+export type BackoffOptions =
+  | {
     type: 'fixed' | 'exponential'
     delay: number
   }
+  | number[]
+
+export interface JobOptions {
+  delay?: number
+  attempts?: number
+  backoff?: BackoffOptions
   removeOnComplete?: boolean | number
   removeOnFail?: boolean | number
   priority?: number

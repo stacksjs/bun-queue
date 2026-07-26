@@ -50,10 +50,9 @@ await queue.add(
 interface JobOptions {
   delay?: number              // Delay before processing (ms)
   attempts?: number           // Max retry attempts
-  backoff?: {
-    type: 'fixed' | 'exponential'
-    delay: number             // Base delay in ms
-  }
+  backoff?:                   // Retry backoff, in ms
+    | { type: 'fixed' | 'exponential', delay: number }
+    | number[]                // Explicit per-attempt schedule
   removeOnComplete?: boolean | number  // Remove after completion (or keep N jobs)
   removeOnFail?: boolean | number      // Remove after failure (or keep N jobs)
   priority?: number           // Higher = processed first
@@ -122,7 +121,21 @@ await queue.add(
     }
   }
 )
+
+// Explicit schedule: 1s, then 5s, then 30s for every attempt after that.
+// A schedule shorter than `attempts` clamps to its last entry rather than
+// dropping to no wait at all.
+await queue.add(
+  { task: 'api-call' },
+  {
+    attempts: 5,
+    backoff: [1000, 5000, 30000]
+  }
+)
 ```
+
+This is the same schedule a job class declares with `withBackoff()`, so a job
+class dispatched through a plain `queue.add()` keeps its full retry timing.
 
 ## Job Management
 
