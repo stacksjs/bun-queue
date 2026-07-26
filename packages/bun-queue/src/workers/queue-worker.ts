@@ -4,6 +4,7 @@ import type { QueueManagerConfig } from '../types'
 import process from 'node:process'
 import { FailedJobManager } from '../failed'
 import { createLogger } from '../logger'
+import { backoffDelay } from '../utils'
 
 export interface WorkerOptions {
   name?: string
@@ -307,10 +308,12 @@ export class QueueWorker {
 
     if (this.isJobClass(jobData) && jobData.job.backoff) {
       const backoff = jobData.job.backoff
-      if (Array.isArray(backoff)) {
-        return (backoff[Math.min(queueJob.attemptsMade, backoff.length - 1)] as number) * 1000
-      }
-      return backoff * 1000
+      // `attemptsMade` has not been incremented for the attempt that just
+      // failed on this path, so shift it to the 1-based count backoffDelay
+      // expects. Entries are milliseconds, matching the `{ type, delay }`
+      // form — they used to be multiplied by 1000 here, which turned the
+      // documented `[1000, 2000, 4000]` into waits of 16 to 66 minutes.
+      return backoffDelay(Array.isArray(backoff) ? backoff : [backoff], queueJob.attemptsMade + 1)
     }
 
     // Default exponential backoff
