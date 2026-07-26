@@ -1,3 +1,22 @@
+[Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.7...v0.1.8)
+
+## 🐛 Bug Fixes
+
+- **worker**: treat job-class backoff entries as milliseconds ([d1fa98c](https://github.com/stacksjs/bun-queue/commit/d1fa98c)) _(by Chris <chrisbreuer93@gmail.com>)_
+- **backoff**: accept a per-attempt backoff schedule in JobOptions ([afc0982](https://github.com/stacksjs/bun-queue/commit/afc0982)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 📚 Documentation
+
+- link the community as stacksjs.com/discord ([214d73c](https://github.com/stacksjs/bun-queue/commit/214d73c)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## 🧹 Chores
+
+- release v0.1.8 ([ccfa6e1](https://github.com/stacksjs/bun-queue/commit/ccfa6e1)) _(by Chris <chrisbreuer93@gmail.com>)_
+
+## Contributors
+
+- _Chris <chrisbreuer93@gmail.com>_
+
 [Compare changes](https://github.com/stacksjs/bun-queue/compare/v0.1.6...v0.1.7)
 
 ## 🐛 Bug Fixes
