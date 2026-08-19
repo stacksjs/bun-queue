@@ -1,12 +1,19 @@
-import type { BunpressConfig } from 'bunpress'
+import type { BunPressConfig } from '@stacksjs/bunpress'
 
-const config: BunpressConfig = {
-  name: 'bun-queue',
+const config: BunPressConfig = {
+  title: 'bun-queue',
   description: 'A Redis-backed job queue built for Bun, inspired by Laravel and BullMQ.',
   url: 'https://bun-queue.stacksjs.org',
 
-  theme: {
-    primaryColor: '#EF4444',
+  themeConfig: {
+    socialLinks: [
+      { icon: 'github', link: 'https://github.com/stacksjs/bun-queue' },
+      { icon: 'discord', link: 'https://discord.gg/stacksjs' },
+      { icon: 'twitter', link: 'https://twitter.com/stacksjs' },
+    ],
+    colors: {
+      primary: '#EF4444',
+    },
   },
 
   nav: [
@@ -68,11 +75,6 @@ const config: BunpressConfig = {
     ['meta', { name: 'keywords', content: 'bun, queue, job queue, redis, worker, cron, typescript' }],
   ],
 
-  socialLinks: [
-    { icon: 'github', link: 'https://github.com/stacksjs/bun-queue' },
-    { icon: 'discord', link: 'https://discord.gg/stacksjs' },
-    { icon: 'twitter', link: 'https://twitter.com/stacksjs' },
-  ],
 }
 
 export default config
