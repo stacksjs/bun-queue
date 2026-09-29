@@ -63,7 +63,7 @@
     "example:distributed-locks": "bun examples/distributed-locks.ts",
     "example:cron-jobs": "bun examples/cron-jobs.ts",
     "example:dead-letter-queue": "bun examples/dead-letter-queue.ts",
-    "release:patch": "bunx --bun bumpx patch --recursive --commit --tag --push --yes"
+    "release:patch": "bunx --bun @stacksjs/bumpx patch --recursive --commit --tag --push --yes"
   },
   "devDependencies": {
     "@stacksjs/bumpx": "^0.2.17",
